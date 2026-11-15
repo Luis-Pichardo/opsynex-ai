@@ -111,4 +111,7 @@ tipografía y componentes uniformes.
 
 ## Estado actual
 
-> Pendiente (Etapa 00). Proyecto planificado; desarrollo no iniciado.
+Etapa 00 completada (15/11/2026): el repositorio tiene la estructura base del monorepo con
+el API .NET, el servicio de IA y el frontend funcionando, cada uno con su endpoint o pantalla
+de salud, pruebas automáticas, linters, imágenes Docker e integración continua. Todavía no
+hay lógica de negocio; la siguiente etapa crea la base de datos y los modelos (Etapa 01).
