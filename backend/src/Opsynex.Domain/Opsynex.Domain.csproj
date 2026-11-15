@@ -1,0 +1,3 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Dominio: entidades y motores puros. No depende de ningún otro proyecto ni paquete. -->
+</Project>
