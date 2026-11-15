@@ -1,5 +1,10 @@
 using System.Net;
 using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Opsynex.Infrastructure.Persistence;
+
+using Opsynex.IntegrationTests.Infrastructure;
 
 namespace Opsynex.IntegrationTests.Api;
 
@@ -18,9 +23,20 @@ public sealed class HealthEndpointTests(OpsynexApiFactory factory) : IClassFixtu
         using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
         json.RootElement.GetProperty("status").GetString().ShouldBe("Healthy");
         json.RootElement.GetProperty("service").GetString().ShouldBe("opsynex-api");
-        json.RootElement.GetProperty("checks").EnumerateArray()
-            .Select(c => c.GetProperty("name").GetString())
-            .ShouldContain("self");
+        var checks = json.RootElement.GetProperty("checks").EnumerateArray()
+            .ToDictionary(c => c.GetProperty("name").GetString()!, c => c.GetProperty("status").GetString());
+        checks["self"].ShouldBe("Healthy");
+        checks["database"].ShouldBe("Healthy");
+    }
+
+    [Fact]
+    public void Api_UsesTestDatabase()
+    {
+        using var scope = factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<OpsynexDbContext>();
+
+        // EF Core agrega "Application Name" al final de la cadena de SQL Server.
+        context.Database.GetConnectionString().ShouldStartWith(factory.Database.ConnectionString);
     }
 
     [Fact]
