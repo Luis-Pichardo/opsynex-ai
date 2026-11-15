@@ -8,7 +8,7 @@
 #
 # Qué hace:
 #   1. Instala el .NET 10 SDK si falta (apt de Ubuntu → repo de Microsoft → dotnet-install.sh).
-#   2. dotnet restore de backend/.
+#   2. dotnet restore y dotnet tool restore (dotnet-ef) de backend/.
 #   3. Crea ai-service/.venv con Python 3.12 e instala el servicio con extras dev.
 #   4. npm ci en frontend/.
 #   5. (--with-sql) arranca dockerd si no está corriendo y levanta el servicio sqlserver.
@@ -64,8 +64,8 @@ else
 fi
 
 # ---------------------------------------------------------------- 2. Backend
-log "2/5 dotnet restore (backend)"
-(cd "$ROOT_DIR/backend" && dotnet restore Opsynex.sln)
+log "2/5 dotnet restore y herramientas locales (backend)"
+(cd "$ROOT_DIR/backend" && dotnet restore Opsynex.sln && dotnet tool restore)
 
 # ---------------------------------------------------------------- 3. Servicio de IA
 log "3/5 Servicio de IA (Python 3.12)"
@@ -106,7 +106,8 @@ fi
 
 log "Listo. Comandos de verificación:"
 cat <<'EOF'
-  cd backend && dotnet build && dotnet test
+  cd backend && dotnet build && dotnet test      # pruebas de BD: SQL Server con Testcontainers (o SQLite sin Docker)
+  cd backend && dotnet ef database update -p src/Opsynex.Infrastructure -s src/Opsynex.Api
   cd ai-service && .venv/bin/pytest && .venv/bin/ruff check .
   cd frontend && npm run lint && npm test && npm run build
 EOF

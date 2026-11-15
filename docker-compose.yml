@@ -39,6 +39,7 @@ services:
     build: ./backend
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      Database__MigrateOnStartup: ${Database__MigrateOnStartup:-true}
       ConnectionStrings__Default: Server=sqlserver,1433;Database=Opsynex;User Id=sa;Password=${MSSQL_SA_PASSWORD:-Opsynex_Dev_2026!};TrustServerCertificate=True
       Jwt__Secret: ${Jwt__Secret:-cambia-este-secreto-de-desarrollo-de-al-menos-32-caracteres}
       Jwt__ExpireMinutes: ${Jwt__ExpireMinutes:-60}
