@@ -114,4 +114,8 @@ tipografía y componentes uniformes.
 Etapa 00 completada (15/11/2026): el repositorio tiene la estructura base del monorepo con
 el API .NET, el servicio de IA y el frontend funcionando, cada uno con su endpoint o pantalla
 de salud, pruebas automáticas, linters, imágenes Docker e integración continua. Todavía no
-hay lógica de negocio; la siguiente etapa crea la base de datos y los modelos (Etapa 01).
+hay lógica de negocio.
+
+Etapa 01 completada (15/11/2026): modelo de datos en SQL Server con EF Core (10 tablas,
+migración inicial, filtro por empresa, repositorios y pruebas contra SQL Server real). La
+siguiente etapa es la autenticación y los roles (Etapa 02).

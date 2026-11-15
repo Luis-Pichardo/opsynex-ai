@@ -3,4 +3,21 @@
 Alcance previsto: pruebas de API, validación de datos y pruebas de KPIs, más pruebas E2E del
 flujo completo.
 
-> Pendiente (Etapas 07, 10 y 12): estrategia, cobertura y checklist del MVP.
+### Base de datos en las pruebas (Etapa 01)
+
+Las pruebas de integración (`Opsynex.IntegrationTests`) comparten una base de datos por
+ejecución (`DatabaseFixture`):
+
+- **Con Docker** (local, CI y nube con `setup_cloud.sh --with-sql`): levanta **SQL Server 2022
+  real** con Testcontainers y aplica las migraciones. Es el modo por defecto.
+- **Sin Docker:** usa SQLite in-memory con el esquema creado desde el modelo. Las pruebas que
+  dependen de SQL Server (precisión decimal) se marcan como omitidas.
+- `OPSYNEX_TEST_DB=sqlserver` exige Docker; `OPSYNEX_TEST_DB=sqlite` fuerza SQLite.
+
+Cubren: crear y leer por empresa y año, filtro global por empresa, restricciones únicas
+(empresa+año, empresa+cuenta, correo), auditoría de fechas, columnas JSON, borrado en cascada
+y restricciones CHECK. Las pruebas unitarias verifican la configuración del modelo (índices
+únicos, precisión, enums como texto, columnas JSON, filtros) y que no haya cambios del modelo
+sin migración.
+
+> Pendiente (Etapas 07, 10 y 12): estrategia completa, cobertura y checklist del MVP.

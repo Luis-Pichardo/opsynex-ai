@@ -27,6 +27,9 @@ en `backend/src/Opsynex.Api`). Nunca subas secretos al repositorio.
 | `AiService__BaseUrl` | API | URL del servicio de IA | `http://localhost:8001` |
 | `AiService__ApiKey` | API | Clave interna compartida con el servicio de IA | valor aleatorio |
 | `Upload__MaxMb` | API | Tamaño máximo de archivo a cargar | `20` |
+| `Database__Provider` | API | `SqlServer` (normal) o `Sqlite` (solo pruebas) | `SqlServer` |
+| `Database__MigrateOnStartup` | API | Aplica migraciones al arrancar (`true` en Development) | `true` |
+| `OPSYNEX_TEST_DB` | Pruebas | Vacío = Testcontainers si hay Docker, si no SQLite; `sqlserver` o `sqlite` para forzar | (vacío) |
 | `AI_SERVICE_API_KEY` | IA | Misma clave que `AiService__ApiKey` | valor aleatorio |
 | `ANTHROPIC_API_KEY` | IA | Clave de la API de Claude (opcional hasta la Etapa 04) | `sk-ant-…` |
 | `ANTHROPIC_MODEL` | IA | Modelo de Claude | `claude-opus-5-5` |
@@ -36,8 +39,10 @@ en `backend/src/Opsynex.Api`). Nunca subas secretos al repositorio.
 ### Levantar el proyecto en local
 
 ```bash
-# 1. Base de datos (desde la Etapa 01)
+# 1. Base de datos
 docker compose up -d sqlserver
+cd backend && dotnet tool restore
+dotnet ef database update -p src/Opsynex.Infrastructure -s src/Opsynex.Api   # opcional: el API migra al arrancar en Development
 
 # 2. API .NET → http://localhost:5080 (documentación en /scalar, salud en /health)
 cd backend
@@ -64,6 +69,7 @@ Explorador de pruebas.
 
 ```bash
 cd backend && dotnet build -c Release && dotnet test         # Release: warnings = errores
+OPSYNEX_TEST_DB=sqlite dotnet test                            # sin Docker: SQLite in-memory
 cd ai-service && pytest && ruff check . && ruff format --check .
 cd frontend && npm run lint && npm test && npm run build
 ```
@@ -101,7 +107,7 @@ Qué hace:
 1. Instala el .NET 10 SDK con `apt-get install dotnet-sdk-10.0` (paquete de Ubuntu
    `noble-updates`); si no está disponible prueba el repositorio de Microsoft y, por último,
    `dotnet-install.sh`.
-2. `dotnet restore` de la solución.
+2. `dotnet restore` de la solución y `dotnet tool restore` (instala `dotnet-ef`).
 3. Crea `ai-service/.venv` con Python 3.12 e instala el servicio con los extras de desarrollo.
 4. `npm ci` en el frontend.
 5. Con `--with-sql`: arranca `dockerd` en segundo plano y `docker compose up -d sqlserver`,
