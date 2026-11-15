@@ -23,3 +23,12 @@ Thumbs.db
 .idea/
 # Word temporales
 ~$*.docx
+
+# .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+TestResults/
+*.trx
