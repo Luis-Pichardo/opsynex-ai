@@ -6,10 +6,24 @@
 
 | Capa | Tecnología |
 |---|---|
-| Backend | Python + FastAPI |
-| Base de datos | PostgreSQL |
-| Frontend | React + Tailwind CSS |
-| Hosting | AWS o GCP |
+| API principal | C# / ASP.NET Core (.NET 10), Entity Framework Core |
+| Base de datos | SQL Server |
+| Servicio de IA | Python + FastAPI, Claude (Anthropic), scikit-learn, rapidfuzz |
+| Frontend | React + TypeScript + Vite + Tailwind CSS + shadcn/ui + Recharts |
+| Hosting | Azure, AWS o GCP |
+
+### Componentes
+
+| Componente | Se comunica con | Cómo |
+|---|---|---|
+| Frontend (React) | API ASP.NET Core | HTTPS + token JWT |
+| API ASP.NET Core | SQL Server | Entity Framework Core |
+| API ASP.NET Core | Servicio de IA (Python) | HTTP interno con clave de servicio |
+| Servicio de IA | Claude (Anthropic) | API de Anthropic (solo datos agregados) |
+
+El API .NET concentra los datos, la seguridad y la lógica determinista (KPIs, reglas, impacto
+y score). El servicio de IA no tiene base de datos: recibe información agregada y devuelve
+sugerencias. Si el servicio de IA no está disponible, la plataforma sigue funcionando.
 
 > Pendiente (Etapa 00): versiones exactas, estructura de carpetas y diagrama de componentes.
 

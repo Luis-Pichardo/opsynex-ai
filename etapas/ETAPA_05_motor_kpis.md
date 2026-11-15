@@ -4,47 +4,47 @@
 
 ## Prompt
 
-> Implementa el motor de KPIs (secciones 8.3 y 9 de las especificaciones): cálculo automático,
-> almacenamiento histórico, normalización y evaluación de tendencias. Se debe ejecutar
-> automáticamente al consolidar datos y bajo demanda.
+> Implementa el motor de KPIs en C# (secciones 8.3 y 9 de las especificaciones): cálculo
+> automático, almacenamiento histórico, normalización y evaluación de tendencias. Se ejecuta
+> automáticamente al consolidar datos y también bajo demanda.
 
 ## Tareas
 
-1. `app/engines/kpis.py` (funciones puras, entrada = datos financieros + operacionales de un año):
+1. `Opsynex.Domain/Engines/KpiEngine.cs` (clase pura; entrada: datos financieros y
+   operacionales de un año):
    | KPI | Fórmula |
    |---|---|
-   | `ebitda_margin` | EBITDA / Revenue |
-   | `gross_margin` | (Revenue − COGS) / Revenue |
-   | `cost_efficiency` | Total Cost / Revenue |
-   | `revenue_per_employee` | Revenue / Number of Employees |
-   | `operating_cost_ratio` | Operating Expenses / Revenue |
-   | `overhead_ratio` | Overhead Cost / Revenue (auxiliar para diagnóstico) |
-   | `energy_cost_ratio` | Energy Cost / Revenue (auxiliar) |
-   | `cost_per_unit` | Total Cost / Units Produced (si hay datos operacionales) |
-   Devuelven `None` si falta un dato o el denominador es 0.
-2. **Tendencias**: para cada KPI, variación absoluta y porcentual año contra año, dirección
-   (`up`/`down`/`stable`, umbral configurable ±1 %) y si la dirección es favorable
-   (p. ej. bajar `cost_efficiency` es favorable). También crecimiento de revenue, total_cost y
-   overhead año a año (lo usa el diagnóstico).
-3. **Normalización**: convierte cada KPI a escala 0–100 con rangos de referencia configurables
-   por industria (`manufacturing`, `services`) en `app/engines/config/benchmarks.yaml`
-   (ej. EBITDA margin manufactura: 0 % → 0 pts, 20 % → 100 pts). Lo usa el score (Etapa 07).
-4. Agrega columnas a `kpi_results` si hacen falta (`operating_cost_ratio`, `overhead_ratio`,
-   `cost_per_unit`, `trends` JSON, `normalized` JSON) con migración.
-5. `app/services/analysis_pipeline.py`: orquestador `run_analysis(company_id)` que recalcula
-   KPIs de todos los años (y en etapas siguientes diagnóstico, impacto y score). Se llama al
-   consolidar y desde `POST /api/v1/analysis/run`.
-6. `GET /api/v1/kpis?year=` — KPIs por año con tendencias; sin `year` devuelve la serie histórica.
+   | `EbitdaMargin` | EBITDA / Revenue |
+   | `GrossMargin` | (Revenue − COGS) / Revenue |
+   | `CostEfficiency` | Total Cost / Revenue |
+   | `RevenuePerEmployee` | Revenue / Number of Employees |
+   | `OperatingCostRatio` | Operating Expenses / Revenue |
+   | `OverheadRatio` | Overhead Cost / Revenue (auxiliar para el diagnóstico) |
+   | `EnergyCostRatio` | Energy Cost / Revenue (auxiliar) |
+   | `CostPerUnit` | Total Cost / Units Produced (si hay datos operacionales) |
+   Devuelve `null` si falta un dato o el denominador es 0.
+2. **Tendencias** (`TrendAnalyzer`): para cada KPI, variación absoluta y porcentual año contra
+   año, dirección (`Up` / `Down` / `Stable`, con umbral configurable de ±1 %) y si es favorable
+   (bajar `CostEfficiency` es favorable). También el crecimiento año a año de Revenue, TotalCost
+   y Overhead, que usa el diagnóstico.
+3. **Normalización** a escala 0–100 con rangos de referencia por industria (`Manufacturing`,
+   `Services`) en `appsettings` (sección `Benchmarks`) con un objeto de opciones tipado. Por
+   ejemplo, margen EBITDA en manufactura: 0 % → 0 pts y 20 % → 100 pts. La usa el score (etapa 07).
+4. Agrega a `KpiResult` lo que haga falta (`OverheadRatio`, `CostPerUnit`, `Trends` JSON,
+   `Normalized` JSON) con su migración.
+5. `AnalysisPipeline` en Application: `RunAsync(companyId)` recalcula los KPIs de todos los años
+   (en las etapas siguientes también diagnóstico, impacto y score). Se llama al consolidar y
+   desde `POST /api/v1/analysis/run`.
+6. `GET /api/v1/kpis?year=`: KPIs del año con sus tendencias; sin `year` devuelve la serie histórica.
 
 ## Criterios de aceptación
 
-- [ ] Tests unitarios de cada fórmula, incluidos casos borde (cero, None, negativos).
-- [ ] Con `sample_data/`, los KPIs coinciden con valores calculados a mano en el test.
+- [ ] Tests unitarios (xUnit `[Theory]`) de cada fórmula, incluidos casos borde (cero, null y negativos).
+- [ ] Con `sample-data/`, los KPIs coinciden con valores calculados a mano en el test.
 - [ ] `GET /kpis` devuelve la serie 2022–2024 con tendencias.
 
 ## Documentación a actualizar
 
-- `05_motores_analiticos.md`: sección "Motor de KPIs" (tabla de fórmulas, interpretación,
-  tendencias, normalización y benchmarks).
-- `04_api.md`: `/kpis`, `/analysis/run`.
-- `12_bitacora.md`.
+- `05_motores_analiticos.md`: "Motor de KPIs" (fórmulas, interpretación, tendencias, normalización y benchmarks).
+- `04_api.md`: `/kpis` y `/analysis/run`.
+- `13_bitacora.md`.

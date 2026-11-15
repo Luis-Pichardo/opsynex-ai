@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guía visual Opsynex</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tokens.css">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--background); color: var(--foreground); font: 15px/24px var(--font-sans); }
+  .app { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
+  aside { background: var(--sidebar); color: var(--sidebar-foreground); padding: 20px 12px; }
+  .brand { font-weight: 700; font-size: 18px; padding: 4px 12px 20px; letter-spacing: -0.01em; }
+  .brand span { color: var(--sidebar-muted); font-weight: 500; }
+  .nav a { display: flex; gap: 10px; align-items: center; padding: 9px 12px; border-radius: var(--radius); color: var(--sidebar-muted); text-decoration: none; font-weight: 500; font-size: 14px; border-left: 3px solid transparent; }
+  .nav a.active { background: var(--sidebar-active); color: #fff; border-left-color: var(--primary); }
+  main { padding: 32px; max-width: 1200px; min-width: 0; }
+  header.top { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; }
+  h1 { font-size: 30px; line-height: 36px; font-weight: 600; margin: 0; letter-spacing: -0.01em; }
+  h2 { font-size: 22px; line-height: 28px; font-weight: 600; margin: 40px 0 12px; }
+  h3 { font-size: 18px; line-height: 26px; font-weight: 600; margin: 0; }
+  p.lead { color: var(--foreground-secondary); margin: 4px 0 0; }
+  .small { font-size: 13px; line-height: 20px; color: var(--foreground-secondary); }
+  .overline { font-size: 11px; line-height: 16px; letter-spacing: .06em; text-transform: uppercase; font-weight: 600; color: var(--foreground-secondary); }
+  .grid { display: grid; gap: 16px; }
+  .g4 { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+  .g8 { grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-sm); padding: 20px; min-width: 0; }
+  .sw { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--surface); }
+  .sw div:first-child { height: 56px; }
+  .sw div:last-child { padding: 8px 10px; font-size: 12px; line-height: 16px; }
+  .sw code { color: var(--foreground-secondary); font-family: var(--font-mono); font-size: 11px; }
+  .btn { height: 40px; padding: 0 16px; border-radius: var(--radius); font: 500 14px var(--font-sans); border: 1px solid transparent; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+  .btn:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+  .btn-primary { background: var(--primary); color: var(--primary-foreground); }
+  .btn-primary:hover { background: var(--primary-hover); }
+  .btn-secondary { background: var(--secondary); color: var(--secondary-foreground); }
+  .btn-outline { background: transparent; color: var(--foreground); border-color: var(--input); }
+  .btn-ghost { background: transparent; color: var(--primary-text); }
+  .btn-danger { background: var(--destructive); color: #fff; }
+  .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+  .badge { display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 8px; border-radius: var(--radius-sm); font-size: 12px; font-weight: 500; }
+  .b-crit { background: var(--critical-soft); color: var(--critical-text); }
+  .b-ser { background: var(--serious-soft); color: var(--serious-text); }
+  .b-warn { background: var(--warning-soft); color: var(--warning-text); }
+  .b-good { background: var(--good-soft); color: var(--good-text); }
+  .b-info { background: var(--info-soft); color: var(--info-text); }
+  .kpi { font-size: 28px; line-height: 34px; font-weight: 600; font-variant-numeric: tabular-nums; margin: 6px 0 4px; }
+  .delta { font-size: 13px; font-weight: 500; display: inline-flex; gap: 4px; align-items: center; font-variant-numeric: tabular-nums; }
+  .up-good { color: var(--good-text); } .bad { color: var(--critical-text); } .flat { color: var(--foreground-secondary); }
+  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  th { text-align: left; background: var(--surface-muted); padding: 10px 12px; }
+  td { padding: 12px; border-top: 1px solid var(--border); }
+  td.num, th.num { text-align: right; }
+  tr:hover td { background: var(--surface-muted); }
+  .typo div { display: flex; gap: 16px; align-items: baseline; padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .typo code { width: 120px; flex: none; font-family: var(--font-mono); font-size: 12px; color: var(--foreground-muted); }
+  .score-wrap { display: flex; gap: 24px; align-items: center; flex-wrap: wrap; }
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; color: var(--foreground-secondary); margin-bottom: 8px; }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+  .themebtn { position: fixed; right: 16px; bottom: 16px; }
+  svg text { font-family: var(--font-sans); }
+  @media (max-width: 900px) {
+    .app { grid-template-columns: 1fr; }
+    aside { display: none; }
+    main { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div class="brand">Opsynex <span>AI</span></div>
+    <nav class="nav">
+      <a class="active" href="#">▦ Dashboard</a>
+      <a href="#">⚠ Problemas</a>
+      <a href="#">∿ KPIs</a>
+      <a href="#">⇪ Carga de datos</a>
+      <a href="#">⇄ Homologación</a>
+      <a href="#">⚙ Producción</a>
+      <a href="#">☰ Administración</a>
+    </nav>
+  </aside>
+  <main>
+    <header class="top">
+      <div>
+        <h1>Guía visual</h1>
+        <p class="lead">Tokens y componentes base de Opsynex AI. Fuente: GUIA_DE_DISENO.md</p>
+      </div>
+      <div class="row">
+        <button class="btn btn-outline" onclick="toggleTheme()">Cambiar tema</button>
+        <button class="btn btn-primary">Ejecutar análisis</button>
+      </div>
+    </header>
+
+    <div class="grid g4">
+      <div class="card">
+        <div class="overline">Score Opsynex · 2024</div>
+        <div class="score-wrap" style="margin-top:8px">
+          <svg width="150" height="120" viewBox="0 0 150 120" role="img" aria-label="Score 68 de 100, mejorable">
+            <path d="M 25 105 A 60 60 0 1 1 125 105" fill="none" stroke="var(--surface-muted)" stroke-width="12" stroke-linecap="round"/>
+            <path d="M 25 105 A 60 60 0 1 1 125 105" fill="none" stroke="var(--warning)" stroke-width="12" stroke-linecap="round" pathLength="100" stroke-dasharray="68 100"/>
+            <text x="75" y="78" text-anchor="middle" font-size="40" font-weight="700" fill="var(--foreground)">68</text>
+            <text x="75" y="100" text-anchor="middle" font-size="12" fill="var(--foreground-secondary)">de 100</text>
+          </svg>
+          <div>
+            <span class="badge b-warn">◉ Mejorable</span>
+            <p class="small" style="margin:8px 0 0">Oportunidades de mejora<br><span class="bad">▼ 6 pts vs 2023</span></p>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="overline">Margen EBITDA</div>
+        <div class="kpi">14,2 %</div>
+        <span class="delta bad">▼ −2,3 pp vs 2023</span>
+      </div>
+      <div class="card">
+        <div class="overline">Cost efficiency</div>
+        <div class="kpi">81,5 %</div>
+        <span class="delta bad">▲ +3,1 pp vs 2023</span>
+      </div>
+      <div class="card">
+        <div class="overline">Impacto estimado</div>
+        <div class="kpi">$1,24 M</div>
+        <span class="delta flat">— 5 problemas abiertos</span>
+      </div>
+    </div>
+
+    <h2>Gráfico de tendencia</h2>
+    <div class="card">
+      <h3>Ingresos vs. costo total</h3>
+      <p class="small" style="margin:0 0 12px">USD · 2021–2024</p>
+      <div class="legend"><span><i style="background:var(--chart-1)"></i>Revenue</span><span><i style="background:var(--chart-2)"></i>Costo total</span><span><i style="background:var(--chart-3)"></i>EBITDA</span></div>
+      <svg viewBox="0 0 600 220" width="100%" role="img" aria-label="Ingresos, costo total y EBITDA de 2021 a 2024">
+        <g stroke="var(--chart-grid)" stroke-width="1">
+          <line x1="50" x2="590" y1="20" y2="20"/><line x1="50" x2="590" y1="70" y2="70"/><line x1="50" x2="590" y1="120" y2="120"/>
+        </g>
+        <line x1="50" x2="590" y1="170" y2="170" stroke="var(--chart-axis)"/>
+        <g font-size="11" fill="var(--foreground-muted)">
+          <text x="44" y="24" text-anchor="end">$12 M</text><text x="44" y="74" text-anchor="end">$8 M</text><text x="44" y="124" text-anchor="end">$4 M</text><text x="44" y="174" text-anchor="end">$0</text>
+          <text x="80" y="192" text-anchor="middle">2021</text><text x="250" y="192" text-anchor="middle">2022</text><text x="420" y="192" text-anchor="middle">2023</text><text x="570" y="192" text-anchor="middle">2024</text>
+        </g>
+        <polyline fill="none" stroke="var(--chart-1)" stroke-width="2" points="80,52 250,40 420,34 570,32"/>
+        <polyline fill="none" stroke="var(--chart-2)" stroke-width="2" points="80,74 250,64 420,52 570,46"/>
+        <polyline fill="none" stroke="var(--chart-3)" stroke-width="2" points="80,148 250,146 420,152 570,155"/>
+        <circle cx="570" cy="32" r="4" fill="var(--chart-1)" stroke="var(--chart-surface)" stroke-width="2"/>
+        <circle cx="570" cy="46" r="4" fill="var(--chart-2)" stroke="var(--chart-surface)" stroke-width="2"/>
+        <circle cx="570" cy="155" r="4" fill="var(--chart-3)" stroke="var(--chart-surface)" stroke-width="2"/>
+      </svg>
+    </div>
+
+    <h2>Principales problemas</h2>
+    <div class="card" style="padding:0;overflow-x:auto">
+      <table>
+        <thead><tr><th class="overline">Problema</th><th class="overline">Severidad</th><th class="overline num">Impacto estimado</th></tr></thead>
+        <tbody>
+          <tr><td>Deterioro de rentabilidad (EBITDA)</td><td><span class="badge b-crit">⬢ Alta</span></td><td class="num">$612.400</td></tr>
+          <tr><td>Overhead crece más rápido que los ingresos</td><td><span class="badge b-ser">▲ Media</span></td><td class="num">$384.900</td></tr>
+          <tr><td>Revenue por empleado en descenso</td><td><span class="badge b-ser">▲ Media</span></td><td class="num">$171.300</td></tr>
+          <tr><td>Costo energético al alza</td><td><span class="badge b-warn">◉ Baja</span></td><td class="num">$72.000</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Botones y badges</h2>
+    <div class="card">
+      <div class="row">
+        <button class="btn btn-primary">Primario</button>
+        <button class="btn btn-secondary">Secundario</button>
+        <button class="btn btn-outline">Outline</button>
+        <button class="btn btn-ghost">Ghost</button>
+        <button class="btn btn-danger">Eliminar</button>
+      </div>
+      <div class="row" style="margin-top:16px">
+        <span class="badge b-crit">⬢ Alta</span><span class="badge b-ser">▲ Media</span><span class="badge b-warn">◉ Baja</span><span class="badge b-good">✓ Saludable</span><span class="badge b-info">i Informativo</span>
+      </div>
+    </div>
+
+    <h2>Colores de interfaz</h2>
+    <div class="grid g8">
+      <div class="sw"><div style="background:var(--primary)"></div><div>Primary<br><code>--primary</code></div></div>
+      <div class="sw"><div style="background:var(--sidebar)"></div><div>Sidebar<br><code>--sidebar</code></div></div>
+      <div class="sw"><div style="background:var(--background)"></div><div>Fondo<br><code>--background</code></div></div>
+      <div class="sw"><div style="background:var(--surface-muted)"></div><div>Muted<br><code>--surface-muted</code></div></div>
+      <div class="sw"><div style="background:var(--critical)"></div><div>Crítico / Alta<br><code>--critical</code></div></div>
+      <div class="sw"><div style="background:var(--serious)"></div><div>Serio / Media<br><code>--serious</code></div></div>
+      <div class="sw"><div style="background:var(--warning)"></div><div>Advertencia / Baja<br><code>--warning</code></div></div>
+      <div class="sw"><div style="background:var(--good)"></div><div>Bueno<br><code>--good</code></div></div>
+    </div>
+
+    <h2>Paleta de gráficos (orden fijo)</h2>
+    <div class="grid g8">
+      <div class="sw"><div style="background:var(--chart-1)"></div><div>1 · Revenue<br><code>--chart-1</code></div></div>
+      <div class="sw"><div style="background:var(--chart-2)"></div><div>2 · Costo total<br><code>--chart-2</code></div></div>
+      <div class="sw"><div style="background:var(--chart-3)"></div><div>3 · EBITDA<br><code>--chart-3</code></div></div>
+      <div class="sw"><div style="background:var(--chart-4)"></div><div>4 · Opex<br><code>--chart-4</code></div></div>
+      <div class="sw"><div style="background:var(--chart-5)"></div><div>5 · Overhead<br><code>--chart-5</code></div></div>
+      <div class="sw"><div style="background:var(--chart-6)"></div><div>6 · Energía<br><code>--chart-6</code></div></div>
+      <div class="sw"><div style="background:var(--chart-7)"></div><div>7 · Mantenimiento<br><code>--chart-7</code></div></div>
+      <div class="sw"><div style="background:var(--chart-8)"></div><div>8 · Material loss<br><code>--chart-8</code></div></div>
+    </div>
+
+    <h2>Tipografía · Inter</h2>
+    <div class="card typo">
+      <div><code>display 48</code><span style="font-size:48px;line-height:56px;font-weight:700">68</span></div>
+      <div><code>h1 30</code><span style="font-size:30px;line-height:36px;font-weight:600">Dashboard ejecutivo</span></div>
+      <div><code>h2 22</code><span style="font-size:22px;line-height:28px;font-weight:600">Principales problemas</span></div>
+      <div><code>h3 18</code><span style="font-size:18px;font-weight:600">Tendencia de márgenes</span></div>
+      <div><code>kpi 28</code><span style="font-size:28px;font-weight:600;font-variant-numeric:tabular-nums">$1.240.000</span></div>
+      <div><code>body 15</code><span>El overhead creció 18 % frente a 4 % de los ingresos.</span></div>
+      <div><code>small 13</code><span class="small">Datos consolidados al 15 nov 2026</span></div>
+      <div><code>overline 11</code><span class="overline">Margen bruto</span></div>
+    </div>
+    <p class="small" style="margin:24px 0 48px">Opsynex AI · Guía visual v1</p>
+  </main>
+</div>
+<script>
+  function toggleTheme() {
+    const root = document.documentElement;
+    const dark = root.dataset.theme ? root.dataset.theme === 'dark'
+      : matchMedia('(prefers-color-scheme: dark)').matches;
+    root.dataset.theme = dark ? 'light' : 'dark';
+  }
+</script>
+</body>
+</html>

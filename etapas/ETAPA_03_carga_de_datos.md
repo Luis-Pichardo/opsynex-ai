@@ -4,46 +4,51 @@
 
 ## Prompt
 
-> Implementa el módulo de carga de datos (sección 6 y 8.2 de las especificaciones): subida de
-> archivos Excel/CSV de estados financieros y datos operacionales, validación de estructura,
-> valores faltantes y formatos numéricos, y normalización. Crea plantillas descargables y
-> archivos de ejemplo. La homologación de cuentas se hace en la Etapa 04: aquí el archivo se
-> guarda y valida, y las cuentas se extraen en bruto.
+> Implementa el módulo de carga de datos (secciones 6 y 8.2 de las especificaciones) en el API
+> .NET: subida de Excel/CSV de estados financieros y datos operacionales; validación de
+> estructura, valores faltantes y formatos numéricos; normalización; plantillas descargables y
+> archivos de ejemplo. La homologación de cuentas es la etapa 04: aquí el archivo se valida y
+> las cuentas se guardan en bruto.
 
 ## Tareas
 
-1. **Formato de entrada** (documentarlo y generar plantillas):
-   - Estados financieros en formato "cuenta por filas, años por columnas":
-     `account | 2022 | 2023 | 2024`. Un archivo por tipo (`income_statement`, `balance_sheet`,
-     `cash_flow`, `cost_structure`) o un Excel con una hoja por tipo.
-   - Datos operacionales en formato tabular: `year | units_produced | employee_count |
-     operational_costs | energy_consumption_kwh | energy_cost | scrap_estimate`.
-2. `POST /api/v1/upload` (multipart: file, file_type, company_id opcional para admin):
-   - Acepta `.xlsx`, `.xls`, `.csv`; límite `MAX_UPLOAD_MB`; valida extensión y tipo MIME real.
-   - Parsea con pandas; valida columnas requeridas, años válidos, celdas numéricas (acepta
-     `1.234,56`, `1,234.56`, `(1234)` como negativo, `$`, `%`), filas vacías y duplicados.
-   - Devuelve un reporte: `{status, errors: [{row, column, message}], warnings, preview}`.
-   - Guarda registro en `uploads` y las filas extraídas en una tabla `raw_account_values`
-     (upload_id, company_id, client_account, year, value) — crea la migración.
-   - Los datos operacionales (ya estandarizados) se guardan directo en `operational_data`.
-3. `GET /api/v1/data` — lista cargas y datos financieros/operacionales de la empresa (filtros por año y tipo).
-4. `GET /api/v1/upload/templates/{file_type}` — descarga plantilla Excel.
-5. `backend/sample_data/`: archivos de ejemplo de una empresa manufacturera ficticia con 3 años
-   (2022–2024), diseñados para que luego se disparen varias reglas de diagnóstico (EBITDA en
-   caída, overhead creciendo más rápido que ingresos, revenue per employee bajando).
-6. Servicio `app/services/parsing/` separado del router, con tests unitarios por cada validación.
+1. **Formato de entrada** (documentarlo y generar plantillas con ClosedXML):
+   - Estados financieros: "cuenta por filas, años por columnas", `Cuenta | 2022 | 2023 | 2024`.
+     Un archivo por tipo, o un Excel con una hoja por tipo (`EstadoResultados`,
+     `BalanceGeneral`, `FlujoEfectivo`, `EstructuraCostos`).
+   - Datos operacionales (tabular): `Año | UnidadesProducidas | Empleados |
+     CostosOperacionales | ConsumoEnergiaKwh | CostoEnergia | ScrapEstimado`.
+2. `UploadsController`:
+   - `POST /api/v1/uploads` (multipart: `file`, `fileType`, `companyId` opcional para Admin).
+     Acepta `.xlsx` y `.csv`; límite `Upload:MaxMb`; valida la extensión y la firma real del
+     archivo (magic bytes); ignora fórmulas y macros (lee solo valores).
+   - Parser en `Infrastructure/Parsing` (ClosedXML y CsvHelper) detrás de una interfaz
+     `IFileParser`. Valida columnas requeridas, años válidos (1990 hasta el año actual + 1),
+     celdas numéricas (acepta `1.234,56`, `1,234.56`, `(1234)` como negativo, `$` y `%`),
+     filas vacías y cuentas duplicadas.
+   - Respuesta: `{ uploadId, status, errors: [{ row, column, message }], warnings, preview }`.
+   - Guarda el `Upload` y las filas en `RawAccountValue`. Los datos operacionales (ya
+     estandarizados) van directo a `OperationalData` (upsert por año).
+   - `GET /api/v1/uploads`: historial; `GET /api/v1/uploads/{id}`: detalle y reporte.
+   - `GET /api/v1/uploads/templates/{fileType}`: descarga la plantilla.
+3. `DataController` → `GET /api/v1/data?year=&type=`: datos financieros y operacionales
+   consolidados de la empresa.
+4. `backend/sample-data/`: archivos de una empresa manufacturera ficticia con 3 años
+   (2022–2024), diseñados para que después se disparen varias reglas (EBITDA en caída,
+   overhead que crece más rápido que los ingresos, revenue per employee en baja). Incluye
+   también archivos con errores intencionales para los tests.
 
 ## Criterios de aceptación
 
-- [ ] Los archivos de `sample_data/` se cargan sin errores.
-- [ ] Archivos con errores (columna faltante, texto en número, año inválido, archivo vacío,
-      extensión falsa) devuelven reportes claros con fila y columna.
-- [ ] Un usuario `client` recibe 403 al subir.
-- [ ] Tests pasan.
+- [ ] Los archivos válidos de `sample-data/` se cargan sin errores.
+- [ ] Los archivos con errores (columna faltante, texto en un número, año inválido, archivo
+      vacío, extensión falsa) devuelven reportes claros con fila y columna.
+- [ ] Un usuario `Client` recibe 403 al subir.
+- [ ] Hay tests unitarios del parser y tests de integración del endpoint.
 
 ## Documentación a actualizar
 
-- `04_api.md`: `/upload`, `/data`, plantillas.
-- `05_motores_analiticos.md`: sección "Ingesta y validación" (reglas de validación).
-- `09_guia_usuario.md`: cómo preparar y subir archivos (formato de plantillas).
-- `12_bitacora.md`.
+- `04_api.md`: `/uploads`, `/data` y plantillas.
+- `05_motores_analiticos.md`: sección "Ingesta y validación".
+- `10_guia_usuario.md`: cómo preparar y subir archivos.
+- `13_bitacora.md`.

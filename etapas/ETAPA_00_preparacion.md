@@ -4,53 +4,68 @@
 
 ## Prompt
 
-> Crea la estructura base del monorepo de Opsynex AI siguiendo `CLAUDE.md`. Deja un backend
-> FastAPI y un frontend React + Vite + TypeScript + Tailwind que arranquen, se comuniquen
-> (endpoint de salud) y tengan tests, linters y CI funcionando. No implementes lógica de
-> negocio todavía.
+> Crea la estructura base del monorepo de Opsynex AI siguiendo `CLAUDE.md`: una solución
+> .NET 10 con arquitectura limpia (API ASP.NET Core), un servicio de IA en Python/FastAPI y un
+> frontend React + TypeScript + Vite + Tailwind + shadcn/ui. Los tres deben arrancar, tener un
+> endpoint o pantalla de salud, tests, linters y CI. Deja el contenedor de la nube preparado
+> para compilar y probar todo. No implementes lógica de negocio todavía.
 
 ## Tareas
 
-1. **Raíz del repo**
-   - `.gitignore` (Python, Node, `.env`, `__pycache__`, `node_modules`, `dist`, `.venv`).
-   - `.env.example` con: `DATABASE_URL`, `JWT_SECRET`, `JWT_EXPIRE_MINUTES`, `CORS_ORIGINS`,
-     `VITE_API_URL`, `MAX_UPLOAD_MB`.
-   - `docker-compose.yml` con servicios `db` (postgres:16, volumen persistente, healthcheck),
-     `backend` y `frontend` (para desarrollo).
-   - `README.md` del proyecto: qué es, cómo levantarlo localmente, enlace a `etapas/README.md`.
-2. **Backend** (`backend/`)
-   - `pyproject.toml` con dependencias del stack y extras `[dev]` (pytest, httpx, ruff, pytest-cov).
-   - Estructura: `app/main.py`, `app/core/config.py` (pydantic-settings), `app/core/database.py`,
-     `app/api/routers/`, `app/services/`, `app/repositories/`, `app/models/`, `app/schemas/`,
-     `app/engines/`, `tests/`.
-   - `GET /health` → `{"status": "ok", "version": "..."}`. CORS configurado desde `.env`.
-   - Prefijo de API `/api/v1`.
-   - `Dockerfile` del backend.
-   - Test de `/health` en `tests/test_health.py`.
-3. **Frontend** (`frontend/`)
-   - Vite + React 18 + TypeScript + Tailwind CSS configurado. ESLint + Prettier.
-   - Estructura: `src/api/`, `src/components/`, `src/pages/`, `src/hooks/`, `src/lib/`, `src/types/`.
-   - Página inicial simple con el nombre "Opsynex AI" que llama a `/health` y muestra el estado.
-   - Vitest + Testing Library con un test de ejemplo.
-   - `Dockerfile` del frontend.
-4. **CI**: `.github/workflows/ci.yml` que en cada PR ejecute: ruff + pytest (backend) y
-   eslint + vitest + build (frontend).
-5. **Entorno en la nube**: verifica si en este contenedor hay Docker o PostgreSQL. Documenta en
-   `ESTADO.md` → "Notas del entorno" cómo levantar la BD aquí (por ejemplo `apt-get install
-   postgresql` o usar SQLite para tests). Escribe `scripts/setup_cloud.sh` con los pasos que
-   funcionaron (instalar dependencias del backend y frontend), para usarlo como script de
-   configuración del entorno de Claude Code en la nube.
+1. **Entorno en la nube primero**
+   - Instala el .NET 10 SDK en este contenedor (Ubuntu 24.04). Prueba en este orden: apt con
+     el repositorio de Microsoft (`packages.microsoft.com`), apt de Ubuntu (`dotnet-sdk-10.0`)
+     y el script `dotnet-install.sh`. Si .NET 10 no está disponible, usa .NET 9 y anótalo.
+   - Verifica si puedes levantar SQL Server (daemon de Docker o paquete `mssql-server` de
+     packages.microsoft.com). Si no se puede, deja los tests de integración con SQLite
+     in-memory y la opción de Testcontainers cuando haya Docker.
+   - Escribe `scripts/setup_cloud.sh` (idempotente) con lo que funcionó: instalar .NET, `dotnet
+     restore`, `pip install -e ".[dev]"` en `ai-service` y `npm ci` en `frontend`.
+   - Documenta todo en `ESTADO.md` → "Notas del entorno".
+2. **Raíz**: `.gitignore` (agrega `bin/`, `obj/`, `*.user`, `.vs/`), `.editorconfig`,
+   `.env.example` (`ConnectionStrings__Default`, `Jwt__Secret`, `Jwt__ExpireMinutes`,
+   `Cors__Origins`, `AiService__BaseUrl`, `AiService__ApiKey`, `ANTHROPIC_API_KEY`,
+   `ANTHROPIC_MODEL`, `VITE_API_URL`, `Upload__MaxMb`), `docker-compose.yml` (sqlserver 2022
+   con volumen y healthcheck, api, ai-service, frontend) y `README.md` del proyecto.
+3. **Backend .NET** (`backend/`)
+   - `Opsynex.sln` con `Opsynex.Api`, `Opsynex.Application`, `Opsynex.Domain`,
+     `Opsynex.Infrastructure`, `Opsynex.UnitTests` y `Opsynex.IntegrationTests`, con referencias
+     según la arquitectura limpia. `Directory.Build.props` con `Nullable`,
+     `TreatWarningsAsErrors` en Release, `LangVersion latest` y analizadores.
+   - Paquetes centralizados en `Directory.Packages.props`.
+   - `Program.cs`: Serilog, ProblemDetails, CORS desde configuración, OpenAPI + Scalar en
+     `/scalar` (solo en Development), versionado de rutas `/api/v1`, health checks en `/health`
+     (incluye el check de BD a partir de la etapa 1 y el del servicio de IA a partir de la 4).
+   - Test de integración de `/health` con `WebApplicationFactory`.
+   - `Dockerfile` multi-stage.
+4. **Servicio de IA** (`ai-service/`)
+   - `pyproject.toml` (fastapi, uvicorn, pydantic-settings, pandas, rapidfuzz, scikit-learn,
+     anthropic; extras dev: pytest, httpx, ruff).
+   - `app/main.py` con `GET /health`; middleware que exige la cabecera `X-Internal-Api-Key`
+     en todo excepto `/health`. Estructura `app/routers/`, `app/engines/`, `app/schemas/` y `tests/`.
+   - `Dockerfile`.
+5. **Frontend** (`frontend/`)
+   - Vite + React 18 + TypeScript estricto + Tailwind. Inicializa **shadcn/ui** (estilo
+     "new-york", alias `@/`). Copia `docs/diseno/tokens.css` a `src/styles/tokens.css` y mapea los
+     tokens en `tailwind.config` (colores `background`, `surface`, `primary`, `critical`,
+     `chart-1..8`, etc.; `borderRadius`, `boxShadow` y `fontFamily` con Inter).
+   - ESLint + Prettier (con el plugin de Tailwind). Vitest + Testing Library.
+   - Página inicial que llama a `/health` del API y muestra el estado con un `Badge`.
+   - `Dockerfile` (build y nginx).
+6. **CI**: `.github/workflows/ci.yml` con tres jobs: .NET (build + test), Python (ruff +
+   pytest) y frontend (lint + test + build).
 
 ## Criterios de aceptación
 
-- [ ] `uvicorn app.main:app` arranca y `GET /health` responde 200.
-- [ ] `npm run dev` arranca y la página muestra el estado del backend.
-- [ ] `pytest`, `ruff check`, `npm test`, `npm run lint` y `npm run build` pasan.
-- [ ] El workflow de CI existe y es válido.
-- [ ] `scripts/setup_cloud.sh` existe y fue probado en este contenedor.
+- [ ] `dotnet build` y `dotnet test` pasan; `GET /health` del API responde 200.
+- [ ] `pytest` y `ruff check` pasan en `ai-service`; su `/health` responde 200.
+- [ ] `npm run lint`, `npm test` y `npm run build` pasan; la página muestra el estado del API.
+- [ ] `scripts/setup_cloud.sh` existe, se probó en este contenedor y quedó documentado en `ESTADO.md`.
+- [ ] La solución abre en Visual Studio (`backend/Opsynex.sln`).
 
 ## Documentación a actualizar
 
-- `02_arquitectura.md`: estructura de carpetas, stack con versiones, diagrama de componentes (texto).
-- `07_instalacion.md`: requisitos, variables de entorno, cómo levantar todo local y en la nube.
-- `12_bitacora.md`: entrada de la Etapa 00.
+- `02_arquitectura.md`: diagrama de componentes, estructura de carpetas y stack con versiones exactas.
+- `08_instalacion.md`: requisitos (Visual Studio 2022+/.NET 10, SQL Server, Python 3.12,
+  Node 20+), variables de entorno y cómo levantar todo local, con Docker y en la nube.
+- `13_bitacora.md`.

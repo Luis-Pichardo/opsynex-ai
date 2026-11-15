@@ -4,51 +4,52 @@
 
 ## Prompt
 
-> Implementa el motor de impacto financiero (secciones 8.5 y 12) y el Score
+> Implementa en C# el motor de impacto financiero (secciones 8.5 y 12) y el Score
 > Industrial-Financiero Opsynex (sección 13). Cada problema debe tener una pérdida económica
-> estimada y la empresa un score 0–100 por año con sus componentes e interpretación.
-> Al terminar esta etapa el backend del MVP está completo.
+> estimada y la empresa un score de 0 a 100 por año, con componentes e interpretación. Al
+> terminar esta etapa, el backend del MVP está completo.
 
 ## Tareas
 
-1. **Impacto financiero** `app/engines/impact.py` — por categoría:
+1. **Impacto** (`Opsynex.Domain/Engines/ImpactEngine.cs`), por categoría:
    | Categoría | Cálculo estimado |
    |---|---|
-   | Margin Loss | (margen año anterior − margen actual) × Revenue actual |
-   | Excess Cost | (crecimiento costo − crecimiento revenue) × costo año anterior; o exceso sobre benchmark × Revenue |
-   | Productivity Loss | (revenue/empleado año anterior − actual) × empleados actuales |
-   | Operational Waste | material_loss / scrap valorizado, o exceso de energía sobre año base |
-   Devuelve `estimated_loss`, `affected_margin_pp`, `deterioration_magnitude` (%) y
-   `severity_level`. El impacto nunca es negativo; si no se puede calcular, `None` con motivo.
-   Guarda los resultados en `problems.impact_value` y `problems.evidence`.
-2. **Ranking**: reordena problemas por `impact_value` dentro de cada severidad. Endpoint
-   `GET /api/v1/impact/summary?year=` con pérdida total estimada, por categoría y top 5.
-3. **Score Opsynex** `app/engines/score.py`:
-   | Componente | Peso | KPIs base (normalizados 0–100) |
+   | MarginLoss | (margen del año anterior − margen actual) × Revenue actual |
+   | ExcessCost | (crecimiento del costo − crecimiento del revenue) × costo del año anterior; o exceso sobre el benchmark × Revenue |
+   | ProductivityLoss | (revenue/empleado del año anterior − actual) × empleados actuales |
+   | OperationalWaste | material loss o scrap valorizado, o exceso de energía sobre el año base |
+   Devuelve `EstimatedLoss`, `AffectedMarginPp`, `DeteriorationMagnitude` (%) y
+   `SeverityLevel`. Nunca es negativo; si no se puede calcular, devuelve `null` con el motivo.
+   El resultado se guarda en `Problem.ImpactValue` y `Problem.Evidence`.
+2. **Ranking** por `ImpactValue` dentro de cada severidad. `GET /api/v1/impact/summary?year=`:
+   pérdida total estimada, desglose por categoría y top 5.
+3. **Score** (`ScoreEngine.cs`):
+   | Componente | Peso | KPIs base (normalizados de 0 a 100) |
    |---|---|---|
-   | Rentabilidad | 30 % | ebitda_margin, gross_margin |
-   | Eficiencia de costos | 25 % | cost_efficiency, operating_cost_ratio |
-   | Productividad | 25 % | revenue_per_employee (y su tendencia) |
-   | Estabilidad financiera | 20 % | liabilities/equity, operating cash flow / revenue, volatilidad de márgenes |
-   Si falta un componente, redistribuye su peso proporcionalmente e indícalo.
-   Interpretación: 80–100 Operación saludable · 60–79 Oportunidades de mejora ·
-   < 60 Deterioro operacional significativo.
-4. Integra impacto y score en `run_analysis` (pipeline completo: KPIs → diagnóstico → impacto → score).
-5. `GET /api/v1/score?year=` (score con componentes, pesos usados e interpretación; sin año devuelve la serie).
-6. **Recomendaciones**: cada regla tiene un texto base; complétalo con datos concretos
-   (ej. "El overhead creció 18 % vs. 4 % de los ingresos; revise la estructura administrativa…").
+   | Rentabilidad | 30 % | EbitdaMargin, GrossMargin |
+   | Eficiencia de costos | 25 % | CostEfficiency, OperatingCostRatio |
+   | Productividad | 25 % | RevenuePerEmployee y su tendencia |
+   | Estabilidad financiera | 20 % | Pasivos/Patrimonio, OperatingCashFlow/Revenue, volatilidad de márgenes |
+   Si falta un componente, su peso se redistribuye proporcionalmente y se indica.
+   Interpretación: 80–100 operación saludable · 60–79 oportunidades de mejora · menos de 60
+   deterioro operacional significativo.
+4. `AnalysisPipeline` completo: KPIs → diagnóstico → impacto → score, en una transacción.
+5. `GET /api/v1/score?year=`: score con componentes, pesos usados e interpretación; sin año devuelve la serie.
+6. **Recomendación base con datos**: cada regla completa su texto con cifras concretas
+   (por ejemplo: "El overhead creció 18 % frente a 4 % de los ingresos; revise la estructura
+   administrativa…"). En la etapa 11 la IA la enriquece.
 
 ## Criterios de aceptación
 
-- [ ] Tests de cada fórmula de impacto y del score (pesos, redistribución, interpretación).
-- [ ] Con `sample_data/`: cada problema tiene impacto > 0 y el score está entre 0 y 100.
-- [ ] Prueba de integración: subir archivos → homologar → consolidar → `GET /kpis`,
-      `/problems`, `/score`, `/impact/summary` devuelven datos coherentes.
+- [ ] Tests de cada fórmula de impacto y del score (pesos, redistribución e interpretación).
+- [ ] Con `sample-data/`, cada problema tiene un impacto mayor que 0 y el score está entre 0 y 100.
+- [ ] Test de integración de punta a punta: subir → homologar → consolidar → `GET /kpis`,
+      `/problems`, `/score` e `/impact/summary` devuelven datos coherentes.
 - [ ] Se cumplen los puntos de backend de la "Definición MVP" (sección 20).
 
 ## Documentación a actualizar
 
-- `05_motores_analiticos.md`: secciones "Impacto financiero" y "Score Opsynex" con fórmulas y un ejemplo numérico.
-- `04_api.md`: `/score`, `/impact/summary`.
-- `08_pruebas.md`: estrategia de pruebas y cobertura actual.
-- `12_bitacora.md`.
+- `05_motores_analiticos.md`: "Impacto financiero" y "Score Opsynex", con fórmulas y un ejemplo numérico.
+- `04_api.md`: `/score` e `/impact/summary`.
+- `09_pruebas.md`: estrategia de pruebas y cobertura actual.
+- `13_bitacora.md`.
