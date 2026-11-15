@@ -1,0 +1,776 @@
+OPSYNEX AI
+
+Documento de Especificación Funcional y Analítica del Sistema
+
+
+
+1. INTRODUCCIÓN
+
+1.1 Nombre del Sistema
+
+Opsynex AI
+
+1.2 Tipo de Sistema
+
+Plataforma SaaS en la nube (Software as a Service)
+
+1.3 Descripción General
+
+Opsynex AI es una plataforma inteligente de analítica financiera-operacional
+diseñada para identificar ineficiencias dentro de las organizaciones mediante el
+análisis automatizado de información financiera y operacional.
+
+La plataforma busca transformar información financiera tradicional en inteligencia
+empresarial accionable mediante:
+
+   •   detección de ineficiencias operacionales
+
+   •   cuantificación del impacto económico
+
+   •   evaluación del deterioro de rentabilidad
+
+   •   generación de diagnósticos analíticos
+
+   •   apoyo a la toma de decisiones ejecutivas
+
+El sistema está diseñado inicialmente como una plataforma estratégica de
+diagnóstico utilizando estados financieros anuales y datos operacionales
+complementarios.
+
+Versiones futuras podrán incorporar:
+
+   •   inteligencia artificial
+
+   •   analítica predictiva
+
+   •   benchmarking
+
+   •   machine learning
+
+   •   integración con ERP
+
+   •   monitoreo operacional en tiempo real
+2. FILOSOFÍA DEL SISTEMA
+
+Opsynex AI no está diseñado únicamente como un dashboard tradicional o
+plataforma de reporting.
+
+La base conceptual del sistema es la creación de un motor analítico inteligente
+capaz de traducir ineficiencias operacionales en impacto financiero medible.
+
+La plataforma integra:
+
+Área                           Propósito
+
+Analítica Financiera           Evaluar rentabilidad y estructura de costos
+
+Analítica Operacional          Identificar ineficiencias operativas
+
+Motor de Diagnóstico           Detectar patrones de deterioro empresarial
+
+Sistema de Scoring             Medir salud operacional-financiera
+
+Motor de Recomendaciones Sugerir oportunidades de mejora
+
+El objetivo central de la plataforma es:
+
+Ayudar a las organizaciones a entender dónde se destruye la rentabilidad y qué
+factores operacionales o financieros son responsables.
+
+
+
+3. EMPRESAS OBJETIVO
+
+Mercados Iniciales del MVP
+
+Empresas Manufactureras
+
+   •   Industria de alimentos
+
+   •   Bienes de consumo
+
+   •   Producción industrial
+
+   •   Empaques
+
+   •   Textiles
+
+   •   Manufactura plástica
+
+Empresas de Servicios
+
+   •   Firmas consultoras
+
+   •   Empresas outsourcing
+   •   Operadores logísticos
+
+   •   Centros de servicios
+
+   •   Servicios administrativos
+
+   •   Empresas tecnológicas
+
+
+
+4. PROBLEMA CENTRAL DEL NEGOCIO
+
+La mayoría de las organizaciones poseen información financiera, pero carecen de
+capacidad analítica para:
+
+   •   detectar ineficiencias ocultas
+
+   •   conectar desempeño operacional con rentabilidad
+
+   •   identificar fuentes de deterioro del margen
+
+   •   cuantificar impacto económico de ineficiencias
+
+   •   priorizar problemas financiero-operacionales
+
+
+
+Opsynex AI busca automatizar parte de este proceso analítico.
+
+
+
+5. OBJETIVOS DEL SISTEMA
+
+Objetivo Principal
+
+Crear una plataforma inteligente de diagnóstico financiero-operacional capaz de
+analizar datos organizacionales y generar insights empresariales enfocados en la
+optimización de la rentabilidad.
+
+Objetivos Específicos
+
+   •   Centralizar información financiera y operacional
+
+   •   Calcular KPIs estratégicos automáticamente
+
+   •   Detectar ineficiencias empresariales
+
+   •   Cuantificar impacto económico
+
+   •   Generar score operacional-financiero
+
+   •   Proveer dashboards ejecutivos
+
+   •   Apoyar la toma de decisiones estratégicas
+6. FUENTES DE DATOS DE ENTRADA
+
+6.1 Datos Financieros
+
+Estados Financieros Anuales
+
+Tipo de Dato            Formato
+
+Estado de Resultados Excel / CSV
+
+Balance General         Excel / CSV
+
+Flujo de Efectivo       Excel / CSV
+
+Estructura de Costos Excel / CSV
+
+
+
+6.2 Datos Operacionales Complementarios
+
+Tipo de Dato              Formato
+
+Producción Anual          Excel / CSV
+
+Unidades Producidas       Excel / CSV
+
+Cantidad de Empleados Excel / CSV
+
+Costos Operacionales      Excel / CSV
+
+Consumo Energético        Excel / CSV
+
+Scrap Estimado            Excel / CSV
+
+
+
+7. MOTOR DE HOMOLOGACIÓN CONTABLE
+
+Descripción
+
+Diferentes organizaciones utilizan distintas estructuras contables y nombres de
+cuentas.
+
+El sistema debe incluir una capa de homologación contable capaz de mapear las
+cuentas del cliente hacia categorías estandarizadas de Opsynex AI.
+
+
+
+Ejemplo de Mapeo
+Cuenta Cliente                 Categoría Opsynex
+
+Gasto Energía Planta           energy_cost
+
+Nómina Indirecta               overhead_cost
+
+Desperdicio Materia Prima material_loss
+
+Gasto Mantenimiento            maintenance_cost
+
+
+
+Objetivo Funcional
+
+Normalizar estructuras contables heterogéneas en un modelo analítico
+estandarizado.
+
+
+
+8. MÓDULOS DEL SISTEMA
+
+8.1 Módulo de Autenticación de Usuarios
+
+Funciones
+
+   •    Registro de usuarios
+
+   •    Login
+
+   •    Encriptación de contraseñas
+
+   •    Autenticación JWT
+
+   •    Roles de usuario
+
+Roles
+
+Rol      Permisos
+
+Admin Acceso total
+
+Analyst Acceso análisis de datos
+
+Client Visualización dashboards
+
+
+
+8.2 Módulo de Carga de Datos
+
+Funciones
+
+   •    Carga de archivos Excel
+   •   Carga de archivos CSV
+
+   •   Validación de estructura
+
+   •   Validación de valores faltantes
+
+   •   Validación de formatos numéricos
+
+   •   Normalización de datos
+
+
+
+8.3 Motor de Cálculo de KPIs
+
+Funciones
+
+   •   Cálculo automático de KPIs
+
+   •   Almacenamiento histórico de KPIs
+
+   •   Normalización de KPIs
+
+   •   Evaluación de tendencias
+
+
+
+8.4 Motor de Diagnóstico
+
+Funciones
+
+   •   Detectar anomalías
+
+   •   Detectar deterioro de rentabilidad
+
+   •   Identificar ineficiencias operacionales
+
+   •   Generar alertas
+
+   •   Priorizar problemas
+
+
+
+8.5 Motor de Impacto Financiero
+
+Funciones
+
+   •   Estimar pérdidas económicas
+
+   •   Cuantificar impacto de ineficiencias
+
+   •   Rankear problemas operacionales
+
+   •   Estimar impacto en rentabilidad
+8.6 Módulo Dashboard
+
+Funciones
+
+   •   Dashboard ejecutivo
+
+   •   Visualización de KPIs
+
+   •   Gráficos de tendencias
+
+   •   Ranking de problemas
+
+   •   Score financiero-operacional
+
+
+
+9. KPIs PRINCIPALES
+
+9.1 EBITDA Margin
+
+El EBITDA Margin mide la rentabilidad operacional.
+
+Fórmula EBITDA Margin:
+
+EBITDA Margin = EBITDA / Revenue
+
+
+
+9.2 Margen Bruto
+
+El Margen Bruto evalúa la rentabilidad de producción o servicios.
+
+Fórmula Margen Bruto:
+
+Gross Margin = (Revenue - COGS) / Revenue
+
+
+
+9.3 Cost Efficiency Ratio
+
+Mide la proporción del costo total respecto a los ingresos.
+
+Fórmula Cost Efficiency:
+
+Cost Efficiency = Total Cost / Revenue
+
+
+
+9.4 Revenue Per Employee
+
+Mide la productividad laboral.
+
+Fórmula Revenue Per Employee:
+
+Revenue Per Employee = Revenue / Number of Employees
+9.5 Operating Cost Ratio
+
+Mide la carga de gastos operacionales.
+
+Fórmula Operating Cost Ratio:
+
+Operating Cost Ratio = Operating Expenses / Revenue
+
+
+
+10. KPIs INDUSTRIALES (MÓDULOS FUTUROS OPCIONALES)
+
+Los futuros módulos industriales podrán incluir:
+
+KPI                 Descripción
+
+OEE                 Efectividad Global Equipos
+
+Scrap Rate          Ratio desperdicio material
+
+Downtime Ratio      Ratio paradas producción
+
+Cost Per Unit       Eficiencia costo producción
+
+Capacity Utilization Eficiencia utilización capacidad
+
+Estos KPIs requieren datos operacionales detallados más allá de los estados
+financieros anuales.
+
+
+
+11. MOTOR DE DIAGNÓSTICO
+
+Objetivo
+
+Identificar automáticamente ineficiencias empresariales y patrones de deterioro.
+
+
+
+Reglas de Ejemplo
+
+Condición                                               Diagnóstico
+
+Disminuye EBITDA margin                                 Deterioro rentabilidad
+
+Aumentan costos mientras ingresos estables              Ineficiencia operacional
+
+Crecimiento overhead superior crecimiento ingresos Ineficiencia administrativa
+Disminuye revenue per employee                        Deterioro productividad
+
+Deteriora margen bruto                                Problema absorción costos
+
+
+
+Niveles de Prioridad Diagnóstico
+
+Nivel      Significado
+
+High       Impacto financiero crítico
+
+Medium Ineficiencia moderada
+
+Low        Recomendación monitoreo
+
+
+
+12. MOTOR DE IMPACTO FINANCIERO
+
+Objetivo
+
+Cuantificar el impacto financiero estimado generado por las ineficiencias
+detectadas.
+
+
+
+Categorías de Impacto
+
+Categoría            Descripción
+
+Margin Loss          Reducción rentabilidad
+
+Excess Cost          Ineficiencia estructura costos
+
+Productivity Loss Reducción productividad operacional
+
+Operational Waste Ineficiencia recursos
+
+
+
+Lógica Funcional
+
+El sistema debe estimar:
+
+   •    pérdida económica estimada
+
+   •    margen afectado
+
+   •    magnitud deterioro operacional
+
+   •    nivel severidad
+13. SCORE INDUSTRIAL-FINANCIERO OPSYNEX
+
+Objetivo
+
+Crear un indicador sintético capaz de evaluar la salud operacional-financiera
+general.
+
+
+
+Componentes Conceptuales
+
+Componente              Peso
+
+Rentabilidad            30%
+
+Eficiencia Costos       25%
+
+Productividad           25%
+
+Estabilidad Financiera 20%
+
+
+
+Ejemplo Interpretación
+
+Score      Interpretación
+
+80–100     Operación saludable
+
+60–79      Oportunidades mejora
+
+Menor 60 Deterioro operacional significativo
+
+
+
+14. REQUERIMIENTOS DEL DASHBOARD
+
+Dashboard Principal
+
+Elementos Requeridos
+
+   •    Score General
+
+   •    Resumen KPIs
+
+   •    Visualización tendencias
+
+   •    Principales problemas detectados
+
+   •    Impacto financiero estimado
+
+   •    Recomendaciones
+Vista Detalle Problema
+
+Elementos Requeridos
+
+   •    Descripción problema
+
+   •    Nivel severidad
+
+   •    Impacto económico estimado
+
+   •    Comportamiento histórico
+
+   •    Recomendaciones sugeridas
+
+
+
+15. FLUJO DE DATOS
+
+Flujo General
+
+   1. Usuario carga archivos financieros
+
+   2. Sistema valida estructura
+
+   3. Sistema normaliza cuentas
+
+   4. Datos almacenados en base datos
+
+   5. Motor KPIs ejecuta cálculos
+
+   6. Motor diagnóstico evalúa condiciones
+
+   7. Motor impacto financiero estima pérdidas
+
+   8. Dashboard muestra resultados
+
+
+
+16. ARQUITECTURA BASE DE DATOS (MVP INICIAL)
+
+Base Datos Sugerida
+
+PostgreSQL
+
+
+
+Tablas Principales
+
+users
+
+   •    id
+
+   •    email
+   •   password_hash
+
+   •   role
+
+   •   created_at
+
+financial_data
+
+   •   id
+
+   •   year
+
+   •   revenue
+
+   •   cogs
+
+   •   operating_expenses
+
+   •   ebitda
+
+   •   total_cost
+
+operational_data
+
+   •   id
+
+   •   year
+
+   •   units_produced
+
+   •   employee_count
+
+   •   scrap_estimate
+
+   •   energy_cost
+
+kpi_results
+
+   •   id
+
+   •   year
+
+   •   ebitda_margin
+
+   •   gross_margin
+
+   •   cost_efficiency
+
+   •   revenue_per_employee
+
+problems
+
+   •   id
+
+   •   title
+   •    description
+
+   •    severity
+
+   •    impact_value
+
+   •    recommendation
+
+   •    created_at
+
+
+
+17. ARQUITECTURA DEL SISTEMA
+
+Backend
+
+Componente Tecnología
+
+Lenguaje       Python
+
+Framework      FastAPI
+
+
+
+Frontend
+
+Componente               Tecnología
+
+Framework Frontend React
+
+Framework UI             Tailwind CSS
+
+
+
+Hosting
+
+Componente               Tecnología
+
+Infraestructura Cloud AWS o GCP
+
+
+
+18. ESTRUCTURA API
+
+Autenticación
+
+   •    POST /login
+
+   •    POST /register
+
+
+
+Datos
+   •    POST /upload
+
+   •    GET /data
+
+
+
+KPIs
+
+   •    GET /kpis
+
+
+
+Problemas
+
+   •    GET /problems
+
+   •    GET /problems/{id}
+
+
+
+Score
+
+   •    GET /score
+
+
+
+19. SEGURIDAD
+
+Requerimientos Iniciales Seguridad
+
+   •    Autenticación JWT
+
+   •    Encriptación contraseñas
+
+   •    Validación inputs
+
+   •    Validación archivos
+
+   •    Control acceso basado roles
+
+
+
+20. DEFINICIÓN MVP
+
+El MVP será considerado funcional cuando el sistema:
+
+   •    cargue archivos financieros correctamente
+
+   •    calcule KPIs automáticamente
+
+   •    genere diagnósticos financiero-operacionales
+
+   •    estime impacto financiero
+
+   •    muestre dashboards correctamente
+   •     genere score operacional-financiero
+
+
+
+21. ROADMAP FUTURO
+
+Fase 2
+
+   •     Integración ERP
+
+   •     Benchmarking
+
+   •     Recomendaciones IA
+
+   •     Analítica predictiva
+
+   •     Forecasting tendencias
+
+
+
+Fase 3
+
+   •     Monitoreo tiempo real
+
+   •     Modelos machine learning
+
+   •     Integración Industrial IoT
+
+   •     Módulos analíticos por industria
+
+   •     Detección automática anomalías
+
+
+
+22. INSTRUCCIÓN FINAL DESARROLLO
+
+Construir una plataforma SaaS escalable capaz de analizar información financiera
+y operacional empresarial con el objetivo de detectar ineficiencias, cuantificar
+impacto financiero, calcular KPIs estratégicos y generar diagnósticos inteligentes
+financiero-operacionales mediante un sistema interactivo de dashboards.
+

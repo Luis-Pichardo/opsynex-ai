@@ -1,0 +1,371 @@
+Introducción al Sistema – Opsynex AI
+Opsynex AI es una plataforma SaaS (software que se usa por internet y se paga
+como suscripción), diseñada para el análisis, diagnóstico y optimización de
+operaciones industriales mediante el uso de métricas financieras, productivas
+y modelos analíticos.
+
+El objetivo principal del sistema es identificar ineficiencias dentro de
+empresas manufactureras, cuantificar su impacto económico y generar
+recomendaciones accionables que permitan mejorar la productividad y
+reducir costos operativos.
+
+La plataforma integrará datos provenientes de diferentes fuentes (principalmente
+archivos Excel/CSV en la fase inicial), incluyendo información de producción,
+costos y resultados financieros. A partir de estos datos, el sistema procesará y
+calculará indicadores clave de desempeño (KPIs), tales como eficiencia
+operativa, costos por unidad, niveles de desperdicio y márgenes financieros.
+
+Posteriormente, se ejecutará un motor de diagnóstico que evaluará estos
+indicadores mediante reglas predefinidas y lógica analítica, con el fin de detectar
+problemas como bajo rendimiento, alto desperdicio, paradas de producción o
+desviaciones respecto a estándares operativos.
+
+Uno de los componentes fundamentales del sistema es la capacidad de traducir
+estos problemas operativos en impacto financiero. Es decir, el sistema no solo
+identifica ineficiencias, sino que también estima cuánto dinero está perdiendo
+la empresa debido a dichas ineficiencias.
+
+Finalmente, la plataforma presentará los resultados a través de un dashboard
+interactivo, donde el usuario podrá visualizar:
+
+   •   Un score general de desempeño industrial
+
+   •   Los principales problemas detectados, priorizados por impacto
+       económico
+
+   •   Indicadores clave de producción, costos y finanzas
+
+   •   Recomendaciones específicas para mejorar el desempeño
+
+El sistema está diseñado para ser escalable, permitiendo en el futuro la integración
+con sistemas empresariales (ERP, MES) y la incorporación de modelos avanzados
+de inteligencia artificial para predicción y optimización.
+
+En resumen, Opsynex AI no es únicamente una herramienta de visualización de
+datos, sino un sistema de diagnóstico inteligente orientado a la toma de
+decisiones, cuyo propósito es ayudar a las empresas a entender dónde están
+perdiendo dinero y cómo corregirlo de manera efectiva.
+
+1. DESCRIPCIÓN DEL SISTEMA
+
+Nombre: Opsynex AI
+
+Tipo: Plataforma SaaS (web)
+
+Propósito:
+Sistema de diagnóstico industrial que:
+
+   •   analiza datos de producción y finanzas
+
+   •   detecta ineficiencias automáticamente
+
+   •   cuantifica impacto económico
+
+   •   genera recomendaciones
+
+2. FUNCIONALIDADES PRINCIPALES
+
+✔ Módulos obligatorios (MVP)
+
+   1. Autenticación de usuarios
+
+   2. Carga de datos (Excel/CSV)
+
+   3. Cálculo de KPIs
+
+   4. Motor de diagnóstico
+
+   5. Motor de impacto financiero
+
+   6. Dashboard principal
+
+   7. Vista de problemas
+
+3. ARQUITECTURA DEL SISTEMA
+
+   Backend
+
+   •   Lenguaje: Python
+
+   •   Framework: FastAPI
+
+   Frontend
+
+   •   React
+
+   •   Tailwind CSS
+   Base de datos
+
+   •   PostgreSQL
+
+   Hosting
+
+   •   AWS / GCP
+
+4. MODELO DE DATOS (DB SCHEMA)
+
+Tabla: users
+
+id
+email
+password_hash
+role
+created_at
+
+Tabla: production_data
+
+id
+date
+machine_id
+line_id
+units_produced
+downtime_minutes
+cycle_time
+good_units
+total_units
+
+
+
+   Tabla: cost_data
+
+id
+date
+machine_id
+labor_cost
+material_cost
+energy_cost
+overhead_cost
+
+   Tabla: financial_data
+
+id
+date
+revenue
+total_cost
+ebitda
+
+
+
+   Tabla: standard_data
+
+id
+process_name
+standard_cycle_time
+standard_cost
+
+
+
+Tabla: kpi_results
+
+id
+date
+oee
+scrap_rate
+cost_per_unit
+ebitda_margin
+
+
+
+Tabla: problems
+
+id
+title
+description
+impact_value
+severity
+recommendation
+created_at
+
+
+
+5. KPIs (LÓGICA)
+
+   OEE
+
+                   𝑂𝐸𝐸 = 𝐴𝑣𝑎𝑖𝑙𝑎𝑏𝑖𝑙𝑖𝑡𝑦 × 𝑃𝑒𝑟𝑓𝑜𝑟𝑚𝑎𝑛𝑐𝑒 × 𝑄𝑢𝑎𝑙𝑖𝑡𝑦
+
+Scrap Rate
+
+scrap_rate = (total_units - good_units) / total_units
+Cost per Unit
+
+cost_per_unit = total_cost / units_produced
+
+
+
+EBITDA Margin
+
+ebitda_margin = ebitda / revenue
+
+
+
+6. MOTOR DE DIAGNÓSTICO
+
+Reglas iniciales:
+
+if oee < 0.60:
+   create_problem("Low OEE", "Production inefficiency", high)
+
+if scrap_rate > 0.05:
+   create_problem("High Scrap", "Material waste", medium)
+
+if downtime_minutes > threshold:
+   create_problem("High Downtime", "Machine stoppage", high)
+
+
+
+7. MOTOR DE IMPACTO FINANCIERO
+
+downtime_cost = downtime_minutes * cost_per_minute
+
+scrap_cost = (total_units - good_units) * unit_cost
+
+total_impact = downtime_cost + scrap_cost
+
+
+
+8. SCORING SYSTEM
+
+industrial_score = (
+  production_score * 0.30 +
+  cost_score * 0.25 +
+  financial_score * 0.25 +
+  standard_score * 0.20)
+
+
+
+9. API ENDPOINTS
+
+Auth
+  •    POST /login
+
+  •    POST /register
+
+
+
+  Data
+
+  •    POST /upload
+
+  •    GET /data
+
+
+
+KPIs
+
+  •    GET /kpis
+
+
+
+Problemas
+
+  •    GET /problems
+
+  •    GET /problems/{id}
+
+
+
+  Score
+
+  •    GET /score
+
+
+
+10. FRONTEND (PANTALLAS)
+
+      Dashboard
+
+  •    score
+
+  •    top problemas
+
+  •    KPIs
+
+
+
+Detalle problema
+
+  •    impacto
+
+  •    causa
+
+  •    recomendación
+  Producción
+
+   •   OEE
+
+   •   downtime
+
+
+
+  Costos
+
+   •   costo por unidad
+
+
+
+ Finanzas
+
+   •   EBITDA
+
+   •   margen
+
+
+
+11. FLUJO DE DATOS
+
+   1. usuario sube Excel
+
+   2. backend procesa
+
+   3. guarda en DB
+
+   4. calcula KPIs
+
+   5. ejecuta diagnóstico
+
+   6. guarda problemas
+
+   7. frontend muestra resultados
+
+
+
+12. SEGURIDAD
+
+   •   JWT auth
+
+   •   roles (admin/user)
+
+   •   validación inputs
+
+
+
+13. TESTING
+
+   •   pruebas API
+
+   •   validación de datos
+   •   test de KPIs
+
+
+
+14. DEFINICIÓN DE MVP (Producto Mínimo Viable)
+
+El sistema está listo cuando:
+
+✔ calcula KPIs automáticamente
+✔ detecta al menos 3 tipos de problemas
+✔ muestra impacto financiero
+✔ tiene dashboard funcional
+
+
+
+15. INSTRUCCIÓN FINAL PARA PROGRAMADOR
+
+Puedes copiar esto tal cual:
+
+“Construir una plataforma SaaS en Python + React , o cualquier otro lenguaje de
+programación de su preferencia de actualidad, que permita subir datos
+industriales, calcular KPIs, detectar ineficiencias automáticamente, cuantificar
+impacto financiero y mostrar resultados en un dashboard interactivo.”
+
