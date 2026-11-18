@@ -9,6 +9,8 @@ using Opsynex.Application.Abstractions.Security;
 using Opsynex.Infrastructure.Security;
 using Opsynex.Application.Abstractions.Tenancy;
 using Opsynex.Domain.Entities;
+using Opsynex.Application.Uploads;
+using Opsynex.Infrastructure.Parsing;
 using Opsynex.Infrastructure.Persistence;
 using Opsynex.Infrastructure.Persistence.Interceptors;
 using Opsynex.Infrastructure.Persistence.Repositories;
@@ -60,6 +62,8 @@ public static class DependencyInjection
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<ICompanyRepository, CompanyRepository>();
         services.AddSingleton<IPasswordService, PasswordService>();
+        services.AddSingleton<IWorkbookParser, WorkbookParser>();
+        services.AddSingleton<IUploadTemplateGenerator, TemplateGenerator>();
         services.AddScoped<IAccountMappingRepository, AccountMappingRepository>();
 
         // Etapa 04: cliente HTTP del servicio de IA.

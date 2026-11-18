@@ -9,7 +9,14 @@ internal sealed class UploadConfiguration : IEntityTypeConfiguration<Upload>
 {
     public void Configure(EntityTypeBuilder<Upload> builder)
     {
-        builder.ToTable("Uploads", t => t.HasCheckConstraint("CK_Uploads_Errors_Json", "ISJSON([Errors]) = 1"));
+        builder.ToTable("Uploads", t =>
+        {
+            t.HasCheckConstraint("CK_Uploads_Errors_Json", "ISJSON([Errors]) = 1");
+            t.HasCheckConstraint("CK_Uploads_Warnings_Json", "ISJSON([Warnings]) = 1");
+            t.HasCheckConstraint("CK_Uploads_Sheets_Json", "ISJSON([Sheets]) = 1");
+            t.HasCheckConstraint("CK_Uploads_Years_Json", "ISJSON([Years]) = 1");
+            t.HasCheckConstraint("CK_Uploads_Summary_Json", "ISJSON([Summary]) = 1");
+        });
         builder.ConfigureEntity();
         builder.BelongsToCompany();
 
@@ -20,6 +27,10 @@ internal sealed class UploadConfiguration : IEntityTypeConfiguration<Upload>
 
         builder.Property(u => u.FileName).HasMaxLength(260).IsRequired();
         builder.Property(u => u.Errors).HasJsonListConversion();
+        builder.Property(u => u.Warnings).HasJsonListConversion();
+        builder.Property(u => u.Sheets).HasJsonListConversion();
+        builder.Property(u => u.Years).HasJsonListConversion();
+        builder.Property(u => u.Summary).HasJsonValueConversion();
 
         // Al borrar una carga se borran sus valores crudos.
         builder.HasMany(u => u.RawValues)
