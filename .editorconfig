@@ -50,3 +50,7 @@ dotnet_diagnostic.CA2007.severity = none
 # Pruebas: los nombres Metodo_Escenario_Resultado llevan guiones bajos
 [backend/tests/**.cs]
 dotnet_diagnostic.CA1707.severity = none
+
+# Migraciones de EF Core: código generado, sin analizadores de estilo
+[backend/src/Opsynex.Infrastructure/Persistence/Migrations/**.cs]
+generated_code = true

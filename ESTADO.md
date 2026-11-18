@@ -5,7 +5,7 @@ Leyenda: ⬜ pendiente · 🟡 en progreso · ✅ completada
 | # | Etapa | Archivo | Estado | Fecha | PR / Notas |
 |---|---|---|---|---|---|
 | 00 | Preparación del entorno y estructura | `etapas/ETAPA_00_preparacion.md` | ✅ | 15/11/2026 | Rama `ccr-428b3ea1-sne2o0` (PR a `main`). Monorepo, salud, tests, Docker y CI. |
-| 01 | Base de datos y modelos (EF Core + SQL Server) | `etapas/ETAPA_01_base_de_datos.md` | ⬜ | | |
+| 01 | Base de datos y modelos (EF Core + SQL Server) | `etapas/ETAPA_01_base_de_datos.md` | ✅ | 15/11/2026 | Rama `etapa-01-base-de-datos` (PR apilado sobre el de la etapa 00). 10 tablas, migración `InitialCreate`, filtro por empresa, repositorios; pruebas con SQL Server real (Testcontainers). |
 | 02 | Autenticación y roles | `etapas/ETAPA_02_autenticacion.md` | ⬜ | | |
 | 03 | Carga y validación de datos | `etapas/ETAPA_03_carga_de_datos.md` | ⬜ | | |
 | 04 | Homologación contable + servicio de IA | `etapas/ETAPA_04_homologacion.md` | ⬜ | | |
@@ -42,6 +42,13 @@ Revisado el 15/11/2026 (contenedor de Claude Code en la nube, Ubuntu 24.04, usua
   `HTTPS_PROXY` como build-arg y usar una copia temporal del Dockerfile que copie
   `ca-bundle.crt` y defina `SSL_CERT_FILE`/`NODE_EXTRA_CA_CERTS`/`PIP_CERT`. Así se verificó
   que las tres imágenes construyen y responden `/health`. No modificar los Dockerfile del repo.
+- **Base de datos en las pruebas (etapa 01):** `dotnet test` levanta SQL Server 2022 con
+  Testcontainers (necesita `dockerd` corriendo: `setup_cloud.sh --with-sql`); funciona en la
+  nube. Sin Docker cae automáticamente a SQLite in-memory (`OPSYNEX_TEST_DB=sqlite` lo fuerza).
+  La suite completa tarda ~25 s (la mayor parte es el arranque del contenedor).
+- **Migraciones:** `cd backend && dotnet tool restore` y luego
+  `dotnet ef database update -p src/Opsynex.Infrastructure -s src/Opsynex.Api` (usa el SQL
+  Server del compose). En Development el API también migra al arrancar.
 - **Python:** usar `python3.12` (el `python3` del sistema es 3.13). El venv vive en
   `ai-service/.venv`; ejecutar `ai-service/.venv/bin/pytest` y `.venv/bin/ruff`.
 - **Node:** v22 y npm 10 instalados. Frontend con `npm ci`.

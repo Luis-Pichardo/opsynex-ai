@@ -6,6 +6,7 @@ using Opsynex.Api.Extensions;
 using Opsynex.Api.Health;
 using Opsynex.Application;
 using Opsynex.Infrastructure;
+using Opsynex.Infrastructure.Persistence;
 using Scalar.AspNetCore;
 using Serilog;
 
@@ -26,6 +27,7 @@ try
         .Enrich.FromLogContext());
 
     builder.Services.AddOpsynexProblemDetails();
+    builder.Services.AddExceptionHandler<ConflictExceptionHandler>();
     builder.Services.AddFrontendCors(builder.Configuration);
 
     builder.Services.AddControllers();
@@ -45,13 +47,20 @@ try
         .AddOpenApi(); // un documento OpenAPI por versión (/openapi/v1.json)
 
     builder.Services.AddHealthChecks()
-        .AddCheck("self", () => HealthCheckResult.Healthy("El API está en ejecución."), tags: ["live"]);
-    // Etapa 01: check de base de datos. Etapa 04: check del servicio de IA.
+        .AddCheck("self", () => HealthCheckResult.Healthy("El API está en ejecución."), tags: ["live"])
+        .AddDbContextCheck<OpsynexDbContext>("database", tags: ["ready"]);
+    // Etapa 04: check del servicio de IA.
 
     builder.Services.AddApplication();
     builder.Services.AddInfrastructure(builder.Configuration);
 
     var app = builder.Build();
+
+    // En Development se aplican las migraciones pendientes al arrancar (Database:MigrateOnStartup).
+    if (app.Configuration.GetValue<bool>("Database:MigrateOnStartup"))
+    {
+        await app.Services.InitializeDatabaseAsync();
+    }
 
     app.UseExceptionHandler();
     app.UseStatusCodePages();

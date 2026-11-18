@@ -21,6 +21,8 @@
 | API | Scalar.AspNetCore | 2.21.0 |
 | API | Serilog.AspNetCore | 10.0.0 |
 | API | Asp.Versioning.Mvc / ApiExplorer / OpenApi | 10.2.1 / 10.2.1 / 10.2.3 |
+| Datos | Microsoft.EntityFrameworkCore.SqlServer / Sqlite / Design · dotnet-ef | 10.0.15 |
+| Pruebas .NET | Testcontainers.MsSql | 4.16.0 |
 | Aplicación | FluentValidation | 12.2.0 |
 | Pruebas .NET | xunit.v3 · Shouldly · Microsoft.AspNetCore.Mvc.Testing | 3.2.2 · 4.3.0 · 10.0.15 |
 | Base de datos | SQL Server (imagen `mcr.microsoft.com/mssql/server:2022-latest`) | 2022 |
@@ -92,8 +94,13 @@ Convenciones transversales del API ya configuradas:
 - **Logging estructurado** con Serilog (configurable en la sección `Serilog` de `appsettings`).
 - **CORS** desde `Cors:Origins` (arreglo en `appsettings` o lista separada por comas en `Cors__Origins`).
 - **OpenAPI + Scalar** en `/openapi/v1.json` y `/scalar`, solo en Development.
-- **Health checks** en `/health` con respuesta JSON (`status`, `version`, `checks`). La Etapa 01
-  agrega el check de la base de datos y la Etapa 04, el del servicio de IA.
+- **Health checks** en `/health` con respuesta JSON (`status`, `version`, `checks`): `self` y
+  `database` (desde la Etapa 01; responde 503 si SQL Server no está disponible). La Etapa 04
+  agrega el del servicio de IA.
+- **Conflictos:** las violaciones de restricciones únicas se responden con `409 Conflict`
+  (`"code": "conflict"`).
+- **Acceso a datos:** EF Core 10 con SQL Server (compatibilidad 160), repositorios y unidad de
+  trabajo, filtro global por empresa. Detalle en el capítulo *Modelo de datos*.
 
 ### Estructura de carpetas
 

@@ -49,3 +49,33 @@ Registro de cada etapa completada (la más reciente al final).
   - ESLint prohíbe `toLocaleString` en el frontend: todo formato pasa por `src/lib/format.ts`.
   - Versión del documento: 0.0.3 (la regla `0.N.0` daría 0.0.0, menor que la versión vigente).
 - **Pendientes:** Etapa 01 (base de datos y modelos con EF Core, check de BD en `/health`).
+
+### Etapa 01 — Base de datos y modelos (15/11/2026)
+
+- **Resumen:** 10 entidades en `Opsynex.Domain/Entities` (Company, User, Upload,
+  RawAccountValue, AccountMapping, FinancialData, OperationalData, KpiResult, Problem, Score),
+  enums y catálogo `OpsynexCategory` en español. `OpsynexDbContext` con configuraciones Fluent
+  API, convenciones de precisión, enums como texto, columnas JSON con `ISJSON`, índices por
+  empresa y año y filtro global por empresa. Migración `InitialCreate`, migración automática en
+  Development, check de BD en `/health`, repositorios, `IUnitOfWork` y respuesta 409 para
+  duplicados.
+- **Archivos principales:** `backend/src/Opsynex.Domain/` (Entities, Enums, Catalogs),
+  `backend/src/Opsynex.Application/Abstractions/`, `backend/src/Opsynex.Infrastructure/Persistence/`,
+  `backend/tests/Opsynex.IntegrationTests/Infrastructure/DatabaseFixture.cs`,
+  `backend/tests/*/Persistence/`, `docs/documentacion/03_modelo_datos.md`.
+- **Decisiones técnicas:**
+  - Tablas en PascalCase plural (convención de SQL Server/EF) en lugar de `snake_case`.
+  - Ids GUID v7 generados en la aplicación (ordenables, sin ida y vuelta a la BD).
+  - Montos financieros y KPIs **nullable**: un dato no informado no se confunde con cero.
+  - Sin borrado en cascada desde `Companies` (evita rutas múltiples de cascada en SQL Server
+    y borrados accidentales); solo `Uploads → RawAccountValues`.
+  - `Problem.Evidence` como `JsonObject` libre (lo usan las etapas 06 y 07);
+    `Problem` único por (empresa, año, código) para re-ejecutar el diagnóstico sin duplicar.
+  - Se agregó `ProblemCategory` (Profitability, CostEfficiency, Productivity,
+    FinancialStability, Operations) y `ScoreInterpretation` (Healthy, Improvable, Deteriorated).
+  - Filtro global con nombre (`Company`, función de EF Core 10) para poder ignorarlo
+    selectivamente (login). Hasta la etapa 02 se usa `UnrestrictedTenant`.
+  - Pruebas de integración con SQL Server real vía Testcontainers (funciona en la nube) y
+    respaldo automático a SQLite in-memory sin Docker.
+  - `dotnet-ef` como herramienta local (`backend/dotnet-tools.json`).
+- **Pendientes:** Etapa 02 (autenticación JWT y roles; conectar `ICurrentTenant` al usuario).

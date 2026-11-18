@@ -1,6 +1,8 @@
 using System.Net;
 using System.Text.Json;
 
+using Opsynex.IntegrationTests.Infrastructure;
+
 namespace Opsynex.IntegrationTests.Api;
 
 public sealed class ApiConventionsTests(OpsynexApiFactory factory) : IClassFixture<OpsynexApiFactory>
