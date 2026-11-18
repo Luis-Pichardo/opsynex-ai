@@ -40,6 +40,17 @@ public sealed class Upload : Entity, ICompanyScoped
     /// <summary>Valores en bruto guardados (filas × años).</summary>
     public int RowsCount { get; set; }
 
+    /// <summary>Resultado del análisis automático (homologación y consolidación).</summary>
+    public AnalysisStatus AnalysisStatus { get; set; } = AnalysisStatus.NotStarted;
+
+    /// <summary>"Revisión recomendada": hay cuentas de los estados con confianza menor a 0,8 o sin categoría.</summary>
+    public bool NeedsReview { get; set; }
+
+    /// <summary>Cantidad de cuentas dudosas.</summary>
+    public int DoubtfulAccounts { get; set; }
+
+    public DateTime? ProcessedAt { get; set; }
+
     public ICollection<RawAccountValue> RawValues { get; } = [];
 }
 

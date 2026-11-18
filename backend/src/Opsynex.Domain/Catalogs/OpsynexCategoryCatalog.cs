@@ -53,6 +53,7 @@ public static class OpsynexCategoryCatalog
         new(OpsynexCategory.CurrentLiabilities, "Pasivos corrientes", "Total de pasivos corrientes.", FinancialStatement.BalanceSheet),
         new(OpsynexCategory.AccountsPayable, "Cuentas por pagar", "Cuentas por pagar a proveedores.", FinancialStatement.BalanceSheet),
         new(OpsynexCategory.FinancialDebt, "Deuda financiera", "Préstamos bancarios de corto y largo plazo.", FinancialStatement.BalanceSheet),
+        new(OpsynexCategory.TotalLiabilitiesAndEquity, "Total pasivos y capital", "Total de pasivos más patrimonio; sirve para derivar los pasivos totales.", FinancialStatement.BalanceSheet),
     ];
 
     private static readonly Dictionary<OpsynexCategory, OpsynexCategoryInfo> ByCategory =
