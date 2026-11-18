@@ -26,6 +26,7 @@ public sealed partial class HomologationService(
     ICurrentTenant tenant,
     IValidator<SaveMappingsRequest> saveValidator,
     TimeProvider timeProvider,
+    Analysis.AnalysisPipeline analysisPipeline,
     ILogger<HomologationService> logger)
 {
     /// <summary>Confianza mínima para no marcar una cuenta de los estados como dudosa.</summary>
@@ -52,6 +53,10 @@ public sealed partial class HomologationService(
         upload.AnalysisStatus = AnalysisStatus.Completed;
         upload.ProcessedAt = timeProvider.GetUtcNow().UtcDateTime;
         await unitOfWork.SaveChangesAsync(cancellationToken);
+
+        // Análisis de la empresa con los datos consolidados: KPIs (y desde las etapas 06–07,
+        // diagnóstico, impacto y score).
+        await analysisPipeline.RunAsync(upload.CompanyId, cancellationToken);
 
         return new ProcessingResult(upload.Id, upload.Status, upload.AnalysisStatus, upload.NeedsReview, upload.DoubtfulAccounts,
             usedFallback, [.. upload.Years]);

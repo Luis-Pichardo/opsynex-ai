@@ -18,6 +18,8 @@ internal static class JsonColumn
     internal static readonly JsonSerializerOptions Options = new(JsonSerializerDefaults.Web)
     {
         Encoder = JavaScriptEncoder.Create(UnicodeRanges.All),
+        // Enums como texto ("Up", "BalanceSheet"); los números guardados antes se siguen leyendo.
+        Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() },
     };
 
     /// <summary>Mapea una lista como arreglo JSON.</summary>
