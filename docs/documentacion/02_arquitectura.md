@@ -21,6 +21,7 @@
 | API | Scalar.AspNetCore | 2.21.0 |
 | API | Serilog.AspNetCore | 10.0.0 |
 | API | Asp.Versioning.Mvc / ApiExplorer / OpenApi | 10.2.1 / 10.2.1 / 10.2.3 |
+| API | Microsoft.AspNetCore.Authentication.JwtBearer | 10.0.15 |
 | Datos | Microsoft.EntityFrameworkCore.SqlServer / Sqlite / Design · dotnet-ef | 10.0.15 |
 | Pruebas .NET | Testcontainers.MsSql | 4.16.0 |
 | Aplicación | FluentValidation | 12.2.0 |
@@ -140,7 +141,67 @@ opsynex-ai/
 
 ### Seguridad
 
-Requerimientos iniciales: autenticación JWT, encriptación de contraseñas, validación de
-entradas, validación de archivos y control de acceso basado en roles.
+Requerimientos de las especificaciones (sección 19): autenticación JWT, encriptación de
+contraseñas, validación de entradas, validación de archivos y control de acceso basado en
+roles. Implementado en la Etapa 02:
 
-> Pendiente (Etapas 02 y 12): implementación detallada.
+- **Contraseñas:** hash con `PasswordHasher<User>` de ASP.NET Core Identity (PBKDF2 con
+  HMAC-SHA512, sal aleatoria por usuario y 100 000 iteraciones). Nunca se guardan ni se
+  devuelven en texto plano. Política: mínimo 8 caracteres con al menos una letra y un número.
+  Si el algoritmo cambia en una versión futura, el hash se regenera en el siguiente login.
+- **Sin auto-registro:** solo un Admin crea usuarios. El primer Admin se crea desde
+  configuración (`Seed:AdminEmail` y `Seed:AdminPassword`) al arrancar o con el comando
+  `dotnet run --project src/Opsynex.Api -- seed-admin`. El seed es idempotente y nunca cambia
+  la contraseña de un usuario existente.
+- **JWT:** HS256 con `Jwt:Secret` (mínimo 32 bytes; el API no arranca sin él), emisor
+  `opsynex-api`, audiencia `opsynex-web` y expiración configurable (`Jwt:ExpireMinutes`, 60 por
+  defecto, tolerancia de reloj de 30 s). Claims: `sub`, `email`, `role` y `company_id`.
+- **Sesión verificada en cada petición:** además de la firma y la expiración, el API comprueba
+  que el usuario siga activo y que su rol y empresa no hayan cambiado; si cambiaron, el token
+  deja de servir (401 `auth.session_invalid`).
+- **Bloqueo temporal:** 5 intentos fallidos consecutivos bloquean el login 15 minutos (423 con
+  `Retry-After`); configurable en `Auth:MaxFailedAttempts` y `Auth:LockoutMinutes`. Un Admin
+  lo quita al asignar una contraseña nueva.
+- **Sin enumeración de usuarios:** un correo inexistente y una contraseña errónea devuelven el
+  mismo error y tardan lo mismo (se verifica un hash ficticio).
+- **Autorización:** todo endpoint exige sesión por defecto (*fallback policy*) salvo los marcados
+  como públicos. Políticas `CanManage` (Admin), `CanAnalyze` (Admin, Analyst) y `CanView`
+  (todos). Ver la matriz en el capítulo *API REST*.
+- **Aislamiento por empresa:** `ICurrentUser` lee los claims y `HttpCurrentTenant` alimenta el
+  filtro global de EF Core: Analyst y Client quedan fijos a su empresa (otra empresa → 404); el
+  Admin ve todas o elige una con `X-Company-Id` / `?companyId=`. Una petición anónima no ve
+  datos.
+- **Errores uniformes:** ProblemDetails con `code` (`auth.invalid_credentials`,
+  `auth.forbidden`, `auth.token_expired`, etc.).
+
+> Pendiente (Etapas 03 y 13): validación de archivos, límites de tasa y revisión de seguridad.
+
+#### Flujo de autenticación
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor U as Usuario
+    participant F as Frontend (React)
+    participant A as API (ASP.NET Core)
+    participant D as SQL Server
+
+    U->>F: Correo y contraseña
+    F->>A: POST /api/v1/auth/login
+    A->>D: Buscar usuario por correo (sin filtro de empresa)
+    alt Bloqueado
+        A-->>F: 423 auth.locked_out + Retry-After
+    else Contraseña incorrecta
+        A->>D: Sumar intento fallido (5 → bloqueo de 15 min)
+        A-->>F: 401 auth.invalid_credentials
+    else Correcta
+        A->>D: Reiniciar intentos y guardar último login
+        A-->>F: 200 { accessToken (JWT), expiresAt, user }
+    end
+    F->>A: GET /api/v1/... + Authorization: Bearer JWT
+    A->>A: Validar firma, emisor, audiencia y expiración
+    A->>D: ¿Usuario activo con el mismo rol y empresa?
+    A->>A: Política del endpoint (CanManage / CanAnalyze / CanView)
+    A->>D: Consulta con el filtro global de la empresa del usuario
+    A-->>F: 200 datos · 401 sesión no válida · 403 rol insuficiente · 404 otra empresa
+```

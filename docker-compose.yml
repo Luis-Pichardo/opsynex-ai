@@ -43,6 +43,8 @@ services:
       ConnectionStrings__Default: Server=sqlserver,1433;Database=Opsynex;User Id=sa;Password=${MSSQL_SA_PASSWORD:-Opsynex_Dev_2026!};TrustServerCertificate=True
       Jwt__Secret: ${Jwt__Secret:-cambia-este-secreto-de-desarrollo-de-al-menos-32-caracteres}
       Jwt__ExpireMinutes: ${Jwt__ExpireMinutes:-60}
+      Seed__AdminEmail: ${Seed__AdminEmail:-}
+      Seed__AdminPassword: ${Seed__AdminPassword:-}
       Cors__Origins: ${Cors__Origins:-http://localhost:5173,http://localhost:8081}
       AiService__BaseUrl: http://ai-service:8001
       AiService__ApiKey: ${AiService__ApiKey:-dev-internal-key}
