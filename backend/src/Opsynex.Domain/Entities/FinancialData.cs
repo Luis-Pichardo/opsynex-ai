@@ -43,4 +43,31 @@ public sealed class FinancialData : Entity, ICompanyYearScoped
     public decimal? Equity { get; set; }
 
     public decimal? OperatingCashFlow { get; set; }
+
+    // Campos del libro contable dominicano (etapa 03).
+    public decimal? GrossSales { get; set; }
+
+    public decimal? SalesDiscounts { get; set; }
+
+    public decimal? FinancialExpenses { get; set; }
+
+    public decimal? EarningsBeforeTax { get; set; }
+
+    public decimal? IncomeTax { get; set; }
+
+    public decimal? RawMaterials { get; set; }
+
+    public decimal? Cash { get; set; }
+
+    public decimal? AccountsReceivable { get; set; }
+
+    public decimal? Inventory { get; set; }
+
+    public decimal? CurrentAssets { get; set; }
+
+    public decimal? CurrentLiabilities { get; set; }
+
+    public decimal? AccountsPayable { get; set; }
+
+    public decimal? FinancialDebt { get; set; }
 }

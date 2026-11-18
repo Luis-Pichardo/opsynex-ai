@@ -40,6 +40,19 @@ public static class OpsynexCategoryCatalog
         new(OpsynexCategory.Equity, "Patrimonio", "Capital y reservas de los accionistas.", FinancialStatement.BalanceSheet),
         new(OpsynexCategory.OperatingCashFlow, "Flujo de caja operativo", "Efectivo generado por las operaciones.", FinancialStatement.CashFlow),
         new(OpsynexCategory.Other, "Otros", "Cuentas que no corresponden a ninguna categoría estándar.", FinancialStatement.None),
+        new(OpsynexCategory.GrossSales, "Ventas brutas", "Ventas antes de descuentos (\"Ventas netas\" en el libro dominicano).", FinancialStatement.IncomeStatement),
+        new(OpsynexCategory.SalesDiscounts, "Descuentos sobre ventas", "Descuentos, devoluciones y bonificaciones sobre ventas.", FinancialStatement.IncomeStatement),
+        new(OpsynexCategory.FinancialExpenses, "Gastos financieros", "Intereses y comisiones bancarias; no forman parte del EBITDA.", FinancialStatement.IncomeStatement),
+        new(OpsynexCategory.EarningsBeforeTax, "Ganancia antes de impuestos", "Resultado antes del impuesto sobre la renta (ISR).", FinancialStatement.IncomeStatement),
+        new(OpsynexCategory.IncomeTax, "Impuesto sobre la renta", "ISR del período.", FinancialStatement.IncomeStatement),
+        new(OpsynexCategory.RawMaterials, "Materias primas", "Compras de materias primas locales e importadas.", FinancialStatement.IncomeStatement),
+        new(OpsynexCategory.Cash, "Efectivo", "Efectivo en cajas y bancos.", FinancialStatement.BalanceSheet),
+        new(OpsynexCategory.AccountsReceivable, "Cuentas por cobrar", "Cuentas por cobrar netas de provisión.", FinancialStatement.BalanceSheet),
+        new(OpsynexCategory.Inventory, "Inventarios", "Inventarios de productos terminados y materias primas.", FinancialStatement.BalanceSheet),
+        new(OpsynexCategory.CurrentAssets, "Activos corrientes", "Total de activos corrientes.", FinancialStatement.BalanceSheet),
+        new(OpsynexCategory.CurrentLiabilities, "Pasivos corrientes", "Total de pasivos corrientes.", FinancialStatement.BalanceSheet),
+        new(OpsynexCategory.AccountsPayable, "Cuentas por pagar", "Cuentas por pagar a proveedores.", FinancialStatement.BalanceSheet),
+        new(OpsynexCategory.FinancialDebt, "Deuda financiera", "Préstamos bancarios de corto y largo plazo.", FinancialStatement.BalanceSheet),
     ];
 
     private static readonly Dictionary<OpsynexCategory, OpsynexCategoryInfo> ByCategory =

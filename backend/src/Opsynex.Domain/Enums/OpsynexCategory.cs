@@ -23,4 +23,19 @@ public enum OpsynexCategory
     Equity,
     OperatingCashFlow,
     Other,
+
+    // Categorías del libro contable dominicano (FORMATO_EXCEL_ENTRADA.md, sección 4).
+    GrossSales,
+    SalesDiscounts,
+    FinancialExpenses,
+    EarningsBeforeTax,
+    IncomeTax,
+    RawMaterials,
+    Cash,
+    AccountsReceivable,
+    Inventory,
+    CurrentAssets,
+    CurrentLiabilities,
+    AccountsPayable,
+    FinancialDebt,
 }

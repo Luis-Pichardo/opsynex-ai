@@ -23,11 +23,43 @@ public enum UserRole
 /// <summary>Tipo de archivo cargado.</summary>
 public enum UploadFileType
 {
+    /// <summary>Libro contable completo de varias hojas (balance, resultados, notas, nómina…).</summary>
+    AccountingWorkbook,
+
     IncomeStatement,
     BalanceSheet,
     CashFlow,
     CostStructure,
     Operational,
+}
+
+/// <summary>Tipo de hoja detectado por el clasificador (por su contenido, no por su nombre).</summary>
+public enum SheetType
+{
+    Unknown,
+    BalanceSheet,
+    IncomeStatement,
+    EquityStatement,
+    Notes,
+    EmployeeRoster,
+    MonthlySales,
+    TrialBalance,
+    CashFlow,
+    CostStructure,
+    Operational,
+}
+
+/// <summary>Clase de fila de un estado financiero.</summary>
+public enum RowKind
+{
+    /// <summary>Cuenta con valores (se homologa).</summary>
+    Detail,
+
+    /// <summary>Subtotal ("Total corriente", líneas sin etiqueta con valores): solo para validar.</summary>
+    Subtotal,
+
+    /// <summary>Gran total ("Total Activos", "Total Pasivos &amp; Capital"): solo para validar.</summary>
+    Total,
 }
 
 /// <summary>Estado de procesamiento de una carga.</summary>
