@@ -5,10 +5,15 @@
 ## Prompt
 
 > Implementa el motor de homologación contable (sección 7 de las especificaciones): mapear las
-> cuentas del cliente a las categorías estándar de Opsynex. Las **sugerencias** las genera el
+> cuentas del cliente a las categorías estándar de Opsynex. **El proceso es automático y la
+> revisión del analista es opcional** (ver `docs/especificaciones/FLUJO_DE_USUARIO.md`): al
+> subir un archivo, el sistema aplica las mejores sugerencias, consolida y analiza sin esperar
+> confirmación; el analista puede corregir los mapeos después y volver a analizar. Las **sugerencias** las genera el
 > servicio de IA en Python (diccionario + coincidencia difusa); el API .NET guarda los mapeos,
 > gestiona la confirmación del analista y consolida en `FinancialData`. Si el servicio de IA
 > no responde, el API usa un fallback local por coincidencia exacta.
+> El caso que debe resolverse es la estructura real de los clientes: lee las secciones 4 y 5
+> de `docs/especificaciones/FORMATO_EXCEL_ENTRADA.md` (tabla de mapeo y términos dominicanos).
 
 ## Tareas
 
@@ -18,11 +23,23 @@
      "energía", "electricidad" → `energy_cost`; "nómina indirecta", "gastos administrativos" →
      `overhead_cost`; "desperdicio", "merma", "scrap" → `material_loss`; "mantenimiento" →
      `maintenance_cost`; depreciación, intereses, impuestos, activos, pasivos, patrimonio,
-     flujo operativo, etc.).
+     flujo operativo, etc.). Incluye **todos los términos dominicanos** de la sección 4 de la
+     especificación (ITBIS, ISR, Regalía Pascual, Infotep, TSS, Seguro Familiar de Salud,
+     Preaviso & Cesantía, "Compensaciones al personal", "Gastos de Fabricación", "Labor
+     directa", etc.) y las categorías nuevas de la etapa 03 (`GrossSales`, `SalesDiscounts`,
+     `FinancialExpenses`, `EarningsBeforeTax`, `IncomeTax`, `RawMaterials`, `Cash`,
+     `AccountsReceivable`, `Inventory`, `CurrentAssets`, `CurrentLiabilities`,
+     `AccountsPayable`, `FinancialDebt`).
+   - **Contexto en la sugerencia:** cada cuenta llega con `sheet_type`, `section` y
+     `account_code`. Ejemplos: "Total corriente" en la sección de activos → `CurrentAssets`, y
+     en pasivos → `CurrentLiabilities`. "Energía Eléctrica" en notas de gastos o de costo de
+     producción → `EnergyCost`. En el balance de comprobación, el primer dígito del código
+     orienta la categoría (1 activo, 2 pasivo, 3 capital, 4 ventas, 5 costos, 6 gastos).
    - Motor puro: normaliza el texto (minúsculas, sin acentos, sin códigos contables numéricos)
      y busca coincidencia exacta → palabras clave → coincidencia difusa (`rapidfuzz`).
      Devuelve `{ category, confidence (0–1), method, alternatives[] }`.
-   - `POST /homologation/suggest`: recibe `{ accounts: [...], known_mappings: [...] }` y
+   - `POST /homologation/suggest`: recibe `{ accounts: [{ label, normalized_label, sheet_type,
+     section, account_code }], known_mappings: [...] }` (nunca datos personales) y
      devuelve una sugerencia por cuenta. Los mapeos ya confirmados por la empresa tienen
      prioridad (confianza 1.0).
    - Tests con pytest.
@@ -35,21 +52,50 @@
    - `MappingsController`:
      - `GET /api/v1/mappings/pending?uploadId=`: cuentas sin mapear con su sugerencia.
      - `GET /api/v1/mappings` y `PUT /api/v1/mappings`: consultar y guardar o confirmar mapeos (masivo).
-     - `POST /api/v1/mappings/consolidate?uploadId=&auto=false`: agrega los valores por
-       categoría y año y hace upsert en `FinancialData`. Calcula derivados si faltan
-       (`Ebitda = Revenue − Cogs − OperatingExpenses + Depreciation` si la depreciación está
-       incluida en opex; `TotalCost = Cogs + OperatingExpenses`). Marca el upload como `Processed`.
-     - Con `auto=true` consolida solo si todas las sugerencias tienen confianza ≥ 0.9.
+     - `POST /api/v1/mappings/consolidate?uploadId=`: agrega los valores por categoría y año
+       y hace upsert en `FinancialData` (**todos los años del archivo**). Marca el upload como
+       `Processed`. Se usa al volver a analizar tras una revisión manual.
+   - **Procesamiento automático al subir** (`UploadProcessingService`, invocado al final de
+     `POST /uploads` cuando no hay errores bloqueantes): pedir sugerencias → aplicar a cada
+     cuenta el mapeo confirmado previo o, si no hay, la mejor sugerencia (`Method = Auto`) →
+     consolidar → ejecutar `AnalysisPipeline` (desde la etapa 05). La respuesta del upload
+     incluye `analysisStatus` y `needsReview`.
+   - **`NeedsReview`**: el upload se marca "revisión recomendada" si alguna cuenta con rol
+     `Primary` quedó con confianza < 0,8 o sin categoría (va a `Other`). No bloquea el análisis:
+     solo muestra un aviso y la lista de cuentas dudosas. Las cuentas sin categoría se informan
+     como advertencia con su monto, para que se vea si son materiales.
+   - **Sin doble conteo:** cada mapeo tiene un `Role`: `Primary` (líneas de los estados
+     financieros, que alimentan los totales: Revenue, Cogs, OperatingExpenses, activos…) o
+     `Breakdown` (detalles de las notas, que solo alimentan categorías analíticas:
+     EnergyCost, MaintenanceCost, LaborCost, RawMaterials). Las filas de subtotal y total no
+     se suman; se usan para validar. Migración para la columna `Role` en `AccountMapping`.
+   - **Derivados** (cuando no vienen en el archivo):
+     `Revenue = GrossSales − SalesDiscounts`;
+     `TotalCost = Cogs + OperatingExpenses`;
+     `Ebitda = EarningsBeforeTax + FinancialExpenses + Depreciation` (la depreciación en gastos
+     más la incluida en el costo de producción);
+     `TotalLiabilities = (Total pasivos y capital) − Equity`.
 3. Tests con los ejemplos del PDF: "Gasto Energía Planta" → `energy_cost`, "Nómina Indirecta" →
    `overhead_cost`, "Desperdicio Materia Prima" → `material_loss`, "Gasto Mantenimiento" →
    `maintenance_cost`. Tests de integración con el cliente de IA simulado (stub) y del fallback.
+4. **Test de punta a punta con el libro sintético:** subirlo → sugerencias → consolidación
+   automática → `FinancialData` de sus dos años igual a los valores esperados del generador (Revenue, Cogs, OperatingExpenses, TotalCost,
+   FinancialExpenses, Ebitda, NetIncome, EnergyCost, MaintenanceCost, LaborCost, TotalAssets,
+   TotalLiabilities y Equity).
 
 ## Criterios de aceptación
 
 - [ ] Los 4 ejemplos del PDF se mapean automáticamente de forma correcta.
-- [ ] Tras consolidar `sample-data/`, `FinancialData` tiene 3 años con valores que coinciden
-      con los totales del Excel (verificado en un test).
+- [ ] Tras consolidar el libro sintético, `FinancialData` tiene sus dos años con los valores
+      esperados del generador (verificado en un test).
+- [ ] Al menos el 90 % de las líneas de detalle del balance, del estado de resultados y de las
+      notas 3 y 4 (con las etiquetas de la sección 4 de la especificación) reciben una sugerencia correcta con confianza ≥ 0,8.
+- [ ] No hay doble conteo entre los estados y sus notas (test).
 - [ ] Un mapeo confirmado se reutiliza en la siguiente carga de la misma empresa.
+- [ ] Al subir el libro sintético, el análisis se ejecuta **sin intervención** y el upload
+      queda `Processed`. Con una variante que tiene cuentas desconocidas, queda además con
+      `NeedsReview = true` y la lista de cuentas dudosas.
+- [ ] Corregir un mapeo y volver a analizar actualiza `FinancialData` (test).
 - [ ] Con el servicio de IA apagado, la homologación sigue funcionando (fallback).
 
 ## Documentación a actualizar

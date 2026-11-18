@@ -6,7 +6,8 @@
 
 > Implementa el motor de KPIs en C# (secciones 8.3 y 9 de las especificaciones): cálculo
 > automático, almacenamiento histórico, normalización y evaluación de tendencias. Se ejecuta
-> automáticamente al consolidar datos y también bajo demanda.
+> automáticamente al consolidar datos y también bajo demanda. Se prueba con el libro sintético
+> generado en la etapa 03 (estructura de `docs/especificaciones/FORMATO_EXCEL_ENTRADA.md`).
 
 ## Tareas
 
@@ -22,6 +23,12 @@
    | `OverheadRatio` | Overhead Cost / Revenue (auxiliar para el diagnóstico) |
    | `EnergyCostRatio` | Energy Cost / Revenue (auxiliar) |
    | `CostPerUnit` | Total Cost / Units Produced (si hay datos operacionales) |
+   | `NetMargin` | Net Income / Revenue |
+   | `LaborCostRatio` | Labor Cost / Revenue |
+   | `CurrentRatio` | Current Assets / Current Liabilities (estabilidad financiera) |
+   | `DebtToEquity` | Total Liabilities / Equity (estabilidad financiera) |
+   | `DaysSalesOutstanding` | Accounts Receivable / Revenue × 365 |
+   | `InventoryDays` | Inventory / COGS × 365 |
    Devuelve `null` si falta un dato o el denominador es 0.
 2. **Tendencias** (`TrendAnalyzer`): para cada KPI, variación absoluta y porcentual año contra
    año, dirección (`Up` / `Down` / `Stable`, con umbral configurable de ±1 %) y si es favorable
@@ -30,18 +37,24 @@
 3. **Normalización** a escala 0–100 con rangos de referencia por industria (`Manufacturing`,
    `Services`) en `appsettings` (sección `Benchmarks`) con un objeto de opciones tipado. Por
    ejemplo, margen EBITDA en manufactura: 0 % → 0 pts y 20 % → 100 pts. La usa el score (etapa 07).
-4. Agrega a `KpiResult` lo que haga falta (`OverheadRatio`, `CostPerUnit`, `Trends` JSON,
+   Los KPIs en moneda (como `RevenuePerEmployee`) tienen benchmarks **por moneda** (DOP, USD…),
+   porque el cliente de referencia reporta en RD$.
+4. **Serie mensual:** si hay `MonthlyFinancialData` (hoja de ventas mensuales), calcular el
+   crecimiento mensual, el promedio móvil de 3 meses y la estacionalidad básica. Se usan en el
+   dashboard y en la detección de anomalías (etapa 11).
+5. Agrega a `KpiResult` lo que haga falta (`OverheadRatio`, `CostPerUnit`, `Trends` JSON,
    `Normalized` JSON) con su migración.
-5. `AnalysisPipeline` en Application: `RunAsync(companyId)` recalcula los KPIs de todos los años
+6. `AnalysisPipeline` en Application: `RunAsync(companyId)` recalcula los KPIs de todos los años
    (en las etapas siguientes también diagnóstico, impacto y score). Se llama al consolidar y
    desde `POST /api/v1/analysis/run`.
-6. `GET /api/v1/kpis?year=`: KPIs del año con sus tendencias; sin `year` devuelve la serie histórica.
+7. `GET /api/v1/kpis?year=`: KPIs del año con sus tendencias; sin `year` devuelve la serie histórica.
 
 ## Criterios de aceptación
 
 - [ ] Tests unitarios (xUnit `[Theory]`) de cada fórmula, incluidos casos borde (cero, null y negativos).
-- [ ] Con `sample-data/`, los KPIs coinciden con valores calculados a mano en el test.
-- [ ] `GET /kpis` devuelve la serie 2022–2024 con tendencias.
+- [ ] Con el libro sintético, los KPIs de cada año coinciden con los calculados a mano a partir
+      de sus valores inventados.
+- [ ] `GET /kpis` devuelve la serie histórica con tendencias, y la serie mensual cuando existe.
 
 ## Documentación a actualizar
 

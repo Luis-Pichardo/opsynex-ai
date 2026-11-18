@@ -11,8 +11,9 @@
 ## Tareas
 
 1. `AuthController` en `/api/v1/auth`:
-   - `POST /register`: solo un Admin crea usuarios `Admin` o `Analyst`. El auto-registro
-     público (si `Auth:AllowPublicRegister` es true) crea `Client`. Validación con
+   - `POST /register`: **solo un Admin** crea usuarios, de cualquier rol (`Admin`, `Analyst`
+     o `Client`), y los asigna a una empresa. **No existe auto-registro público** (requisito del
+     cliente): sin token de Admin el endpoint responde 401 o 403. Validación con
      FluentValidation: email válido y contraseña de mínimo 8 caracteres con letra y número.
    - `POST /login`: devuelve `accessToken` (JWT con claims `sub`, `email`, `role` y
      `company_id`; expiración configurable) y los datos del usuario.

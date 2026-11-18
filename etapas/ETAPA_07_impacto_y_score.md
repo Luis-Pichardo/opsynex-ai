@@ -29,7 +29,7 @@
    | Rentabilidad | 30 % | EbitdaMargin, GrossMargin |
    | Eficiencia de costos | 25 % | CostEfficiency, OperatingCostRatio |
    | Productividad | 25 % | RevenuePerEmployee y su tendencia |
-   | Estabilidad financiera | 20 % | Pasivos/Patrimonio, OperatingCashFlow/Revenue, volatilidad de márgenes |
+   | Estabilidad financiera | 20 % | CurrentRatio, DebtToEquity, volatilidad de márgenes (y OperatingCashFlow/Revenue si existe; el archivo del cliente no trae flujo de efectivo) |
    Si falta un componente, su peso se redistribuye proporcionalmente y se indica.
    Interpretación: 80–100 operación saludable · 60–79 oportunidades de mejora · menos de 60
    deterioro operacional significativo.
@@ -42,7 +42,8 @@
 ## Criterios de aceptación
 
 - [ ] Tests de cada fórmula de impacto y del score (pesos, redistribución e interpretación).
-- [ ] Con `sample-data/`, cada problema tiene un impacto mayor que 0 y el score está entre 0 y 100.
+- [ ] Con los libros sintéticos, cada problema tiene un impacto mayor que 0 y el score está
+      entre 0 y 100.
 - [ ] Test de integración de punta a punta: subir → homologar → consolidar → `GET /kpis`,
       `/problems`, `/score` e `/impact/summary` devuelven datos coherentes.
 - [ ] Se cumplen los puntos de backend de la "Definición MVP" (sección 20).

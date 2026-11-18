@@ -24,7 +24,8 @@
 3. **E2E** con Playwright (`e2e/`): login → carga de `sample-data` → homologación → dashboard →
    detalle de problema; y permisos del rol `Client`. Se ejecutan en CI.
 4. **Datos demo**: comando `dotnet run --project src/Opsynex.Api -- seed-demo` que crea 2
-   empresas (una manufacturera con datos industriales y una de servicios) y usuarios de cada
+   empresas ficticias (una manufacturera en RD$ cargada con el libro sintético, con datos
+   industriales sintéticos, y una de servicios) y usuarios de cada
    rol con contraseñas de demo documentadas, y luego ejecuta el análisis.
 5. **Rendimiento**: índices revisados, paginación en todos los listados, consultas
    `AsNoTracking` para lecturas, y compresión de respuestas.
