@@ -357,6 +357,7 @@ class Variant:
     subtotal_mismatch: bool = False
     income_single_year: bool = False
     invalid_years: bool = False
+    unknown_accounts: bool = False
     expected_warnings: list[str] = field(default_factory=list)
 
 
@@ -535,6 +536,11 @@ def write_income(wb, data, years, variant: Variant, expected: dict) -> None:
     )
     rows["isr"] = w.line(4, "Impuesto sobre la renta (nota 15)", V("isr"))
     rows["ni"] = w.line(3, "Ingresos Netos", formula="expr", refs=[(rows["ebt"], 1), (rows["isr"], -1)], bold=True)
+    if variant.unknown_accounts:
+        # Líneas informativas con etiquetas que ningún diccionario reconoce (no alteran los totales).
+        w.blank()
+        w.line(4, "Partida especial ZQX", {y: 125_000.0 for y in ys})
+        w.line(4, "Ajuste extraordinario QWV", {y: 48_500.0 for y in ys})
     expected["rows"]["g&P"] = rows
 
 
@@ -1092,6 +1098,12 @@ VARIANTS = [
         "El estado de resultados solo trae el año actual.",
         income_single_year=True,
         expected_warnings=["quality.missing_year"],
+    ),
+    Variant(
+        "inc_cuentas_desconocidas",
+        [2023, 2024],
+        "El estado de resultados trae dos líneas que ningún diccionario reconoce (revisión recomendada).",
+        unknown_accounts=True,
     ),
     Variant(
         "invalido_anios",

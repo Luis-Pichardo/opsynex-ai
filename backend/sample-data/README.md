@@ -27,6 +27,7 @@ valores calculados por LibreOffice, como en un archivo guardado por Excel.
 | `inc5_nombre_empresa.xls` | La hoja nota3 trae el nombre de la empresa escrito distinto. |
 | `inc_subtotal.xls` | El total de gastos de operaciones no coincide con la suma de sus líneas. |
 | `inc_anio_faltante.xls` | El estado de resultados solo trae el año actual. |
+| `inc_cuentas_desconocidas.xls` | El estado de resultados trae dos líneas que ningún diccionario reconoce (revisión recomendada). |
 | `invalido_anios.xlsx` | Las filas de años traen valores fuera de rango (1849/1850). |
 | `invalido_sin_estados.xlsx` | Solo hojas fiscales: falta el balance y el estado de resultados → error bloqueante. |
 | `invalido_vacio.xlsx` | Libro sin datos → error bloqueante. |

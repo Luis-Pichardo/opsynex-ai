@@ -47,9 +47,9 @@ public sealed class ModelConfigurationTests : IDisposable
     }
 
     [Fact]
-    public void AccountMapping_IsUniquePerCompanyAndClientAccount()
+    public void AccountMapping_IsUniquePerCompanyScopeSectionAndClientAccount()
     {
-        HasUniqueIndex(Entity<AccountMapping>(), "CompanyId", "ClientAccount").ShouldBeTrue();
+        HasUniqueIndex(Entity<AccountMapping>(), "CompanyId", "Scope", "Section", "ClientAccount").ShouldBeTrue();
     }
 
     [Fact]
