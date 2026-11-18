@@ -124,3 +124,9 @@ Etapa 02 completada (18/11/2026): inicio de sesión con JWT, contraseñas con ha
 bloqueo temporal tras 5 intentos fallidos, roles Admin / Analyst / Client con aislamiento por
 empresa, administración de empresas y usuarios (solo Admin, sin auto-registro) y creación del
 primer Admin. La siguiente etapa es la carga y validación de datos (Etapa 03).
+
+Etapa 03 completada (18/11/2026): el sistema acepta el libro contable real de los clientes
+(`.xls`/`.xlsx`) y plantillas simples; reconoce cada hoja por su contenido, extrae los estados
+financieros, notas, nómina (solo conteos), ventas mensuales y balance de comprobación, y reporta
+las inconsistencias de calidad como advertencias. La siguiente etapa es la homologación contable
+con el servicio de IA (Etapa 04).

@@ -113,3 +113,42 @@ Registro de cada etapa completada (la más reciente al final).
     igual que el 547 de SQL Server a 409.
 - **Pendientes:** cambio de contraseña por el propio usuario y recuperación por correo (no
   pedidos en el MVP); límites de tasa en el login (Etapa 13).
+
+### Etapa 03 — Carga y validación de datos (18/11/2026)
+
+- **Resumen:** ingesta del libro contable real de los clientes (`.xls` BIFF8 y `.xlsx`) y de
+  plantillas simples (`.xlsx`/`.csv`): validación de firma y tamaño, clasificador de hojas por
+  contenido, extractor de estados financieros sin posiciones fijas, extractores de nómina (solo
+  conteos), ventas mensuales y balance de comprobación, y 9 validaciones de calidad como
+  advertencias con hoja, fila y columna. Endpoints `POST/GET /uploads`, `GET /uploads/{id}`,
+  plantillas `.xlsx` y `GET /data`. Generador de libros sintéticos con 19 archivos de prueba.
+  Migración `IngestionModel` (columnas de origen en `RawAccountValue`, 13 campos en
+  `FinancialData`, reporte JSON en `Uploads`, entidad `MonthlyFinancialData`).
+- **Archivos principales:** `backend/src/Opsynex.Infrastructure/Parsing/`,
+  `backend/src/Opsynex.Application/Uploads/`, `Controllers/UploadsController.cs`,
+  `DataController.cs`, `backend/tests/TestData/generate_sample_workbooks.py`,
+  `backend/sample-data/`, `backend/tests/*/Parsing|Uploads/`.
+- **Decisiones técnicas:**
+  - Se lee con `IExcelDataReader` fila por fila (sin `ExcelDataReader.DataSet`, que no hace
+    falta). En .NET 10 `CodePagesEncodingProvider` viene incluido: no se necesita el paquete
+    `System.Text.Encoding.CodePages`.
+  - CsvHelper fijado en **33.1.0**: la 34 reescribió la API.
+  - La firma se valida contra el contenido; un `.xls` que en realidad es `.xlsx` (o al revés) se
+    lee igual con la advertencia `upload.extension_mismatch`.
+  - Los subtotales y totales se guardan (`RowKind`) para validar y para los derivados de la
+    etapa 04 (`TotalLiabilities = Total pasivos y capital − Total capital`), pero no se suman.
+  - Tolerancia de cuadre = el mayor entre 1 unidad y 0,01 %.
+  - Validación de subtotales con tres reglas (suma del grupo, subtotal anterior + grupo, suma de
+    subtotales de la sección) y grupos cortados por los títulos, para no dar falsos avisos con
+    líneas calculadas como "Ganancia bruta" o "Menos: depreciación acumulada".
+  - Un archivo con errores bloqueantes se **registra** como `Failed` (aparece en el historial) y
+    responde 422 con el mismo reporte; el archivo original nunca se guarda.
+  - Privacidad: la nómina solo produce conteos y sumas por departamento; las etiquetas pasan por
+    un filtro que reemplaza números de cuenta, cédulas y RNC por `***`; el nombre de la empresa
+    del encabezado solo se compara (el mensaje nombra las hojas, no la empresa).
+  - Monedas validadas contra una lista fija de ISO 4217 (no depende de la configuración regional).
+  - Se agregó `UploadFileType.AccountingWorkbook` y los tipos de hoja `CashFlow`,
+    `CostStructure` y `Operational` para las plantillas.
+  - Bloqueante adicional `upload.file_type_required`: un CSV sin título no se puede clasificar.
+- **Pendientes:** homologación y consolidación en `FinancialData` (Etapa 04); `PRESTLAB` e
+  `IMPORT` (fase 2).
