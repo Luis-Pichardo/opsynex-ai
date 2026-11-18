@@ -78,4 +78,18 @@ python3 backend/tests/TestData/generate_sample_workbooks.py
 Sin Python, las pruebas con IA real se omiten con su motivo. En la CI se exigen
 (`OPSYNEX_REQUIRE_AI=true`) y el servicio se instala en el job de .NET.
 
+### Motor de KPIs (Etapa 05)
+
+- **Unitarias** (`Kpis/`):
+  - Una `[Theory]` por fórmula, con casos de cero, null y negativos.
+  - Tendencias: dirección, si es favorable, umbral configurable y crecimiento.
+  - Normalización: lineal, con topes y con rangos invertidos.
+  - Serie mensual: huecos y cambio de año.
+  - Benchmarks de `appsettings.json` válidos para las dos industrias y las monedas.
+- **Integración** (`Analysis/KpisEndpointsTests`):
+  - Los 14 KPIs de cada año de los libros de 2 y 3 años coinciden con los calculados a mano por
+    el generador (`expected_values.json → kpis`).
+  - Tendencias, normalización en RD$, serie mensual, filtro por año, JSON guardado, recálculo con
+    `/analysis/run` y permisos.
+
 > Pendiente (Etapas 07, 10 y 12): estrategia completa, cobertura y checklist del MVP.

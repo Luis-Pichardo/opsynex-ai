@@ -146,6 +146,11 @@ erDiagram
         decimal CostEfficiency
         decimal RevenuePerEmployee
         decimal OperatingCostRatio
+        decimal NetMargin
+        decimal CurrentRatio
+        decimal DebtToEquity
+        nvarchar Trends "JSON"
+        nvarchar Normalized "JSON"
     }
     Problems {
         uniqueidentifier Id PK
@@ -350,7 +355,7 @@ Serie mensual de ventas y compras (hoja de ventas mensuales). Único por (`Compa
 
 #### KpiResults
 
-KPIs calculados por año. Único por (`CompanyId`, `Year`). Un KPI nulo no se pudo calcular.
+KPIs calculados por año (14 KPIs, etapa 05). Único por (`CompanyId`, `Year`). Un KPI nulo no se pudo calcular. Se recalculan en cada análisis.
 
 | Columna | Tipo | Nulo | Descripción |
 |---|---|---|---|
@@ -363,6 +368,17 @@ KPIs calculados por año. Único por (`CompanyId`, `Year`). Un KPI nulo no se pu
 | RevenuePerEmployee | decimal(18,2) | Sí | Revenue / empleados (monto). |
 | OperatingCostRatio | decimal(9,4) | Sí | Operating expenses / Revenue. |
 | CalculatedAt | datetime2 | No | Fecha del cálculo (UTC). |
+| CostPerUnit | decimal(18,2) | Sí | Total cost / unidades producidas (monto). |
+| CurrentRatio | decimal(9,4) | Sí | Current assets / Current liabilities. |
+| DaysSalesOutstanding | decimal(9,2) | Sí | Cuentas por cobrar / Revenue × 365. |
+| DebtToEquity | decimal(9,4) | Sí | Total liabilities / Equity. |
+| EnergyCostRatio | decimal(9,4) | Sí | Energy cost / Revenue. |
+| InventoryDays | decimal(9,2) | Sí | Inventory / COGS × 365. |
+| LaborCostRatio | decimal(9,4) | Sí | Labor cost / Revenue. |
+| NetMargin | decimal(9,4) | Sí | Net income / Revenue. |
+| Normalized | nvarchar(max) | No | JSON: KPI → puntos 0–100 según los benchmarks de la industria y la moneda. |
+| OverheadRatio | decimal(9,4) | Sí | Overhead cost / Revenue. |
+| Trends | nvarchar(max) | No | JSON: tendencias frente al año anterior (variación, dirección, si es favorable) y crecimiento de ingresos, costo total y gastos generales. Vacío en el primer año. |
 | CreatedAt | datetime2 | No | Fecha de creación (UTC). |
 | UpdatedAt | datetime2 | No | Última modificación (UTC). |
 
