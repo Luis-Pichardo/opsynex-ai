@@ -35,6 +35,11 @@ try
         .Enrich.FromLogContext());
 
     builder.Services.AddOpsynexProblemDetails();
+
+    // Límite del cuerpo de la petición: Upload:MaxMb + 1 MB de margen para el formulario.
+    var maxUploadBytes = (builder.Configuration.GetValue<int?>("Upload:MaxMb") ?? 20) * 1024L * 1024L + 1024L * 1024L;
+    builder.WebHost.ConfigureKestrel(k => k.Limits.MaxRequestBodySize = maxUploadBytes);
+    builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(o => o.MultipartBodyLengthLimit = maxUploadBytes);
     builder.Services.AddExceptionHandler<AppExceptionHandler>();
     builder.Services.AddFrontendCors(builder.Configuration);
 

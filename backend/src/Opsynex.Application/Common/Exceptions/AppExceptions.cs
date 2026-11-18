@@ -64,3 +64,9 @@ public sealed class BusinessValidationException(string code, string field, strin
 
     public override string Title => "Datos no válidos";
 }
+
+/// <summary>413: el archivo supera el tamaño permitido.</summary>
+public sealed class PayloadTooLargeException(string code, string message) : AppException(code, message)
+{
+    public override string Title => "Archivo demasiado grande";
+}
