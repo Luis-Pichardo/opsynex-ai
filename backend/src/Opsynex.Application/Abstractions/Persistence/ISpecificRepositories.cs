@@ -6,6 +6,9 @@ public interface IUserRepository : IRepository<User>
 {
     /// <summary>Busca por correo sin distinguir mayúsculas. Ignora el filtro por empresa (login).</summary>
     Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default);
+
+    /// <summary>Busca por Id ignorando el filtro por empresa (validación de la sesión).</summary>
+    Task<User?> GetByIdIgnoringFiltersAsync(Guid id, CancellationToken cancellationToken = default);
 }
 
 /// <summary>Repositorio de datos anuales por empresa (FinancialData, OperationalData, KpiResult, Score).</summary>
@@ -23,4 +26,13 @@ public interface IAccountMappingRepository : IRepository<AccountMapping>
     Task<AccountMapping?> GetByClientAccountAsync(Guid companyId, string clientAccount, CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<AccountMapping>> ListByCompanyAsync(Guid companyId, CancellationToken cancellationToken = default);
+}
+
+public interface ICompanyRepository : IRepository<Company>
+{
+    /// <summary>
+    /// Nombre de una empresa sin aplicar el filtro por empresa. Solo para armar respuestas de
+    /// sesión (login), cuando todavía no hay un usuario autenticado.
+    /// </summary>
+    Task<string?> FindNameIgnoringFiltersAsync(Guid companyId, CancellationToken cancellationToken = default);
 }
