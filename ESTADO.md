@@ -4,7 +4,7 @@ Leyenda: ⬜ pendiente · 🟡 en progreso · ✅ completada
 
 | # | Etapa | Archivo | Estado | Fecha | PR / Notas |
 |---|---|---|---|---|---|
-| 00 | Preparación del entorno y estructura | `etapas/ETAPA_00_preparacion.md` | ⬜ | | |
+| 00 | Preparación del entorno y estructura | `etapas/ETAPA_00_preparacion.md` | ✅ | 15/11/2026 | Rama `ccr-428b3ea1-sne2o0` (PR a `main`). Monorepo, salud, tests, Docker y CI. |
 | 01 | Base de datos y modelos (EF Core + SQL Server) | `etapas/ETAPA_01_base_de_datos.md` | ⬜ | | |
 | 02 | Autenticación y roles | `etapas/ETAPA_02_autenticacion.md` | ⬜ | | |
 | 03 | Carga y validación de datos | `etapas/ETAPA_03_carga_de_datos.md` | ⬜ | | |
@@ -24,10 +24,29 @@ Leyenda: ⬜ pendiente · 🟡 en progreso · ✅ completada
 
 ## Notas del entorno
 
-- Contenedor de Claude Code en la nube (revisado el 15/11/2026): Ubuntu 24.04, **sin .NET SDK
-  instalado** y sin el daemon de Docker en ejecución (el cliente `docker` existe, pero
-  `/var/run/docker.sock` no). Responden `packages.microsoft.com`, `api.nuget.org` y
-  `mcr.microsoft.com`; `builds.dotnet.microsoft.com` no respondió. Python 3, Node, pandoc y
-  LibreOffice sí están.
-- (Claude: anota aquí todo lo que la próxima sesión deba saber: cómo se instaló .NET, cómo se
-  ejecutan la BD y los tests en la nube, las variables necesarias y los problemas conocidos.)
+Revisado el 15/11/2026 (contenedor de Claude Code en la nube, Ubuntu 24.04, usuario root).
+
+- **Preparar el contenedor:** `bash scripts/setup_cloud.sh --with-sql` (idempotente, ~15 s con
+  caché; 2–3 min en un contenedor nuevo). Sin `--with-sql` no arranca Docker ni SQL Server.
+- **.NET:** el contenedor no trae .NET. Funciona `apt-get install -y dotnet-sdk-10.0` (paquete
+  de Ubuntu noble-updates, SDK 10.0.115 / runtime 10.0.15). El repositorio de
+  `packages.microsoft.com` para 24.04 no publica .NET 10 (el script lo intenta como respaldo y
+  luego `dotnet-install.sh`).
+- **Docker:** el daemon no corre al iniciar, pero `dockerd` está instalado y **sí arranca**
+  (`nohup dockerd > /tmp/dockerd.log 2>&1 &`). `mcr.microsoft.com` responde, así que SQL Server
+  2022 corre en contenedor: `docker compose up -d sqlserver` (sa / `Opsynex_Dev_2026!`,
+  `localhost,1433`). Por lo tanto las pruebas de integración con BD (Etapa 01) pueden usar
+  **Testcontainers**; SQLite in-memory queda como respaldo si no hay Docker.
+- **docker build en la nube:** los contenedores de build no confían en el certificado del
+  proxy. Para probar imágenes: `--network host`, `--build-context ca=/root/.ccr`, pasar
+  `HTTPS_PROXY` como build-arg y usar una copia temporal del Dockerfile que copie
+  `ca-bundle.crt` y defina `SSL_CERT_FILE`/`NODE_EXTRA_CA_CERTS`/`PIP_CERT`. Así se verificó
+  que las tres imágenes construyen y responden `/health`. No modificar los Dockerfile del repo.
+- **Python:** usar `python3.12` (el `python3` del sistema es 3.13). El venv vive en
+  `ai-service/.venv`; ejecutar `ai-service/.venv/bin/pytest` y `.venv/bin/ruff`.
+- **Node:** v22 y npm 10 instalados. Frontend con `npm ci`.
+- **Word:** `python3 scripts/generar_documentacion.py` funciona (pandoc y python-docx presentes).
+- **Variables necesarias para desarrollo:** ninguna obligatoria todavía; `.env.example` tiene
+  los valores por defecto. `ANTHROPIC_API_KEY` solo hará falta desde la Etapa 04/11.
+- **Ramas:** las sesiones en la nube trabajan en la rama asignada por el entorno (p. ej.
+  `ccr-…`) en lugar de `etapa-NN-…`; el PR va igualmente a `main`.

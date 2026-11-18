@@ -22,3 +22,30 @@ Registro de cada etapa completada (la más reciente al final).
   y resumen ejecutivo con Claude, detección de anomalías); despliegue con la nube a elegir
   (Azure recomendada para .NET).
 - **Pendientes:** iniciar la etapa 00.
+
+### Etapa 00 — Preparación del entorno y estructura (15/11/2026)
+
+- **Resumen:** se creó el monorepo con la solución .NET 10 en arquitectura limpia (API,
+  Application, Domain, Infrastructure y dos proyectos de pruebas), el servicio de IA en
+  Python/FastAPI con autenticación interna por cabecera y el frontend React + Vite + Tailwind +
+  shadcn/ui con los tokens de diseño. Los tres tienen salud (`/health` o pantalla de estado),
+  pruebas, linters y Dockerfile; hay `docker-compose.yml` y CI en GitHub Actions.
+- **Archivos principales:** `backend/` (`Program.cs`, `Directory.*.props`, `Dockerfile`),
+  `ai-service/app/` (`main.py`, `security.py`), `frontend/src/` (`components/ui/`,
+  `components/health/`, `lib/format.ts`, `styles/tokens.css`), `tailwind.config.ts`,
+  `docker-compose.yml`, `.env.example`, `.github/workflows/ci.yml`, `scripts/setup_cloud.sh`.
+- **Decisiones técnicas:**
+  - .NET 10 instalado desde el paquete de Ubuntu (`dotnet-sdk-10.0`, noble-updates); el
+    repositorio de Microsoft para 24.04 no lo publica.
+  - En la nube sí se puede arrancar `dockerd` y SQL Server 2022 en contenedor, así que las
+    pruebas de integración con BD podrán usar Testcontainers (SQLite in-memory queda de respaldo).
+  - xUnit v3 (`xunit.v3`) para tener `TestContext.Current.CancellationToken`.
+  - OpenAPI versionado con `Asp.Versioning.OpenApi` (un documento por versión, `/openapi/v1.json`).
+  - Serilog con logger inicial normal (no *bootstrap*), porque el *bootstrap logger* falla
+    cuando `WebApplicationFactory` crea varios hosts en las pruebas.
+  - Tailwind CSS 3.4 (no la 4) porque la guía de diseño pide mapear los tokens en
+    `tailwind.config`; los componentes de shadcn/ui (estilo new-york) se copiaron a mano y se
+    adaptaron a los tokens. El modo oscuro lo resuelven los tokens, sin variante `dark:`.
+  - ESLint prohíbe `toLocaleString` en el frontend: todo formato pasa por `src/lib/format.ts`.
+  - Versión del documento: 0.0.3 (la regla `0.N.0` daría 0.0.0, menor que la versión vigente).
+- **Pendientes:** Etapa 01 (base de datos y modelos con EF Core, check de BD en `/health`).
