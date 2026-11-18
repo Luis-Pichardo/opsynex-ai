@@ -5,7 +5,10 @@
 ## Prompt
 
 > Implementa el motor de homologación contable (sección 7 de las especificaciones): mapear las
-> cuentas del cliente a las categorías estándar de Opsynex. Las **sugerencias** las genera el
+> cuentas del cliente a las categorías estándar de Opsynex. **El proceso es automático y la
+> revisión del analista es opcional** (ver `docs/especificaciones/FLUJO_DE_USUARIO.md`): al
+> subir un archivo, el sistema aplica las mejores sugerencias, consolida y analiza sin esperar
+> confirmación; el analista puede corregir los mapeos después y volver a analizar. Las **sugerencias** las genera el
 > servicio de IA en Python (diccionario + coincidencia difusa); el API .NET guarda los mapeos,
 > gestiona la confirmación del analista y consolida en `FinancialData`. Si el servicio de IA
 > no responde, el API usa un fallback local por coincidencia exacta.
@@ -49,9 +52,18 @@
    - `MappingsController`:
      - `GET /api/v1/mappings/pending?uploadId=`: cuentas sin mapear con su sugerencia.
      - `GET /api/v1/mappings` y `PUT /api/v1/mappings`: consultar y guardar o confirmar mapeos (masivo).
-     - `POST /api/v1/mappings/consolidate?uploadId=&auto=false`: agrega los valores por
-       categoría y año y hace upsert en `FinancialData` (**todos los años del archivo**).
-       Marca el upload como `Processed`.
+     - `POST /api/v1/mappings/consolidate?uploadId=`: agrega los valores por categoría y año
+       y hace upsert en `FinancialData` (**todos los años del archivo**). Marca el upload como
+       `Processed`. Se usa al volver a analizar tras una revisión manual.
+   - **Procesamiento automático al subir** (`UploadProcessingService`, invocado al final de
+     `POST /uploads` cuando no hay errores bloqueantes): pedir sugerencias → aplicar a cada
+     cuenta el mapeo confirmado previo o, si no hay, la mejor sugerencia (`Method = Auto`) →
+     consolidar → ejecutar `AnalysisPipeline` (desde la etapa 05). La respuesta del upload
+     incluye `analysisStatus` y `needsReview`.
+   - **`NeedsReview`**: el upload se marca "revisión recomendada" si alguna cuenta con rol
+     `Primary` quedó con confianza < 0,8 o sin categoría (va a `Other`). No bloquea el análisis:
+     solo muestra un aviso y la lista de cuentas dudosas. Las cuentas sin categoría se informan
+     como advertencia con su monto, para que se vea si son materiales.
    - **Sin doble conteo:** cada mapeo tiene un `Role`: `Primary` (líneas de los estados
      financieros, que alimentan los totales: Revenue, Cogs, OperatingExpenses, activos…) o
      `Breakdown` (detalles de las notas, que solo alimentan categorías analíticas:
@@ -63,7 +75,6 @@
      `Ebitda = EarningsBeforeTax + FinancialExpenses + Depreciation` (la depreciación en gastos
      más la incluida en el costo de producción);
      `TotalLiabilities = (Total pasivos y capital) − Equity`.
-     - Con `auto=true` consolida solo si todas las sugerencias tienen confianza ≥ 0.9.
 3. Tests con los ejemplos del PDF: "Gasto Energía Planta" → `energy_cost`, "Nómina Indirecta" →
    `overhead_cost`, "Desperdicio Materia Prima" → `material_loss`, "Gasto Mantenimiento" →
    `maintenance_cost`. Tests de integración con el cliente de IA simulado (stub) y del fallback.
@@ -81,6 +92,10 @@
       notas 3 y 4 (con las etiquetas de la sección 4 de la especificación) reciben una sugerencia correcta con confianza ≥ 0,8.
 - [ ] No hay doble conteo entre los estados y sus notas (test).
 - [ ] Un mapeo confirmado se reutiliza en la siguiente carga de la misma empresa.
+- [ ] Al subir el libro sintético, el análisis se ejecuta **sin intervención** y el upload
+      queda `Processed`. Con una variante que tiene cuentas desconocidas, queda además con
+      `NeedsReview = true` y la lista de cuentas dudosas.
+- [ ] Corregir un mapeo y volver a analizar actualiza `FinancialData` (test).
 - [ ] Con el servicio de IA apagado, la homologación sigue funcionando (fallback).
 
 ## Documentación a actualizar

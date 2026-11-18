@@ -29,7 +29,21 @@
 4. **KPIs** (`/kpis`): tabla histórica de todos los KPIs con tendencias y un gráfico por KPI.
 5. Todos los gráficos con tooltip, leyenda, `aria-label` y enlace "Ver tabla". Skeletons
    mientras cargan y `EmptyState` si no hay datos ("Sube tus estados financieros para empezar").
-6. Exportar el dashboard a PDF con la impresión del navegador y estilos `@media print` (opcional).
+6. **Informe PDF (obligatorio)**: botón "Descargar informe PDF" en el dashboard y en el
+   detalle de problema (todos los roles, incluido `Client`).
+   - Generación en el **backend** con QuestPDF (`Infrastructure/Reports`), endpoint
+     `GET /api/v1/reports/executive?year=` → `application/pdf`. Revisa la licencia de QuestPDF
+     (la Community es gratuita para organizaciones con ingresos anuales menores a 1 M USD) y
+     anótala en la documentación; si no aplica, usa una alternativa libre y explícalo.
+   - Contenido: portada (empresa, año, fecha de generación), score con interpretación y
+     componentes, impacto total y por categoría, tabla de KPIs con variación anual, gráfico de
+     tendencia (SVG generado en C#), lista de problemas con severidad, impacto y
+     recomendación, advertencias de calidad de los datos y una nota metodológica breve. Desde
+     la etapa 11 incluye el resumen ejecutivo de la IA.
+   - Respeta la guía de diseño (colores, tipografía Inter o la que esté embebida, formatos
+     `RD$`), en tamaño Carta, con número de página y nombre de la empresa en el pie.
+   - Tests: el PDF se genera, tiene más de 1 página con datos sintéticos y contiene el score y
+     los títulos de los problemas (extrae el texto en el test).
 7. **Checklist MVP**: agrega una sección "Checklist MVP" en `docs/documentacion/09_pruebas.md`
    verificando cada punto de la sección 20 con evidencia (test o captura).
 
@@ -37,6 +51,8 @@
 
 - [ ] Con `sample-data/`, el dashboard muestra score, impacto, KPIs, tendencias, problemas y recomendaciones.
 - [ ] El detalle de problema muestra todos los elementos de la sección 14.
+- [ ] El botón "Descargar informe PDF" funciona para Admin, Analyst y Client, y el PDF tiene
+      todo el contenido del punto 6 (con capturas del PDF en el PR).
 - [ ] Cumple la guía de diseño en 375 px y en escritorio, en ambos temas (capturas en el PR).
 - [ ] Toda la "Definición MVP" de ambas especificaciones está cumplida y documentada.
 

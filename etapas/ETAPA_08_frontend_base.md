@@ -27,7 +27,7 @@
 5. **Cliente de API** `src/api/client.ts` con `VITE_API_URL`, token en la cabecera, manejo de
    401 (cierra sesión) y errores ProblemDetails → toast. Tipos en `src/types/`.
 6. **Autenticación**: páginas Login (diseño a pantalla dividida: panel de marca con el color
-   del sidebar y formulario) y Registro (si está habilitado), `AuthContext`, persistencia
+   del sidebar y formulario), sin página de registro (los usuarios los crea el Admin), "¿Olvidaste tu contraseña?" indica contactar al administrador, `AuthContext`, persistencia
    del token, `ProtectedRoute` y `RoleGuard`.
 7. **Layout**: sidebar de 256 px (colapsable a 72 px), oscura, con iconos lucide (Dashboard,
    Problemas, KPIs, Carga de datos, Homologación, Producción*, Administración). Solo muestra lo

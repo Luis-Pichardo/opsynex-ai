@@ -17,6 +17,9 @@ Especificaciones originales del cliente (fuente de verdad funcional):
 - `docs/especificaciones/FORMATO_EXCEL_ENTRADA.md` — **formato real de los archivos del cliente**
   (libro contable `.xls` de República Dominicana, en RD$, con estados comparativos, notas y
   nómina): solo la **estructura**. Manda sobre cualquier suposición de formato en las etapas.
+- `docs/especificaciones/FLUJO_DE_USUARIO.md` — **decisiones de flujo acordadas**: el Analyst
+  sube y el Client solo ve; el análisis es automático y la revisión de cuentas es opcional; solo
+  el Admin crea usuarios; el informe PDF es obligatorio.
 - **Datos de clientes:** ningún archivo, cifra, nombre ni dato real de un cliente puede aparecer
   en el código, los tests, los datos de ejemplo ni la documentación. Las pruebas usan libros
   **sintéticos** generados por script con la misma estructura y valores inventados.

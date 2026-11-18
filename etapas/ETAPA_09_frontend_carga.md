@@ -4,10 +4,11 @@
 
 ## Prompt
 
-> Implementa en el frontend el flujo completo de ingreso de datos, siguiendo
-> `docs/diseno/GUIA_DE_DISENO.md`: descarga de plantillas, subida de archivos con reporte de
-> validación, revisión y confirmación de la homologación contable, consolidación y ejecución
-> del análisis.
+> Implementa en el frontend el flujo de ingreso de datos descrito en
+> `docs/especificaciones/FLUJO_DE_USUARIO.md`, siguiendo `docs/diseno/GUIA_DE_DISENO.md`. El
+> analista sube el archivo y el **análisis se ejecuta automáticamente**; la revisión de la
+> homologación es **opcional** y se ofrece solo cuando el sistema la recomienda o el analista
+> quiere ajustar algo.
 
 ## Tareas
 
@@ -19,22 +20,27 @@
    2. **Hojas detectadas:** lista de hojas con el tipo reconocido (Balance general, Estado de
       resultados, Notas, Empleados, Ventas mensuales…), los años encontrados y las filas
       extraídas; las hojas ignoradas aparecen atenuadas con el motivo.
-   3. Resultado de la validación: errores bloqueantes y advertencias de calidad (cuadres,
-      notas vs. estados) con hoja, fila y columna, y vista previa. Permite volver a subir.
+   3. Resultado: errores bloqueantes (no permiten continuar), advertencias de calidad
+      (cuadres, notas vs. estados) con hoja, fila y columna, y el **resumen del análisis
+      automático** (años analizados, KPIs calculados, problemas detectados, score) con el botón
+      "Ir al dashboard". Si `needsReview`, muestra un aviso: "Algunas cuentas se clasificaron
+      con baja confianza. Revisa la homologación para mayor precisión" con el botón "Revisar".
    Caso de prueba manual: el libro sintético de `backend/sample-data/`.
-2. **Página Homologación**: tabla de cuenta del cliente (con su hoja y sección) → categoría sugerida (Select),
-   indicador de confianza (Alta/Media/Baja con badge e icono), método (IA, fallback,
-   confirmado), filtro "solo pendientes", botón "Aceptar sugerencias de confianza alta",
-   guardar y **Consolidar**.
-3. Al consolidar se ejecuta el análisis y se muestra un resumen (KPIs calculados, problemas
-   detectados, score) con el botón "Ir al dashboard".
+2. **Página Homologación (opcional)**: tabla de cuenta del cliente (con su hoja y sección) →
+   categoría aplicada (Select editable), indicador de confianza (Alta/Media/Baja con badge e
+   icono), método (automático, IA, fallback, confirmado), filtro inicial "solo dudosas", botón
+   "Confirmar todas" y botón **"Guardar y volver a analizar"**.
+3. Al volver a analizar se muestra el mismo resumen, con lo que cambió (por ejemplo, "Score
+   64 → 67").
 4. **Historial de cargas**: tabla de uploads con estado (badge), fecha, usuario y filas.
 5. **Datos consolidados** por año (tablas financiera y operacional, solo lectura, con `tabular-nums`).
 
 ## Criterios de aceptación
 
-- [ ] Flujo completo con `backend/sample-data/` desde el navegador: subir → validar → homologar →
-      consolidar → resumen.
+- [ ] Flujo con `backend/sample-data/` desde el navegador: subir → resumen del análisis →
+      dashboard, **sin pasos manuales intermedios**.
+- [ ] Con la variante que tiene cuentas desconocidas aparece el aviso de revisión; al
+      corregirlas y volver a analizar, el resumen se actualiza.
 - [ ] Un archivo con errores muestra mensajes claros y no permite continuar.
 - [ ] Cumple la guía de diseño (sin estilos sueltos), en móvil y en ambos temas.
 - [ ] Tests de componentes del asistente y de la tabla de homologación.
