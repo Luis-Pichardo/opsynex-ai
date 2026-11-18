@@ -38,6 +38,8 @@ public sealed class PermissionMatrixTests(OpsynexApiFactory factory) : IClassFix
         Row("GET", "/api/v1/auth/me", Ok, Ok, Ok);
         Row("POST", "/api/v1/auth/register", HttpStatusCode.BadRequest, Forbidden, Forbidden); // cuerpo vacío → 400 para Admin
         Row("POST", "/api/v1/companies", HttpStatusCode.BadRequest, Forbidden, Forbidden);
+        Row("GET", "/api/v1/uploads", Ok, Ok, Ok);
+        Row("GET", "/api/v1/uploads/templates/IncomeStatement", Ok, Ok, Forbidden);
         return data;
     }
 

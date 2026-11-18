@@ -23,4 +23,8 @@
     <ProjectReference Include="..\..\src\Opsynex.Application\Opsynex.Application.csproj" />
     <ProjectReference Include="..\..\src\Opsynex.Infrastructure\Opsynex.Infrastructure.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- Libros sintéticos generados por tests/TestData/generate_sample_workbooks.py -->
+    <None Include="..\..\sample-data\**\*" LinkBase="sample-data" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>

@@ -56,6 +56,7 @@ public sealed class ValidatorTests
     [InlineData("DOP", true)]
     [InlineData("usd", false)]
     [InlineData("EURO", false)]
+    [InlineData("XYZ", false)]
     public void Company_CurrencyMustBeIsoCode(string? currency, bool valid)
     {
         Validator<CompanyRequest>().Validate(new CompanyRequest("Empresa", Industry.Services, null, currency))

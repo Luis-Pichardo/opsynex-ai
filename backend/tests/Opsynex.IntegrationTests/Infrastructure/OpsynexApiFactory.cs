@@ -23,6 +23,7 @@ public class OpsynexApiFactory(DatabaseFixture database) : WebApplicationFactory
         // El esquema ya lo creó DatabaseFixture.
         builder.UseSetting("Database:MigrateOnStartup", "false");
         builder.UseSetting("Jwt:Secret", TestJwt.Secret);
+        ConfigureSettings(builder);
 
         builder.ConfigureTestServices(services =>
         {
@@ -34,6 +35,16 @@ public class OpsynexApiFactory(DatabaseFixture database) : WebApplicationFactory
     protected virtual void ConfigureServices(IServiceCollection services)
     {
     }
+
+    protected virtual void ConfigureSettings(IWebHostBuilder builder)
+    {
+    }
+}
+
+/// <summary>API con un límite de carga de 1 MB (para probar el 413).</summary>
+public sealed class SmallUploadLimitApiFactory(DatabaseFixture database) : OpsynexApiFactory(database)
+{
+    protected override void ConfigureSettings(IWebHostBuilder builder) => builder.UseSetting("Upload:MaxMb", "1");
 }
 
 /// <summary>API con un reloj controlable (bloqueos y expiración de tokens).</summary>

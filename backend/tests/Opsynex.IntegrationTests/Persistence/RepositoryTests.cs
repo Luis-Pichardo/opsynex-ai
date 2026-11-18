@@ -179,7 +179,7 @@ public sealed class RepositoryTests(DatabaseFixture db)
             UserId = user.Id,
             FileName = "estado_resultados.xlsx",
             FileType = UploadFileType.IncomeStatement,
-            Errors = [new UploadError("missing_column", "Falta la columna «2024».", Row: 1, Column: "C")],
+            Errors = [new UploadIssue("missing_column", "Falta la columna «2024».", Row: 1, Column: "C")],
         };
         var problem = new Problem
         {
@@ -211,7 +211,7 @@ public sealed class RepositoryTests(DatabaseFixture db)
         await context.SaveChangesAsync(Ct);
 
         // Cambios dentro del JSON deben detectarse (ValueComparer).
-        upload.Errors.Add(new UploadError("invalid_number", "Valor no numérico.", 4, "D"));
+        upload.Errors.Add(new UploadIssue("invalid_number", "Valor no numérico.", "g&P", 4, "D"));
         problem.Evidence["impactFormula"] = "revenue * deltaMargin";
         score.WeightsUsed["Productivity"] = 0.2m;
         await context.SaveChangesAsync(Ct);
@@ -223,7 +223,7 @@ public sealed class RepositoryTests(DatabaseFixture db)
 
         savedUpload.Status.ShouldBe(UploadStatus.Pending);
         savedUpload.Errors.Count.ShouldBe(2);
-        savedUpload.Errors[0].ShouldBe(new UploadError("missing_column", "Falta la columna «2024».", 1, "C"));
+        savedUpload.Errors[0].ShouldBe(new UploadIssue("missing_column", "Falta la columna «2024».", null, 1, "C"));
         savedProblem.Evidence["kpi"]!.GetValue<string>().ShouldBe("EbitdaMargin");
         savedProblem.Evidence["impactFormula"]!.GetValue<string>().ShouldBe("revenue * deltaMargin");
         savedProblem.Status.ShouldBe(ProblemStatus.Open);

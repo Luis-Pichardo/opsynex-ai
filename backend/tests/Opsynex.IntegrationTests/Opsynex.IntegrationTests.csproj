@@ -24,4 +24,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Opsynex.Api\Opsynex.Api.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- Libros sintéticos generados por tests/TestData/generate_sample_workbooks.py -->
+    <None Include="..\..\sample-data\**\*" LinkBase="sample-data" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>
