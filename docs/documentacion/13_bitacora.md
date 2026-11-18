@@ -152,3 +152,43 @@ Registro de cada etapa completada (la más reciente al final).
   - Bloqueante adicional `upload.file_type_required`: un CSV sin título no se puede clasificar.
 - **Pendientes:** homologación y consolidación en `FinancialData` (Etapa 04); `PRESTLAB` e
   `IMPORT` (fase 2).
+
+### Etapa 04 — Homologación contable y servicio de IA (18/11/2026)
+
+- **Resumen:**
+  - **Servicio de IA:** motor de homologación (`app/engines/homologation`) con un diccionario en
+    español e inglés y términos dominicanos, contexto por hoja, sección y código de cuenta,
+    palabras clave con prioridad y coincidencia difusa (rapidfuzz). Endpoint
+    `POST /homologation/suggest`.
+  - **API:** cliente tipado con resiliencia (timeout, reintentos y circuit breaker) y health check
+    `Degraded`; fallback local; homologación y consolidación automáticas al subir.
+  - **Datos:** motor puro `ConsolidationEngine` sin doble conteo, `MappingsController`, revisión
+    recomendada con advertencias de cuentas sin categoría. Migración `Homologation`.
+  - **Generador:** nueva variante `inc_cuentas_desconocidas`.
+- **Archivos principales:** `ai-service/app/engines/homologation/`,
+  `ai-service/app/routers/homologation.py`, `backend/src/Opsynex.Domain/Engines/Consolidation/`,
+  `backend/src/Opsynex.Application/Homologation/`, `backend/src/Opsynex.Infrastructure/AiService/`,
+  `Controllers/MappingsController.cs`, `backend/tests/Opsynex.IntegrationTests/Homologation/`.
+- **Decisiones técnicas:**
+  - El rol del mapeo (`Primary` o `Breakdown`) lo decide la hoja, no la IA: estados → Primary,
+    notas → Breakdown. El balance de comprobación no se homologa (solo valida), para no sumarlo
+    con los estados.
+  - Clave de la cuenta = alcance + sección (solo subtotales de los estados) + etiqueta. Índice
+    único `(CompanyId, Scope, Section, ClientAccount)` en `AccountMappings`.
+  - Regla de consolidación "subtotales si existen, si no detalles", por categoría y rol: resuelve
+    a la vez el capital (detalles + total), la compensación al personal (líneas + total de la
+    nota) y las notas que repiten líneas de los estados.
+  - `Method` guarda el origen real (`Exact`, `Keyword`, `Fuzzy`, `Rule`, `Fallback`,
+    `Unmatched`…). "Automático" es un mapeo **no confirmado** (`ConfirmedAt` nulo); el confirmado
+    por el usuario es `Manual`. La etapa pedía `Method = Auto`; se prefirió conservar el detalle
+    del método.
+  - Nueva categoría `TotalLiabilitiesAndEquity` para derivar `TotalLiabilities`.
+  - `TotalCost` y `Ebitda` siempre se derivan (no son categorías).
+  - Las etiquetas que deben quedar en `Other` a propósito están en el diccionario, así no
+    disparan la revisión recomendada.
+  - El health check del servicio de IA usa `Degraded`: sin IA el estado general de `/health` es
+    `Degraded` y responde 200.
+  - Pruebas de punta a punta con el servicio de IA real arrancado desde las pruebas
+    (`AiServiceFixture`). La CI instala el servicio en el job de .NET y las exige.
+- **Pendientes:** `AnalysisPipeline` (KPIs, diagnóstico, impacto y score) desde la etapa 05; las
+  alternativas de la IA no se guardan (se muestran solo la categoría sugerida y su confianza).

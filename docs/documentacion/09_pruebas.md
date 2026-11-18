@@ -55,4 +55,27 @@ python3 backend/tests/TestData/generate_sample_workbooks.py
   respuesta), advertencias, 422 para archivos inválidos, 403 para el Client, 413 por tamaño,
   plantillas descargadas que el parser reconoce, y `/data` por tipo.
 
+### Homologación (Etapa 04)
+
+- **Python** (`ai-service/tests/test_homologation_*.py`):
+  - Los 4 ejemplos del PDF.
+  - Las 77 líneas del libro sintético con su categoría correcta y confianza ≥ 0,8 (100 %; el
+    criterio pide ≥ 90 %).
+  - Contexto (sección, tipo de hoja, código de cuenta), términos dominicanos, errores de tipeo,
+    mapeos conocidos, cuentas desconocidas y el endpoint con su autenticación.
+- **Unitarias .NET:** `ConsolidationEngineTests` (subtotales frente a detalles, notas frente a
+  estados, depreciación, derivados) y la clave de cuenta, los nombres de categoría y el fallback.
+- **Integración .NET:**
+  - `HomologationEndToEndTests`: con el **servicio de IA real** (`AiServiceFixture` lo arranca
+    con uvicorn). Cubre el `FinancialData` de los dos años contra los valores del generador (27
+    campos), la ausencia de doble conteo, ≥ 90 % de mapeos correctos, "revisión recomendada" con
+    cuentas desconocidas, reutilización de mapeos confirmados y corrección con nuevo análisis.
+  - `HomologationStubTests`: cliente de IA simulado. Verifica que se aplican las sugerencias, que
+    lo confirmado no se vuelve a pedir, los permisos y el 409.
+  - `HomologationFallbackTests`: IA inalcanzable. El análisis sigue con el fallback y el health
+    queda en `Degraded`.
+
+Sin Python, las pruebas con IA real se omiten con su motivo. En la CI se exigen
+(`OPSYNEX_REQUIRE_AI=true`) y el servicio se instala en el job de .NET.
+
 > Pendiente (Etapas 07, 10 y 12): estrategia completa, cobertura y checklist del MVP.

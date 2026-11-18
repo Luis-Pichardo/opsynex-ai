@@ -130,3 +130,9 @@ Etapa 03 completada (18/11/2026): el sistema acepta el libro contable real de lo
 financieros, notas, nómina (solo conteos), ventas mensuales y balance de comprobación, y reporta
 las inconsistencias de calidad como advertencias. La siguiente etapa es la homologación contable
 con el servicio de IA (Etapa 04).
+
+Etapa 04 completada (18/11/2026): al subir un archivo, el sistema homologa las cuentas
+automáticamente con el servicio de IA, consolida los estados financieros de todos los años del
+archivo y avisa cuando conviene revisar cuentas dudosas. El analista puede corregir los mapeos,
+que se recuerdan para las cargas siguientes. Sin IA, el análisis funciona con un diccionario
+básico. La siguiente etapa es el motor de KPIs (Etapa 05).

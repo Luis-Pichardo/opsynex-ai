@@ -29,10 +29,20 @@ jobs:
           dotnet-version: 10.0.x
           cache: true
           cache-dependency-path: backend/**/*.csproj
+      # El servicio de IA real se levanta en las pruebas de punta a punta de la homologación.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: ai-service/pyproject.toml
+      - run: pip install -e ../ai-service
       - run: dotnet restore Opsynex.sln
       # Release: los warnings se tratan como errores (Directory.Build.props).
       - run: dotnet build Opsynex.sln -c Release --no-restore
       - run: dotnet test Opsynex.sln -c Release --no-build --logger "trx;LogFilePrefix=results"
+        env:
+          OPSYNEX_AI_PYTHON: python
+          OPSYNEX_REQUIRE_AI: "true"
       - uses: actions/upload-artifact@v4
         if: always()
         with:

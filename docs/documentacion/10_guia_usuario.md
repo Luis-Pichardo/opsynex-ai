@@ -53,4 +53,27 @@ Después de subir el archivo verás:
 | Subtotal no cuadra | Un total no es la suma de sus líneas. |
 | Año faltante | Un estado no trae alguno de los años que sí traen los demás. |
 
-> Pendiente (Etapas 04 a 11): homologar cuentas y leer el dashboard, el score y los problemas.
+### Análisis automático y revisión de cuentas (opcional)
+
+Al subir un archivo válido, el sistema **analiza solo, sin pasos manuales**: clasifica cada cuenta
+del cliente en una categoría estándar (ingresos, costo de ventas, energía, mantenimiento,
+personal…), suma los valores por año y deja los datos listos. No hace falta confirmar nada para
+ver los resultados.
+
+Si alguna cuenta importante de los estados no se reconoce con seguridad, verás el aviso
+**"Revisión recomendada"** con la lista de cuentas dudosas y su monto. Para revisarlas:
+
+1. Abre la revisión de cuentas de la carga. Primero aparecen las dudosas.
+2. Para cada cuenta verás su hoja, su fila, la categoría sugerida y la confianza. Si la sugerencia
+   es correcta, confírmala; si no, elige la categoría correcta.
+3. Pulsa **"Guardar y volver a analizar"**. Los datos se recalculan con tus correcciones.
+
+Las cuentas que confirmas o corriges **se recuerdan** para tu empresa: en las cargas siguientes
+se aplican solas. Las líneas de las notas (por ejemplo "Energía Eléctrica") solo se usan para los
+indicadores de detalle (energía, mantenimiento, personal, materias primas), así que nunca se suman
+dos veces con los estados.
+
+Si el servicio de inteligencia artificial no está disponible, el análisis se hace igual con un
+diccionario básico. Es posible que veas más cuentas para revisar.
+
+> Pendiente (Etapas 05 a 11): leer el dashboard, el score y los problemas.
