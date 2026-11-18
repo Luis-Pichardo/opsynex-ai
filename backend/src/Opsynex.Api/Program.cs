@@ -1,10 +1,14 @@
 using System.Globalization;
+using System.Text.Json.Serialization;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Opsynex.Api.Auth;
 using Opsynex.Api.Extensions;
+using Opsynex.Api.OpenApi;
 using Opsynex.Api.Health;
 using Opsynex.Application;
+using Opsynex.Application.Abstractions.Tenancy;
 using Opsynex.Infrastructure;
 using Opsynex.Infrastructure.Persistence;
 using Scalar.AspNetCore;
@@ -18,7 +22,11 @@ Log.Logger = new LoggerConfiguration()
 
 try
 {
-    var builder = WebApplication.CreateBuilder(args);
+    // Comando "seed-admin": crea el primer Admin desde Seed:AdminEmail/Seed:AdminPassword y termina.
+    const string SeedAdminCommand = "seed-admin";
+    var runSeedCommand = args.Contains(SeedAdminCommand, StringComparer.OrdinalIgnoreCase);
+    var builder = WebApplication.CreateBuilder(
+        args.Where(a => !a.Equals(SeedAdminCommand, StringComparison.OrdinalIgnoreCase)).ToArray());
 
     // Logging estructurado con Serilog (configurable desde la sección "Serilog").
     builder.Services.AddSerilog((services, lc) => lc
@@ -27,10 +35,11 @@ try
         .Enrich.FromLogContext());
 
     builder.Services.AddOpsynexProblemDetails();
-    builder.Services.AddExceptionHandler<ConflictExceptionHandler>();
+    builder.Services.AddExceptionHandler<AppExceptionHandler>();
     builder.Services.AddFrontendCors(builder.Configuration);
 
-    builder.Services.AddControllers();
+    builder.Services.AddControllers()
+        .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
     builder.Services
         .AddApiVersioning(options =>
         {
@@ -45,12 +54,20 @@ try
             options.SubstituteApiVersionInUrl = true;
         })
         .AddOpenApi(); // un documento OpenAPI por versión (/openapi/v1.json)
+    builder.Services.ConfigureAll<Microsoft.AspNetCore.OpenApi.OpenApiOptions>(o =>
+    {
+        o.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+        o.AddOperationTransformer<BearerSecuritySchemeTransformer>();
+    });
 
     builder.Services.AddHealthChecks()
         .AddCheck("self", () => HealthCheckResult.Healthy("El API está en ejecución."), tags: ["live"])
         .AddDbContextCheck<OpsynexDbContext>("database", tags: ["ready"]);
     // Etapa 04: check del servicio de IA.
 
+    // Autenticación JWT, políticas y tenant HTTP (antes de AddInfrastructure, que registra
+    // un tenant sin filtro solo si no hay otro).
+    builder.Services.AddOpsynexAuth(builder.Configuration);
     builder.Services.AddApplication();
     builder.Services.AddInfrastructure(builder.Configuration);
 
@@ -62,23 +79,53 @@ try
         await app.Services.InitializeDatabaseAsync();
     }
 
+    if (runSeedCommand)
+    {
+        var result = await app.Services.SeedAdminAsync();
+        if (result == SeedResult.NotConfigured)
+        {
+            Log.Error("Configura Seed:AdminEmail y Seed:AdminPassword (variables Seed__AdminEmail y Seed__AdminPassword)");
+            Environment.ExitCode = 1;
+        }
+        else
+        {
+            Log.Information("seed-admin: {Result}", result);
+        }
+
+        return;
+    }
+
+    // Primer Admin desde configuración (no hace nada si no está configurado o ya existe).
+    await app.Services.SeedAdminAsync();
+
     app.UseExceptionHandler();
     app.UseStatusCodePages();
     app.UseSerilogRequestLogging();
 
+    app.UseCors(CorsExtensions.PolicyName);
+    app.UseAuthentication();
+
+    // Valida pronto la empresa elegida por un Admin (X-Company-Id / companyId) para responder 400
+    // si no es un Guid, antes de que la use una consulta.
+    app.Use(async (context, next) =>
+    {
+        _ = context.RequestServices.GetRequiredService<ICurrentTenant>().IsFilterEnabled;
+        await next(context);
+    });
+
+    app.UseAuthorization();
+
     if (app.Environment.IsDevelopment())
     {
-        app.MapOpenApi().WithDocumentPerVersion();
-        app.MapScalarApiReference(options => options.WithTitle("Opsynex AI API"));
+        app.MapOpenApi().WithDocumentPerVersion().AllowAnonymous();
+        app.MapScalarApiReference(options => options.WithTitle("Opsynex AI API")).AllowAnonymous();
     }
-
-    app.UseCors(CorsExtensions.PolicyName);
 
     app.MapControllers();
     app.MapHealthChecks("/health", new HealthCheckOptions
     {
         ResponseWriter = HealthResponseWriter.WriteAsync,
-    }).RequireCors(CorsExtensions.PolicyName);
+    }).RequireCors(CorsExtensions.PolicyName).AllowAnonymous();
 
     await app.RunAsync();
 }

@@ -1,10 +1,12 @@
 using Asp.Versioning;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Opsynex.Api.Controllers;
 
 /// <summary>Información general del API.</summary>
 [ApiController]
+[AllowAnonymous]
 [ApiVersion(1.0)]
 [Route("api/v{version:apiVersion}/system")]
 public sealed class SystemController(IHostEnvironment environment) : ControllerBase
