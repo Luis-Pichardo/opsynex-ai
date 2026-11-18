@@ -7,7 +7,7 @@ using Opsynex.IntegrationTests.Infrastructure;
 
 namespace Opsynex.IntegrationTests.Api;
 
-public sealed class ConflictExceptionHandlerTests(OpsynexApiFactory factory) : IClassFixture<OpsynexApiFactory>
+public sealed class AppExceptionHandlerTests(OpsynexApiFactory factory) : IClassFixture<OpsynexApiFactory>
 {
     [Fact]
     public async Task UniqueViolation_IsWrittenAs409ProblemDetails()

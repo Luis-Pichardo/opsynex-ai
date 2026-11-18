@@ -21,18 +21,31 @@ public sealed class ApiConventionsTests(OpsynexApiFactory factory) : IClassFixtu
     }
 
     [Fact]
-    public async Task UnknownRoute_ReturnsProblemDetailsWithCode()
+    public async Task UnknownRoute_WithoutSession_Returns401()
     {
+        // La política por defecto exige sesión: sin token no se revela qué rutas existen.
         using var client = factory.CreateClient();
 
         using var response = await client.GetAsync(new Uri("/api/v1/does-not-exist", UriKind.Relative), TestContext.Current.CancellationToken);
 
-        response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
-        response.Content.Headers.ContentType?.MediaType.ShouldBe("application/problem+json");
-        using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
-        json.RootElement.GetProperty("status").GetInt32().ShouldBe(404);
-        json.RootElement.GetProperty("code").GetString().ShouldBe("not_found");
-        json.RootElement.TryGetProperty("traceId", out _).ShouldBeTrue();
+        response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task UnknownRoute_WithSession_ReturnsProblemDetailsWithCode()
+    {
+        var (client, _) = await TestUsers.CreateAuthenticatedClientAsync(factory, Opsynex.Domain.Enums.UserRole.Client);
+        using (client)
+        {
+            using var response = await client.GetAsync(new Uri("/api/v1/does-not-exist", UriKind.Relative), TestContext.Current.CancellationToken);
+
+            response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+            response.Content.Headers.ContentType?.MediaType.ShouldBe("application/problem+json");
+            using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+            json.RootElement.GetProperty("status").GetInt32().ShouldBe(404);
+            json.RootElement.GetProperty("code").GetString().ShouldBe("not_found");
+            json.RootElement.TryGetProperty("traceId", out _).ShouldBeTrue();
+        }
     }
 
     [Fact]
