@@ -22,6 +22,40 @@
     "expectedWarnings": [
       "quality.balance_mismatch"
     ],
+    "kpis": {
+      "2023": {
+        "CostEfficiency": 0.842,
+        "CostPerUnit": null,
+        "CurrentRatio": 2.3823,
+        "DaysSalesOutstanding": 35.22,
+        "DebtToEquity": 0.6042,
+        "EbitdaMargin": 0.1975,
+        "EnergyCostRatio": 0.0582,
+        "GrossMargin": 0.2897,
+        "InventoryDays": 44.5,
+        "LaborCostRatio": 0.1688,
+        "NetMargin": 0.1003,
+        "OperatingCostRatio": 0.1318,
+        "OverheadRatio": 0.0468,
+        "RevenuePerEmployee": null
+      },
+      "2024": {
+        "CostEfficiency": 0.8533,
+        "CostPerUnit": null,
+        "CurrentRatio": 2.7659,
+        "DaysSalesOutstanding": 36.83,
+        "DebtToEquity": 0.474,
+        "EbitdaMargin": 0.1861,
+        "EnergyCostRatio": 0.0617,
+        "GrossMargin": 0.2805,
+        "InventoryDays": 45.17,
+        "LaborCostRatio": 0.1723,
+        "NetMargin": 0.0946,
+        "OperatingCostRatio": 0.1338,
+        "OverheadRatio": 0.0469,
+        "RevenuePerEmployee": 12116066.67
+      }
+    },
     "monthly": {
       "purchases": [
         6773760.0,
@@ -319,6 +353,40 @@
     "expectedWarnings": [
       "quality.note_mismatch"
     ],
+    "kpis": {
+      "2023": {
+        "CostEfficiency": 0.842,
+        "CostPerUnit": null,
+        "CurrentRatio": 2.3823,
+        "DaysSalesOutstanding": 35.22,
+        "DebtToEquity": 0.6042,
+        "EbitdaMargin": 0.1975,
+        "EnergyCostRatio": 0.0582,
+        "GrossMargin": 0.2897,
+        "InventoryDays": 44.5,
+        "LaborCostRatio": 0.1688,
+        "NetMargin": 0.1003,
+        "OperatingCostRatio": 0.1318,
+        "OverheadRatio": 0.0468,
+        "RevenuePerEmployee": null
+      },
+      "2024": {
+        "CostEfficiency": 0.8533,
+        "CostPerUnit": null,
+        "CurrentRatio": 2.7659,
+        "DaysSalesOutstanding": 36.83,
+        "DebtToEquity": 0.474,
+        "EbitdaMargin": 0.1861,
+        "EnergyCostRatio": 0.0617,
+        "GrossMargin": 0.2805,
+        "InventoryDays": 45.17,
+        "LaborCostRatio": 0.1723,
+        "NetMargin": 0.0946,
+        "OperatingCostRatio": 0.1338,
+        "OverheadRatio": 0.0469,
+        "RevenuePerEmployee": 12116066.67
+      }
+    },
     "monthly": {
       "purchases": [
         6773760.0,
@@ -616,6 +684,40 @@
     "expectedWarnings": [
       "quality.equity_mismatch"
     ],
+    "kpis": {
+      "2023": {
+        "CostEfficiency": 0.842,
+        "CostPerUnit": null,
+        "CurrentRatio": 2.3823,
+        "DaysSalesOutstanding": 35.22,
+        "DebtToEquity": 0.6042,
+        "EbitdaMargin": 0.1975,
+        "EnergyCostRatio": 0.0582,
+        "GrossMargin": 0.2897,
+        "InventoryDays": 44.5,
+        "LaborCostRatio": 0.1688,
+        "NetMargin": 0.1003,
+        "OperatingCostRatio": 0.1318,
+        "OverheadRatio": 0.0468,
+        "RevenuePerEmployee": null
+      },
+      "2024": {
+        "CostEfficiency": 0.8533,
+        "CostPerUnit": null,
+        "CurrentRatio": 2.7659,
+        "DaysSalesOutstanding": 36.83,
+        "DebtToEquity": 0.474,
+        "EbitdaMargin": 0.1861,
+        "EnergyCostRatio": 0.0617,
+        "GrossMargin": 0.2805,
+        "InventoryDays": 45.17,
+        "LaborCostRatio": 0.1723,
+        "NetMargin": 0.0946,
+        "OperatingCostRatio": 0.1338,
+        "OverheadRatio": 0.0469,
+        "RevenuePerEmployee": 12116066.67
+      }
+    },
     "monthly": {
       "purchases": [
         6773760.0,
@@ -915,6 +1017,40 @@
       "quality.trial_balance_negative_balance",
       "quality.trial_balance_sales_mismatch"
     ],
+    "kpis": {
+      "2023": {
+        "CostEfficiency": 0.842,
+        "CostPerUnit": null,
+        "CurrentRatio": 2.3823,
+        "DaysSalesOutstanding": 35.22,
+        "DebtToEquity": 0.6042,
+        "EbitdaMargin": 0.1975,
+        "EnergyCostRatio": 0.0582,
+        "GrossMargin": 0.2897,
+        "InventoryDays": 44.5,
+        "LaborCostRatio": 0.1688,
+        "NetMargin": 0.1003,
+        "OperatingCostRatio": 0.1318,
+        "OverheadRatio": 0.0468,
+        "RevenuePerEmployee": null
+      },
+      "2024": {
+        "CostEfficiency": 0.8533,
+        "CostPerUnit": null,
+        "CurrentRatio": 2.7659,
+        "DaysSalesOutstanding": 36.83,
+        "DebtToEquity": 0.474,
+        "EbitdaMargin": 0.1861,
+        "EnergyCostRatio": 0.0617,
+        "GrossMargin": 0.2805,
+        "InventoryDays": 45.17,
+        "LaborCostRatio": 0.1723,
+        "NetMargin": 0.0946,
+        "OperatingCostRatio": 0.1338,
+        "OverheadRatio": 0.0469,
+        "RevenuePerEmployee": 12116066.67
+      }
+    },
     "monthly": {
       "purchases": [
         6773760.0,
@@ -1212,6 +1348,40 @@
     "expectedWarnings": [
       "quality.company_name_mismatch"
     ],
+    "kpis": {
+      "2023": {
+        "CostEfficiency": 0.842,
+        "CostPerUnit": null,
+        "CurrentRatio": 2.3823,
+        "DaysSalesOutstanding": 35.22,
+        "DebtToEquity": 0.6042,
+        "EbitdaMargin": 0.1975,
+        "EnergyCostRatio": 0.0582,
+        "GrossMargin": 0.2897,
+        "InventoryDays": 44.5,
+        "LaborCostRatio": 0.1688,
+        "NetMargin": 0.1003,
+        "OperatingCostRatio": 0.1318,
+        "OverheadRatio": 0.0468,
+        "RevenuePerEmployee": null
+      },
+      "2024": {
+        "CostEfficiency": 0.8533,
+        "CostPerUnit": null,
+        "CurrentRatio": 2.7659,
+        "DaysSalesOutstanding": 36.83,
+        "DebtToEquity": 0.474,
+        "EbitdaMargin": 0.1861,
+        "EnergyCostRatio": 0.0617,
+        "GrossMargin": 0.2805,
+        "InventoryDays": 45.17,
+        "LaborCostRatio": 0.1723,
+        "NetMargin": 0.0946,
+        "OperatingCostRatio": 0.1338,
+        "OverheadRatio": 0.0469,
+        "RevenuePerEmployee": 12116066.67
+      }
+    },
     "monthly": {
       "purchases": [
         6773760.0,
@@ -1509,6 +1679,40 @@
     "expectedWarnings": [
       "quality.missing_year"
     ],
+    "kpis": {
+      "2023": {
+        "CostEfficiency": 0.842,
+        "CostPerUnit": null,
+        "CurrentRatio": 2.3823,
+        "DaysSalesOutstanding": 35.22,
+        "DebtToEquity": 0.6042,
+        "EbitdaMargin": 0.1975,
+        "EnergyCostRatio": 0.0582,
+        "GrossMargin": 0.2897,
+        "InventoryDays": 44.5,
+        "LaborCostRatio": 0.1688,
+        "NetMargin": 0.1003,
+        "OperatingCostRatio": 0.1318,
+        "OverheadRatio": 0.0468,
+        "RevenuePerEmployee": null
+      },
+      "2024": {
+        "CostEfficiency": 0.8533,
+        "CostPerUnit": null,
+        "CurrentRatio": 2.7659,
+        "DaysSalesOutstanding": 36.83,
+        "DebtToEquity": 0.474,
+        "EbitdaMargin": 0.1861,
+        "EnergyCostRatio": 0.0617,
+        "GrossMargin": 0.2805,
+        "InventoryDays": 45.17,
+        "LaborCostRatio": 0.1723,
+        "NetMargin": 0.0946,
+        "OperatingCostRatio": 0.1338,
+        "OverheadRatio": 0.0469,
+        "RevenuePerEmployee": 12116066.67
+      }
+    },
     "monthly": {
       "purchases": [
         6773760.0,
@@ -1804,6 +2008,40 @@
       "payroll": 7598000.0
     },
     "expectedWarnings": [],
+    "kpis": {
+      "2023": {
+        "CostEfficiency": 0.842,
+        "CostPerUnit": null,
+        "CurrentRatio": 2.3823,
+        "DaysSalesOutstanding": 35.22,
+        "DebtToEquity": 0.6042,
+        "EbitdaMargin": 0.1975,
+        "EnergyCostRatio": 0.0582,
+        "GrossMargin": 0.2897,
+        "InventoryDays": 44.5,
+        "LaborCostRatio": 0.1688,
+        "NetMargin": 0.1003,
+        "OperatingCostRatio": 0.1318,
+        "OverheadRatio": 0.0468,
+        "RevenuePerEmployee": null
+      },
+      "2024": {
+        "CostEfficiency": 0.8533,
+        "CostPerUnit": null,
+        "CurrentRatio": 2.7659,
+        "DaysSalesOutstanding": 36.83,
+        "DebtToEquity": 0.474,
+        "EbitdaMargin": 0.1861,
+        "EnergyCostRatio": 0.0617,
+        "GrossMargin": 0.2805,
+        "InventoryDays": 45.17,
+        "LaborCostRatio": 0.1723,
+        "NetMargin": 0.0946,
+        "OperatingCostRatio": 0.1338,
+        "OverheadRatio": 0.0469,
+        "RevenuePerEmployee": 12116066.67
+      }
+    },
     "monthly": {
       "purchases": [
         6773760.0,
@@ -2101,6 +2339,40 @@
     "expectedWarnings": [
       "quality.subtotal_mismatch"
     ],
+    "kpis": {
+      "2023": {
+        "CostEfficiency": 0.842,
+        "CostPerUnit": null,
+        "CurrentRatio": 2.3823,
+        "DaysSalesOutstanding": 35.22,
+        "DebtToEquity": 0.6042,
+        "EbitdaMargin": 0.1975,
+        "EnergyCostRatio": 0.0582,
+        "GrossMargin": 0.2897,
+        "InventoryDays": 44.5,
+        "LaborCostRatio": 0.1688,
+        "NetMargin": 0.1003,
+        "OperatingCostRatio": 0.1318,
+        "OverheadRatio": 0.0468,
+        "RevenuePerEmployee": null
+      },
+      "2024": {
+        "CostEfficiency": 0.8533,
+        "CostPerUnit": null,
+        "CurrentRatio": 2.7659,
+        "DaysSalesOutstanding": 36.83,
+        "DebtToEquity": 0.474,
+        "EbitdaMargin": 0.1861,
+        "EnergyCostRatio": 0.0617,
+        "GrossMargin": 0.2805,
+        "InventoryDays": 45.17,
+        "LaborCostRatio": 0.1723,
+        "NetMargin": 0.0946,
+        "OperatingCostRatio": 0.1338,
+        "OverheadRatio": 0.0469,
+        "RevenuePerEmployee": 12116066.67
+      }
+    },
     "monthly": {
       "purchases": [
         6773760.0,
@@ -2397,6 +2669,40 @@
       "payroll": 7598000.0
     },
     "expectedWarnings": [],
+    "kpis": {
+      "2023": {
+        "CostEfficiency": 0.842,
+        "CostPerUnit": null,
+        "CurrentRatio": 2.3823,
+        "DaysSalesOutstanding": 35.22,
+        "DebtToEquity": 0.6042,
+        "EbitdaMargin": 0.1975,
+        "EnergyCostRatio": 0.0582,
+        "GrossMargin": 0.2897,
+        "InventoryDays": 44.5,
+        "LaborCostRatio": 0.1688,
+        "NetMargin": 0.1003,
+        "OperatingCostRatio": 0.1318,
+        "OverheadRatio": 0.0468,
+        "RevenuePerEmployee": null
+      },
+      "2024": {
+        "CostEfficiency": 0.8533,
+        "CostPerUnit": null,
+        "CurrentRatio": 2.7659,
+        "DaysSalesOutstanding": 36.83,
+        "DebtToEquity": 0.474,
+        "EbitdaMargin": 0.1861,
+        "EnergyCostRatio": 0.0617,
+        "GrossMargin": 0.2805,
+        "InventoryDays": 45.17,
+        "LaborCostRatio": 0.1723,
+        "NetMargin": 0.0946,
+        "OperatingCostRatio": 0.1338,
+        "OverheadRatio": 0.0469,
+        "RevenuePerEmployee": 12116066.67
+      }
+    },
     "monthly": {
       "purchases": [
         6773760.0,
@@ -2707,6 +3013,40 @@
       "payroll": 7598000.0
     },
     "expectedWarnings": [],
+    "kpis": {
+      "2023": {
+        "CostEfficiency": 0.842,
+        "CostPerUnit": null,
+        "CurrentRatio": 2.3823,
+        "DaysSalesOutstanding": 35.22,
+        "DebtToEquity": 0.6042,
+        "EbitdaMargin": 0.1975,
+        "EnergyCostRatio": 0.0582,
+        "GrossMargin": 0.2897,
+        "InventoryDays": 44.5,
+        "LaborCostRatio": 0.1688,
+        "NetMargin": 0.1003,
+        "OperatingCostRatio": 0.1318,
+        "OverheadRatio": 0.0468,
+        "RevenuePerEmployee": null
+      },
+      "2024": {
+        "CostEfficiency": 0.8533,
+        "CostPerUnit": null,
+        "CurrentRatio": 2.7659,
+        "DaysSalesOutstanding": 36.83,
+        "DebtToEquity": 0.474,
+        "EbitdaMargin": 0.1861,
+        "EnergyCostRatio": 0.0617,
+        "GrossMargin": 0.2805,
+        "InventoryDays": 45.17,
+        "LaborCostRatio": 0.1723,
+        "NetMargin": 0.0946,
+        "OperatingCostRatio": 0.1338,
+        "OverheadRatio": 0.0469,
+        "RevenuePerEmployee": 12116066.67
+      }
+    },
     "monthly": {
       "purchases": [
         6773760.0,
@@ -3002,6 +3342,40 @@
       "payroll": 7598000.0
     },
     "expectedWarnings": [],
+    "kpis": {
+      "2023": {
+        "CostEfficiency": 0.842,
+        "CostPerUnit": null,
+        "CurrentRatio": 2.3823,
+        "DaysSalesOutstanding": 35.22,
+        "DebtToEquity": 0.6042,
+        "EbitdaMargin": 0.1975,
+        "EnergyCostRatio": 0.0582,
+        "GrossMargin": 0.2897,
+        "InventoryDays": 44.5,
+        "LaborCostRatio": 0.1688,
+        "NetMargin": 0.1003,
+        "OperatingCostRatio": 0.1318,
+        "OverheadRatio": 0.0468,
+        "RevenuePerEmployee": null
+      },
+      "2024": {
+        "CostEfficiency": 0.8533,
+        "CostPerUnit": null,
+        "CurrentRatio": 2.7659,
+        "DaysSalesOutstanding": 36.83,
+        "DebtToEquity": 0.474,
+        "EbitdaMargin": 0.1861,
+        "EnergyCostRatio": 0.0617,
+        "GrossMargin": 0.2805,
+        "InventoryDays": 45.17,
+        "LaborCostRatio": 0.1723,
+        "NetMargin": 0.0946,
+        "OperatingCostRatio": 0.1338,
+        "OverheadRatio": 0.0469,
+        "RevenuePerEmployee": 12116066.67
+      }
+    },
     "monthly": {
       "purchases": [
         6773760.0,
@@ -3297,6 +3671,56 @@
       "payroll": 7598000.0
     },
     "expectedWarnings": [],
+    "kpis": {
+      "2022": {
+        "CostEfficiency": 0.8119,
+        "CostPerUnit": null,
+        "CurrentRatio": 1.9224,
+        "DaysSalesOutstanding": 34.32,
+        "DebtToEquity": 0.801,
+        "EbitdaMargin": 0.228,
+        "EnergyCostRatio": 0.0538,
+        "GrossMargin": 0.3208,
+        "InventoryDays": 45.71,
+        "LaborCostRatio": 0.1685,
+        "NetMargin": 0.1197,
+        "OperatingCostRatio": 0.1327,
+        "OverheadRatio": 0.0472,
+        "RevenuePerEmployee": null
+      },
+      "2023": {
+        "CostEfficiency": 0.842,
+        "CostPerUnit": null,
+        "CurrentRatio": 2.3823,
+        "DaysSalesOutstanding": 35.22,
+        "DebtToEquity": 0.6042,
+        "EbitdaMargin": 0.1975,
+        "EnergyCostRatio": 0.0582,
+        "GrossMargin": 0.2897,
+        "InventoryDays": 44.5,
+        "LaborCostRatio": 0.1688,
+        "NetMargin": 0.1003,
+        "OperatingCostRatio": 0.1318,
+        "OverheadRatio": 0.0468,
+        "RevenuePerEmployee": null
+      },
+      "2024": {
+        "CostEfficiency": 0.8533,
+        "CostPerUnit": null,
+        "CurrentRatio": 2.7659,
+        "DaysSalesOutstanding": 36.83,
+        "DebtToEquity": 0.474,
+        "EbitdaMargin": 0.1861,
+        "EnergyCostRatio": 0.0617,
+        "GrossMargin": 0.2805,
+        "InventoryDays": 45.17,
+        "LaborCostRatio": 0.1723,
+        "NetMargin": 0.0946,
+        "OperatingCostRatio": 0.1338,
+        "OverheadRatio": 0.0469,
+        "RevenuePerEmployee": 12116066.67
+      }
+    },
     "monthly": {
       "purchases": [
         6773760.0,
@@ -3688,6 +4112,56 @@
       "payroll": 7598000.0
     },
     "expectedWarnings": [],
+    "kpis": {
+      "2022": {
+        "CostEfficiency": 0.8119,
+        "CostPerUnit": null,
+        "CurrentRatio": 1.9224,
+        "DaysSalesOutstanding": 34.32,
+        "DebtToEquity": 0.801,
+        "EbitdaMargin": 0.228,
+        "EnergyCostRatio": 0.0538,
+        "GrossMargin": 0.3208,
+        "InventoryDays": 45.71,
+        "LaborCostRatio": 0.1685,
+        "NetMargin": 0.1197,
+        "OperatingCostRatio": 0.1327,
+        "OverheadRatio": 0.0472,
+        "RevenuePerEmployee": null
+      },
+      "2023": {
+        "CostEfficiency": 0.842,
+        "CostPerUnit": null,
+        "CurrentRatio": 2.3823,
+        "DaysSalesOutstanding": 35.22,
+        "DebtToEquity": 0.6042,
+        "EbitdaMargin": 0.1975,
+        "EnergyCostRatio": 0.0582,
+        "GrossMargin": 0.2897,
+        "InventoryDays": 44.5,
+        "LaborCostRatio": 0.1688,
+        "NetMargin": 0.1003,
+        "OperatingCostRatio": 0.1318,
+        "OverheadRatio": 0.0468,
+        "RevenuePerEmployee": null
+      },
+      "2024": {
+        "CostEfficiency": 0.8533,
+        "CostPerUnit": null,
+        "CurrentRatio": 2.7659,
+        "DaysSalesOutstanding": 36.83,
+        "DebtToEquity": 0.474,
+        "EbitdaMargin": 0.1861,
+        "EnergyCostRatio": 0.0617,
+        "GrossMargin": 0.2805,
+        "InventoryDays": 45.17,
+        "LaborCostRatio": 0.1723,
+        "NetMargin": 0.0946,
+        "OperatingCostRatio": 0.1338,
+        "OverheadRatio": 0.0469,
+        "RevenuePerEmployee": 12116066.67
+      }
+    },
     "monthly": {
       "purchases": [
         6773760.0,

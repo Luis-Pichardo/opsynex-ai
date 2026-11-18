@@ -71,5 +71,27 @@ total RD$ 7,598,000.00.
 
 `EBITDA = Ganancia antes de ISR + Gastos financieros + D&A en gastos + Depreciación en el costo`.
 
+## KPIs esperados del libro de 2 años
+
+Calculados a mano con estos valores (ratios con 4 decimales; días con 2). Ingresos por empleado
+solo en 2024, el año de la nómina; costo por unidad no aplica (el libro no trae unidades).
+
+| KPI | 2023 | 2024 |
+|---|---:|---:|
+| EbitdaMargin | 0.1975 | 0.1861 |
+| GrossMargin | 0.2897 | 0.2805 |
+| CostEfficiency | 0.842 | 0.8533 |
+| RevenuePerEmployee | — | 12116066.67 |
+| OperatingCostRatio | 0.1318 | 0.1338 |
+| OverheadRatio | 0.0468 | 0.0469 |
+| EnergyCostRatio | 0.0582 | 0.0617 |
+| CostPerUnit | — | — |
+| NetMargin | 0.1003 | 0.0946 |
+| LaborCostRatio | 0.1688 | 0.1723 |
+| CurrentRatio | 2.3823 | 2.7659 |
+| DebtToEquity | 0.6042 | 0.474 |
+| DaysSalesOutstanding | 35.22 | 36.83 |
+| InventoryDays | 44.5 | 45.17 |
+
 Todos los valores, por archivo, año y concepto, están en `expected_values.json`, que leen las
 pruebas automáticas.
