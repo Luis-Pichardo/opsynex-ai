@@ -19,7 +19,8 @@ public sealed class OpsynexDbContext(DbContextOptions<OpsynexDbContext> options,
     // Propiedades leídas por los filtros globales; EF las evalúa en cada consulta.
     internal bool CompanyFilterEnabled => _tenant.IsFilterEnabled;
 
-    internal Guid? CurrentCompanyId => _tenant.CompanyId;
+    // Con el filtro activo y sin empresa (p. ej. petición anónima) no coincide ningún registro.
+    internal Guid CurrentCompanyId => _tenant.CompanyId ?? Guid.Empty;
 
     public DbSet<Company> Companies => Set<Company>();
 
