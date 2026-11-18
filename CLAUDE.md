@@ -14,6 +14,15 @@ anomalías, recomendaciones y resúmenes ejecutivos).
 Especificaciones originales del cliente (fuente de verdad funcional):
 - `docs/especificaciones/ESPECIFICACIONES_DEL_SISTEMA.pdf` (+ `.txt`) — modelo financiero **anual**.
 - `docs/especificaciones/PLATAFORMA_DE_ANALISIS.pdf` (+ `.txt`) — módulo **industrial** (producción por máquina/línea, OEE, scrap, downtime).
+- `docs/especificaciones/FORMATO_EXCEL_ENTRADA.md` — **formato real de los archivos del cliente**
+  (libro contable `.xls` de República Dominicana, en RD$, con estados comparativos, notas y
+  nómina): solo la **estructura**. Manda sobre cualquier suposición de formato en las etapas.
+- **Datos de clientes:** ningún archivo, cifra, nombre ni dato real de un cliente puede aparecer
+  en el código, los tests, los datos de ejemplo ni la documentación. Las pruebas usan libros
+  **sintéticos** generados por script con la misma estructura y valores inventados.
+- **Privacidad:** los archivos de los clientes contienen datos personales (nombres, cédulas,
+  salarios). Nunca se suben originales al repositorio, nunca se guardan esos datos en la BD
+  (solo agregados) y nunca se envían al servicio de IA ni a Claude.
 
 Decisión de alcance: el núcleo del MVP usa el modelo financiero anual (etapas 3–10) y el
 módulo industrial es una extensión (etapa 12). Ambos comparten usuarios, empresas,
@@ -29,7 +38,7 @@ diagnóstico, impacto y score.
 |---|---|
 | Backend principal (API) | **C# / .NET 10 (LTS) / ASP.NET Core Web API**, Entity Framework Core 10, FluentValidation, Serilog, OpenAPI + Scalar |
 | Autenticación | JWT Bearer (`Microsoft.AspNetCore.Authentication.JwtBearer`) + hash de contraseñas con `PasswordHasher<T>` de ASP.NET Core Identity |
-| Lectura de archivos | ClosedXML (Excel) y CsvHelper (CSV) |
+| Lectura de archivos | ExcelDataReader (`.xls` y `.xlsx`), CsvHelper (CSV); ClosedXML solo para **generar** plantillas `.xlsx` |
 | Base de datos | **SQL Server 2022** (en tests: Testcontainers si hay Docker; si no, SQLite in-memory de EF Core) |
 | Servicio de IA | **Python 3.12 + FastAPI**, pandas, scikit-learn, rapidfuzz, SDK `anthropic` (Claude) |
 | Frontend | **React 18 + TypeScript + Vite + Tailwind CSS + shadcn/ui** (Radix), lucide-react, Recharts, TanStack Query, TanStack Table, React Router, React Hook Form + Zod, sonner |

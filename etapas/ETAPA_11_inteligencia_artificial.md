@@ -20,6 +20,11 @@
    - Manejo de errores por tipo (rate limit, errores 5xx, conexión), timeouts y logs del uso de tokens.
    - Prompt caching del system prompt (instrucciones fijas primero, datos variables al final).
    - **Privacidad**: solo se envían agregados y KPIs, nunca datos personales ni archivos crudos.
+     Los archivos de los clientes traen nóminas con nombres, cédulas y salarios (ver
+     `docs/especificaciones/FORMATO_EXCEL_ENTRADA.md`): un test debe verificar que ningún
+     payload hacia el servicio de IA o hacia Claude contiene esos datos.
+   - **Contexto del país:** el prompt indica la moneda (RD$) y el país de la empresa, para que
+     las recomendaciones usen la terminología local (ITBIS, TSS, Regalía Pascual, etc.).
 2. **Endpoints del servicio de IA**:
    - `POST /recommendations/generate`: recibe un problema (código, KPIs relacionados,
      evidencia, industria e impacto) y devuelve `{ summary, root_causes[], actions[{ title,
@@ -29,7 +34,9 @@
      un resumen ejecutivo de 3 a 5 párrafos más 3 prioridades.
    - `POST /anomalies/detect`: detecta valores atípicos en series de KPIs (z-score robusto con
      MAD; con pocas observaciones, reglas de variación brusca). Devuelve las anomalías con su
-     explicación. No usa LLM.
+     explicación. No usa LLM. Con la estructura de los clientes, la serie útil es la de
+     **ingresos mensuales** (hoja de ventas mensuales, 12 puntos); pruébalo con series
+     sintéticas que tengan meses atípicos.
    - Tests con el cliente de Claude simulado (sin llamadas reales en CI).
 3. **API .NET**:
    - Paso opcional en `AnalysisPipeline` (configurable con `Ai:Enabled`): pedir las

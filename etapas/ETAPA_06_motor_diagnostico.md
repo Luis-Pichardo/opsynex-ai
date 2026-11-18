@@ -27,6 +27,12 @@
    | `HIGH_OPEX_RATIO` | Operating cost ratio sobre el benchmark | Estructura de gastos pesada | ExcessCost |
    | `ENERGY_COST_SPIKE` | El energy cost ratio crece más de 10 % | Consumo energético ineficiente | OperationalWaste |
    | `HIGH_MATERIAL_LOSS` | Material loss / COGS sobre el umbral | Desperdicio de materiales | OperationalWaste |
+   | `REVENUE_DECLINE` | Los ingresos caen más de 2 % | Contracción de ventas | MarginLoss |
+   | `LABOR_COST_OUTPACES_REVENUE` | El costo laboral crece más que los ingresos | Ineficiencia en costos de personal | ExcessCost |
+   | `LOW_LIQUIDITY` | Razón corriente < 1,0 | Riesgo de liquidez | — (alerta financiera) |
+   | `HIGH_LEVERAGE` | Pasivos / Patrimonio sobre el umbral (p. ej. 3,0) | Endeudamiento alto | — (alerta financiera) |
+   Además, el motor registra **hallazgos positivos** (mejora del margen EBITDA, menor
+   endeudamiento) en la evidencia, para que el resumen ejecutivo no muestre solo problemas.
 3. **Severidad** según la magnitud (por ejemplo, caída del EBITDA margin de más de 5 pp →
    High, de 2 a 5 pp → Medium, de menos de 2 pp → Low). High = impacto financiero crítico,
    Medium = ineficiencia moderada, Low = recomendación de monitoreo.
@@ -41,7 +47,9 @@
 ## Criterios de aceptación
 
 - [ ] Cada regla tiene tests que la disparan y tests que no la disparan.
-- [ ] Con `sample-data/` se detectan **al menos 3 tipos de problemas** distintos.
+- [ ] Con el libro sintético de 3 años (en `backend/sample-data/`), diseñado para ello, se
+      detectan **al menos 3 tipos de problemas** distintos, incluidos `EBITDA_DECLINE`,
+      `OVERHEAD_OUTPACES_REVENUE` y `LABOR_COST_OUTPACES_REVENUE`.
 - [ ] Ejecutar el análisis dos veces no duplica problemas.
 
 ## Documentación a actualizar

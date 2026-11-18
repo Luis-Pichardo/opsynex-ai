@@ -12,11 +12,17 @@
 ## Tareas
 
 1. **Página Carga de datos** como asistente de 3 pasos con indicador de progreso:
-   1. Elegir el tipo de archivo (tarjetas con icono y descripción, y botón "Descargar plantilla").
-   2. Arrastrar y soltar el archivo (validación de extensión y tamaño en el cliente, barra de progreso).
-   3. Resultado de la validación: errores por fila y columna en una tabla, advertencias y
-      vista previa. Permite volver a subir.
-2. **Página Homologación**: tabla de cuenta del cliente → categoría sugerida (Select),
+   1. Subir el archivo: arrastrar y soltar el **libro contable completo** (`.xls`, `.xlsx`) o la
+      plantilla simple (`.xlsx`, `.csv`), con validación de extensión y tamaño en el cliente y
+      barra de progreso. Texto de ayuda: "Sube tu libro de estados financieros tal como lo
+      prepara tu contador". Enlace secundario "¿No tienes estados financieros? Descarga la plantilla".
+   2. **Hojas detectadas:** lista de hojas con el tipo reconocido (Balance general, Estado de
+      resultados, Notas, Empleados, Ventas mensuales…), los años encontrados y las filas
+      extraídas; las hojas ignoradas aparecen atenuadas con el motivo.
+   3. Resultado de la validación: errores bloqueantes y advertencias de calidad (cuadres,
+      notas vs. estados) con hoja, fila y columna, y vista previa. Permite volver a subir.
+   Caso de prueba manual: el libro sintético de `backend/sample-data/`.
+2. **Página Homologación**: tabla de cuenta del cliente (con su hoja y sección) → categoría sugerida (Select),
    indicador de confianza (Alta/Media/Baja con badge e icono), método (IA, fallback,
    confirmado), filtro "solo pendientes", botón "Aceptar sugerencias de confianza alta",
    guardar y **Consolidar**.
