@@ -6,7 +6,8 @@
   pequeña que un pico estacional moderado (p. ej. diciembre +20 %) daría un z alto sin ser raro.
 - Con menos puntos, o si la MAD es 0: variaciones bruscas (más de ±50 % frente al punto anterior).
 
-La serie útil con la estructura de los clientes es la de ingresos mensuales (12 puntos).
+Series que envía el API: ingresos mensuales (12 puntos por año) y, con el módulo industrial, el
+OEE y los minutos de parada diarios de la planta (decenas o cientos de puntos).
 """
 
 from __future__ import annotations

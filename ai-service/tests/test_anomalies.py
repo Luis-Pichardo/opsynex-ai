@@ -63,7 +63,7 @@ def test_endpoint_explains_each_anomaly(client, auth_headers) -> None:
         "series": [
             {
                 "name": "MonthlyRevenue",
-                "label": "Las ventas",
+                "label": "las ventas",
                 "unit": "Money",
                 "points": [{"period": p, "value": v * 1_000_000} for p, v in series(values)],
             }
@@ -73,5 +73,44 @@ def test_endpoint_explains_each_anomaly(client, auth_headers) -> None:
     assert response.status_code == 200
     anomalies = response.json()["anomalies"]
     assert [a["period"] for a in anomalies] == ["2024-03", "2024-07"]
-    assert anomalies[1]["explanation"].startswith("Las ventas de 2024-07 (RD$ 32.000.000)")
+    assert anomalies[1]["explanation"].startswith(
+        "El valor de las ventas en 2024-07 (RD$ 32.000.000)"
+    )
     assert "mediana RD$ 14.150.000" in anomalies[1]["explanation"]
+
+
+def test_endpoint_detects_daily_industrial_series(client, auth_headers) -> None:
+    # 60 días hábiles de la planta (módulo industrial): un día con una avería mayor.
+    days = [f"2024-{10 + d // 30:02d}-{d % 30 + 1:02d}" for d in range(60)]
+    downtime = [300.0 + (d % 5) * 12 for d in range(60)]
+    oee = [0.72 + (d % 4) * 0.01 for d in range(60)]
+    downtime[40] = 1150.0
+    oee[40] = 0.31
+    payload = {
+        "currency": "DOP",
+        "series": [
+            {
+                "name": "DailyDowntime2024",
+                "label": "los minutos de parada diarios de la planta",
+                "unit": "Number",
+                "points": [{"period": p, "value": v} for p, v in zip(days, downtime, strict=True)],
+            },
+            {
+                "name": "DailyOee2024",
+                "label": "el OEE diario de la planta",
+                "unit": "Ratio",
+                "points": [{"period": p, "value": v} for p, v in zip(days, oee, strict=True)],
+            },
+        ],
+    }
+    response = client.post("/anomalies/detect", json=payload, headers=auth_headers)
+    assert response.status_code == 200
+    anomalies = response.json()["anomalies"]
+    assert [(a["series"], a["period"], a["direction"]) for a in anomalies] == [
+        ("DailyDowntime2024", "2024-11-11", "high"),
+        ("DailyOee2024", "2024-11-11", "low"),
+    ]
+    assert anomalies[0]["explanation"].startswith(
+        "El valor de los minutos de parada diarios de la planta en 2024-11-11 (1.150)"
+    )
+    assert "(31,0 %)" in anomalies[1]["explanation"]

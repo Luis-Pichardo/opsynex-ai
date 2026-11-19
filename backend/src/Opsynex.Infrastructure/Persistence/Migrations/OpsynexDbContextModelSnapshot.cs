@@ -132,6 +132,60 @@ namespace Opsynex.Infrastructure.Persistence.Migrations
                     b.ToTable("Companies", (string)null);
                 });
 
+            modelBuilder.Entity("Opsynex.Domain.Entities.CostData", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<decimal>("EnergyCost")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("LaborCost")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("MachineId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<decimal>("MaterialCost")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("OverheadCost")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("UploadId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UploadId");
+
+                    b.HasIndex("CompanyId", "Date", "MachineId")
+                        .IsUnique();
+
+                    b.ToTable("CostData", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_CostData_NonNegative", "[LaborCost] >= 0 AND [MaterialCost] >= 0 AND [EnergyCost] >= 0 AND [OverheadCost] >= 0");
+                        });
+                });
+
             modelBuilder.Entity("Opsynex.Domain.Entities.ExecutiveSummary", b =>
                 {
                     b.Property<Guid>("Id")
@@ -328,6 +382,145 @@ namespace Opsynex.Infrastructure.Persistence.Migrations
                     b.ToTable("FinancialData", null, t =>
                         {
                             t.HasCheckConstraint("CK_FinancialData_Year", "[Year] BETWEEN 1900 AND 2200");
+                        });
+                });
+
+            modelBuilder.Entity("Opsynex.Domain.Entities.IndustrialKpiResult", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal?>("Availability")
+                        .HasPrecision(9, 4)
+                        .HasColumnType("decimal(9,4)");
+
+                    b.Property<DateTime>("CalculatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal?>("CapacityUtilization")
+                        .HasPrecision(9, 4)
+                        .HasColumnType("decimal(9,4)");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal?>("CostPerUnit")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Days")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("DowntimeCost")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("DowntimeMinutes")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("DowntimeRatio")
+                        .HasPrecision(9, 4)
+                        .HasColumnType("decimal(9,4)");
+
+                    b.Property<decimal?>("EnergyCost")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("GoodUnits")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("LaborCost")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Level")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("LineId")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("MachineId")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<decimal?>("MaterialCost")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("Month")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("Oee")
+                        .HasPrecision(9, 4)
+                        .HasColumnType("decimal(9,4)");
+
+                    b.Property<decimal?>("OverheadCost")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("Performance")
+                        .HasPrecision(9, 4)
+                        .HasColumnType("decimal(9,4)");
+
+                    b.Property<decimal>("PlannedMinutes")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("Quality")
+                        .HasPrecision(9, 4)
+                        .HasColumnType("decimal(9,4)");
+
+                    b.Property<decimal?>("ScrapCost")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("ScrapRate")
+                        .HasPrecision(9, 4)
+                        .HasColumnType("decimal(9,4)");
+
+                    b.Property<decimal?>("SpeedLossCost")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("StandardCostPerUnit")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<decimal?>("TotalCost")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("TotalUnits")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("UnitsProduced")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanyId", "Year", "Month", "Level");
+
+                    b.ToTable("IndustrialKpiResults", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_IndustrialKpiResult_Month", "[Month] IS NULL OR [Month] BETWEEN 1 AND 12");
+
+                            t.HasCheckConstraint("CK_IndustrialKpiResult_Year", "[Year] BETWEEN 1900 AND 2200");
                         });
                 });
 
@@ -622,6 +815,74 @@ namespace Opsynex.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Opsynex.Domain.Entities.ProductionData", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal?>("CycleTime")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<decimal>("DowntimeMinutes")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("GoodUnits")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("LineId")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("MachineId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<decimal>("PlannedMinutes")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("TotalUnits")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("UnitsProduced")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("UploadId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UploadId");
+
+                    b.HasIndex("CompanyId", "Date", "MachineId")
+                        .IsUnique();
+
+                    b.ToTable("ProductionData", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_ProductionData_Minutes", "[PlannedMinutes] > 0 AND [DowntimeMinutes] >= 0 AND [DowntimeMinutes] <= [PlannedMinutes]");
+
+                            t.HasCheckConstraint("CK_ProductionData_Units", "[GoodUnits] >= 0 AND [GoodUnits] <= [TotalUnits] AND [UnitsProduced] >= 0");
+                        });
+                });
+
             modelBuilder.Entity("Opsynex.Domain.Entities.RawAccountValue", b =>
                 {
                     b.Property<Guid>("Id")
@@ -764,6 +1025,57 @@ namespace Opsynex.Infrastructure.Persistence.Migrations
                             t.HasCheckConstraint("CK_Scores_TotalScore", "[TotalScore] BETWEEN 0 AND 100");
 
                             t.HasCheckConstraint("CK_Scores_WeightsUsed_Json", "ISJSON([WeightsUsed]) = 1");
+                        });
+                });
+
+            modelBuilder.Entity("Opsynex.Domain.Entities.StandardData", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal?>("CostPerMinute")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("MachineId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("ProcessName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<decimal?>("StandardCost")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<decimal>("StandardCycleTime")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("UploadId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UploadId");
+
+                    b.HasIndex("CompanyId", "MachineId")
+                        .IsUnique();
+
+                    b.ToTable("StandardData", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_StandardData_CycleTime", "[StandardCycleTime] > 0");
                         });
                 });
 
@@ -931,6 +1243,20 @@ namespace Opsynex.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
                 });
 
+            modelBuilder.Entity("Opsynex.Domain.Entities.CostData", b =>
+                {
+                    b.HasOne("Opsynex.Domain.Entities.Company", null)
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Opsynex.Domain.Entities.Upload", null)
+                        .WithMany()
+                        .HasForeignKey("UploadId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
             modelBuilder.Entity("Opsynex.Domain.Entities.ExecutiveSummary", b =>
                 {
                     b.HasOne("Opsynex.Domain.Entities.Company", null)
@@ -941,6 +1267,15 @@ namespace Opsynex.Infrastructure.Persistence.Migrations
                 });
 
             modelBuilder.Entity("Opsynex.Domain.Entities.FinancialData", b =>
+                {
+                    b.HasOne("Opsynex.Domain.Entities.Company", null)
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Opsynex.Domain.Entities.IndustrialKpiResult", b =>
                 {
                     b.HasOne("Opsynex.Domain.Entities.Company", null)
                         .WithMany()
@@ -995,6 +1330,20 @@ namespace Opsynex.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Opsynex.Domain.Entities.ProductionData", b =>
+                {
+                    b.HasOne("Opsynex.Domain.Entities.Company", null)
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Opsynex.Domain.Entities.Upload", null)
+                        .WithMany()
+                        .HasForeignKey("UploadId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
             modelBuilder.Entity("Opsynex.Domain.Entities.RawAccountValue", b =>
                 {
                     b.HasOne("Opsynex.Domain.Entities.Company", null)
@@ -1017,6 +1366,20 @@ namespace Opsynex.Infrastructure.Persistence.Migrations
                         .HasForeignKey("CompanyId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Opsynex.Domain.Entities.StandardData", b =>
+                {
+                    b.HasOne("Opsynex.Domain.Entities.Company", null)
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Opsynex.Domain.Entities.Upload", null)
+                        .WithMany()
+                        .HasForeignKey("UploadId")
+                        .OnDelete(DeleteBehavior.Restrict);
                 });
 
             modelBuilder.Entity("Opsynex.Domain.Entities.Upload", b =>

@@ -20,7 +20,8 @@ namespace Opsynex.Application.Insights;
 /// <summary>
 /// Paso opcional del análisis con IA:
 /// <list type="number">
-/// <item>Anomalías en las ventas mensuales (sin LLM) → problemas <c>ANOMALY_*</c> de severidad Low.</item>
+/// <item>Anomalías (sin LLM) en las ventas mensuales y, si hay módulo industrial, en las series diarias de
+/// OEE y minutos de parada → problemas <c>ANOMALY_*</c> de severidad Low.</item>
 /// <item>Resumen ejecutivo del año con Claude → <see cref="ExecutiveSummary"/>.</item>
 /// <item>Recomendaciones de IA de los problemas High y Medium → <c>Problem.AiRecommendation</c>.</item>
 /// </list>
@@ -35,6 +36,8 @@ public sealed partial class AiEnrichmentService(
     ICompanyYearRepository<ExecutiveSummary> summaries,
     IRepository<Problem> problems,
     IRepository<MonthlyFinancialData> monthly,
+    IRepository<ProductionData> production,
+    IRepository<StandardData> standards,
     IAiInsightsClient ai,
     IUnitOfWork unitOfWork,
     IOptions<AiOptions> options,
@@ -54,8 +57,6 @@ public sealed partial class AiEnrichmentService(
     {
         Converters = { new NormalizedDecimalConverter() },
     };
-
-    private static readonly CultureInfo Es = CultureInfo.GetCultureInfo("es");
 
     public async Task EnrichAsync(Guid companyId, int? year, bool force, CancellationToken cancellationToken)
     {
@@ -85,17 +86,19 @@ public sealed partial class AiEnrichmentService(
     private async Task RunAsync(Guid companyId, int? year, bool force, CancellationToken cancellationToken)
     {
         var company = await companies.GetByIdAsync(companyId, cancellationToken) ?? throw new NotFoundException("la empresa", companyId);
+        var settings = options.Value;
+
+        // Las anomalías no necesitan estados financieros (una empresa puede tener solo datos industriales).
+        if (settings.DetectAnomalies)
+        {
+            await DetectAnomaliesAsync(companyId, company.Currency, cancellationToken);
+        }
+
         var kpis = await kpiResults.ListByCompanyAsync(companyId, cancellationToken);
         var current = year is null ? kpis.MaxBy(k => k.Year) : kpis.FirstOrDefault(k => k.Year == year);
         if (current is null)
         {
             return;
-        }
-
-        var settings = options.Value;
-        if (settings.DetectAnomalies)
-        {
-            await DetectAnomaliesAsync(companyId, company.Currency, cancellationToken);
         }
 
         var context = new AiCompanyContext(company.Industry.ToString(), company.Sector, CountryFor(company.Currency, settings),
@@ -110,41 +113,84 @@ public sealed partial class AiEnrichmentService(
 
     // --- Anomalías ---
 
+    /// <summary>Serie que se envía al detector y cómo se nombran sus anomalías.</summary>
+    private sealed record AnomalySeries(string Kind, int Year, AiSeries Series);
+
     private async Task DetectAnomaliesAsync(Guid companyId, string currency, CancellationToken cancellationToken)
     {
+        var sent = new List<AnomalySeries>();
+
+        // Ventas mensuales (estados financieros).
         var months = await monthly.ListAsync(m => m.CompanyId == companyId, cancellationToken);
-        var series = months
+        sent.AddRange(months
             .Where(m => m.Revenue is not null)
             .GroupBy(m => m.Year)
             .Where(g => g.Count() >= 2)
-            .Select(g => new AiSeries(
+            .Select(g => new AnomalySeries(RevenueKind, g.Key, new AiSeries(
                 $"MonthlyRevenue{g.Key}",
-                "Las ventas",
+                "las ventas",
                 "Money",
-                [.. g.OrderBy(m => m.Month).Select(m => new AiSeriesPoint(Period(m.Year, m.Month), m.Revenue!.Value))]))
-            .ToList();
-        if (series.Count == 0)
+                [.. g.OrderBy(m => m.Month).Select(m => new AiSeriesPoint(Period(m.Year, m.Month), m.Revenue!.Value))]))));
+
+        // Series diarias de la planta (módulo industrial): OEE y minutos de parada.
+        var productionRows = await production.ListAsync(p => p.CompanyId == companyId, cancellationToken);
+        if (productionRows.Count > 0)
+        {
+            var standardRows = await standards.ListAsync(s => s.CompanyId == companyId, cancellationToken);
+            var daily = Domain.Engines.Industrial.IndustrialKpiEngine.Daily(
+                [.. productionRows.Select(p => new Domain.Engines.Industrial.ProductionRecord(
+                    p.Date, p.MachineId, p.LineId, p.UnitsProduced, p.DowntimeMinutes, p.PlannedMinutes, p.CycleTime, p.GoodUnits, p.TotalUnits))],
+                [.. standardRows.Select(s => new Domain.Engines.Industrial.StandardRecord(s.MachineId, s.StandardCycleTime, s.StandardCost, s.CostPerMinute))]);
+            foreach (var year in daily.GroupBy(d => d.Date.Year).Where(g => g.Count() >= 2))
+            {
+                var oee = year.Where(d => d.Oee is not null).Select(d => new AiSeriesPoint(Day(d.Date), d.Oee!.Value)).ToList();
+                if (oee.Count >= 2)
+                {
+                    sent.Add(new AnomalySeries(OeeKind, year.Key, new AiSeries($"DailyOee{year.Key}", "el OEE diario de la planta", "Ratio", oee)));
+                }
+
+                sent.Add(new AnomalySeries(DowntimeKind, year.Key, new AiSeries(
+                    $"DailyDowntime{year.Key}",
+                    "los minutos de parada diarios de la planta",
+                    "Number",
+                    [.. year.Select(d => new AiSeriesPoint(Day(d.Date), d.DowntimeMinutes))])));
+            }
+        }
+
+        if (sent.Count == 0)
         {
             return;
         }
 
-        var anomalies = await ai.DetectAnomaliesAsync(new AiAnomalyRequest(series, currency), cancellationToken);
-        var years = series.Select(s => int.Parse(s.Name["MonthlyRevenue".Length..], CultureInfo.InvariantCulture)).ToHashSet();
+        var anomalies = await ai.DetectAnomaliesAsync(new AiAnomalyRequest([.. sent.Select(s => s.Series)], currency), cancellationToken);
+
+        // Las anomalías previas de las mismas series (tipo y año) se reemplazan.
+        var prefixes = sent.Select(s => $"{AnomalyPrefix}{s.Kind}_{s.Year:0000}").ToList();
+        var years = sent.Select(s => s.Year).ToHashSet();
         var existing = (await problems.ListAsync(
                 p => p.CompanyId == companyId && years.Contains(p.Year) && p.Code.StartsWith(AnomalyPrefix),
                 cancellationToken))
+            .Where(p => prefixes.Any(prefix => p.Code.StartsWith(prefix, StringComparison.Ordinal)))
             .ToDictionary(p => (p.Year, p.Code));
 
         foreach (var anomaly in anomalies)
         {
-            var (y, m) = ParsePeriod(anomaly.Period);
-            var code = $"{AnomalyPrefix}REVENUE_{y:0000}_{m:00}";
-            if (!existing.Remove((y, code), out var problem))
+            var series = sent.FirstOrDefault(s => s.Series.Name == anomaly.Series);
+            if (series is null)
+            {
+                continue;
+            }
+
+            var date = ParseDate(anomaly.Period);
+            var code = series.Kind == RevenueKind
+                ? $"{AnomalyPrefix}{RevenueKind}_{date:yyyy_MM}"
+                : $"{AnomalyPrefix}{series.Kind}_{date:yyyy_MM_dd}";
+            if (!existing.Remove((date.Year, code), out var problem))
             {
                 problem = new Problem
                 {
                     CompanyId = companyId,
-                    Year = y,
+                    Year = date.Year,
                     Code = code,
                     Title = string.Empty,
                     Description = string.Empty,
@@ -153,20 +199,32 @@ public sealed partial class AiEnrichmentService(
                 await problems.AddAsync(problem, cancellationToken);
             }
 
-            var month = new DateTime(y, m, 1, 0, 0, 0, DateTimeKind.Utc).ToString("MMM yyyy", Es).Replace(".", string.Empty, StringComparison.Ordinal);
-            problem.Title = $"Ventas mensuales atípicas ({month})";
+            var (title, recommendation) = series.Kind switch
+            {
+                RevenueKind => (
+                    $"Ventas mensuales atípicas ({MonthLabel(date)})",
+                    "Revisa los registros contables del mes: confirma si el valor responde a un evento puntual (venta extraordinaria, " +
+                    "estacionalidad, devoluciones) o a un error de carga, y corrígelo antes de volver a analizar si hace falta."),
+                OeeKind => (
+                    $"OEE diario atípico ({DayLabel(date)})",
+                    "Revisa la bitácora de producción de ese día: averías, cambios de formato, falta de material o lotes con defectos. " +
+                    "Si fue un error de registro, corrige el archivo de producción y vuelve a subirlo."),
+                _ => (
+                    $"Paradas diarias atípicas ({DayLabel(date)})",
+                    "Identifica la causa de las paradas de ese día (avería mayor, falta de energía o de material) y registra el motivo; " +
+                    "si se repite, inclúyela en el plan de mantenimiento preventivo."),
+            };
+            problem.Title = title;
             problem.Description = anomaly.Explanation;
             problem.Category = ProblemCategory.Operations;
             problem.Severity = Severity.Low;
             problem.ImpactCategory = ImpactCategory.Anomaly;
             problem.ImpactValue = null;
-            problem.Recommendation =
-                "Revisa los registros contables del mes: confirma si el valor responde a un evento puntual (venta extraordinaria, " +
-                "estacionalidad, devoluciones) o a un error de carga, y corrígelo antes de volver a analizar si hace falta.";
+            problem.Recommendation = recommendation;
             problem.Evidence = new JsonObject
             {
                 ["kind"] = "anomaly",
-                ["series"] = "MonthlyRevenue",
+                ["series"] = series.Series.Name[..^4],
                 ["period"] = anomaly.Period,
                 ["value"] = anomaly.Value,
                 ["expected"] = anomaly.Expected,
@@ -180,6 +238,16 @@ public sealed partial class AiEnrichmentService(
         problems.RemoveRange(existing.Values);
         await unitOfWork.SaveChangesAsync(cancellationToken);
     }
+
+    private const string RevenueKind = "REVENUE";
+    private const string OeeKind = "OEE";
+    private const string DowntimeKind = "DOWNTIME";
+
+    private static readonly string[] MonthNames = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+
+    private static string MonthLabel(DateOnly date) => $"{MonthNames[date.Month - 1]} {date.Year}";
+
+    private static string DayLabel(DateOnly date) => $"{date.Day} {MonthNames[date.Month - 1]} {date.Year}";
 
     // --- Resumen ejecutivo ---
 
@@ -351,10 +419,16 @@ public sealed partial class AiEnrichmentService(
 
     private static string Period(int year, int month) => string.Create(CultureInfo.InvariantCulture, $"{year:0000}-{month:00}");
 
-    private static (int Year, int Month) ParsePeriod(string period)
+    private static string Day(DateOnly date) => date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+
+    /// <summary>Período de una anomalía: «2024-07» (mes) o «2024-07-15» (día).</summary>
+    private static DateOnly ParseDate(string period)
     {
         var parts = period.Split('-');
-        return (int.Parse(parts[0], CultureInfo.InvariantCulture), int.Parse(parts[1], CultureInfo.InvariantCulture));
+        return new DateOnly(
+            int.Parse(parts[0], CultureInfo.InvariantCulture),
+            int.Parse(parts[1], CultureInfo.InvariantCulture),
+            parts.Length > 2 ? int.Parse(parts[2], CultureInfo.InvariantCulture) : 1);
     }
 
     [LoggerMessage(Level = LogLevel.Information, Message = "IA generativa no configurada; empresa {CompanyId} sigue con las recomendaciones base.")]

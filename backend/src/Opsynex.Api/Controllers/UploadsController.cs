@@ -80,9 +80,11 @@ public sealed class UploadsController(UploadService uploads, IUploadTemplateGene
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
     public IActionResult Template(UploadFileType fileType)
     {
-        var template = UploadTemplates.Find(fileType) ?? throw new NotFoundException("la plantilla", fileType);
+        var fileName = UploadTemplates.Find(fileType)?.FileName
+            ?? IndustrialTemplates.Find(fileType)?.FileName
+            ?? throw new NotFoundException("la plantilla", fileType);
         var year = timeProvider.GetUtcNow().Year;
         var content = templates.Generate(fileType, [year - 2, year - 1]);
-        return File(content, XlsxContentType, template.FileName);
+        return File(content, XlsxContentType, fileName);
     }
 }

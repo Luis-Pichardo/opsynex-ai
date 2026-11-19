@@ -12,7 +12,7 @@ namespace Opsynex.Application.Uploads;
 /// Carga de archivos: valida, analiza el libro y guarda el reporte y los valores en bruto
 /// (filas de los estados, serie mensual y datos operacionales). El archivo original no se guarda.
 /// </summary>
-public sealed class UploadService(
+public sealed partial class UploadService(
     IWorkbookParser parser,
     IRepository<Upload> uploads,
     IRepository<RawAccountValue> rawValues,
@@ -24,6 +24,10 @@ public sealed class UploadService(
     ICurrentUser currentUser,
     ICurrentTenant tenant,
     Homologation.UploadProcessingService processing,
+    Industrial.IndustrialIngestionService industrialIngestion,
+    Industrial.IndustrialAnalysisService industrialAnalysis,
+    Microsoft.Extensions.Logging.ILogger<UploadService> logger,
+    TimeProvider timeProvider,
     IOptions<UploadOptions> options)
 {
     private const int PreviewLinesPerSheet = 40;
@@ -66,7 +70,12 @@ public sealed class UploadService(
         };
         await uploads.AddAsync(upload, cancellationToken);
 
-        if (!parsed.HasBlockingErrors)
+        if (!parsed.HasBlockingErrors && parsed.Industrial is { } industrial)
+        {
+            await industrialIngestion.StoreAsync(upload, industrial, cancellationToken);
+            upload.RowsCount = industrial.Count;
+        }
+        else if (!parsed.HasBlockingErrors)
         {
             var values = ToRawValues(parsed, upload).ToList();
             await rawValues.AddRangeAsync(values, cancellationToken);
@@ -77,8 +86,13 @@ public sealed class UploadService(
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
+        // Módulo industrial: KPIs, reglas e impacto (sin homologación).
+        if (upload.Status == UploadStatus.Validated && parsed.Industrial is not null)
+        {
+            await AnalyzeIndustrialAsync(upload, cancellationToken);
+        }
         // Análisis automático: homologar con las mejores sugerencias y consolidar.
-        if (upload.Status == UploadStatus.Validated)
+        else if (upload.Status == UploadStatus.Validated)
         {
             await processing.ProcessAsync(upload.Id, cancellationToken);
         }
@@ -138,8 +152,37 @@ public sealed class UploadService(
         return id;
     }
 
+    /// <summary>Si el análisis industrial falla, la carga no se pierde: queda con AnalysisStatus = Failed.</summary>
+    private async Task AnalyzeIndustrialAsync(Upload upload, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var result = await industrialAnalysis.RunAsync(upload.CompanyId, scheduleAi: true, cancellationToken);
+            upload.AnalysisStatus = AnalysisStatus.Completed;
+            upload.ProcessedAt = timeProvider.GetUtcNow().UtcDateTime;
+            upload.Status = UploadStatus.Processed;
+            upload.Warnings = [.. upload.Warnings, .. result.Warnings.Select(w => new UploadIssue("industrial.incomplete_data", w))];
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            LogIndustrialFailure(logger, upload.Id, ex);
+            upload.AnalysisStatus = AnalysisStatus.Failed;
+            upload.Warnings = [.. upload.Warnings, new UploadIssue(
+                "analysis.failed", "Los datos se guardaron, pero el análisis industrial falló. Vuelve a analizar más tarde.")];
+        }
+
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+    }
+
+    [Microsoft.Extensions.Logging.LoggerMessage(Level = Microsoft.Extensions.Logging.LogLevel.Error, Message = "Falló el análisis industrial de la carga {UploadId}")]
+    private static partial void LogIndustrialFailure(Microsoft.Extensions.Logging.ILogger logger, Guid uploadId, Exception exception);
+
     private static UploadSummary BuildSummary(ParsedWorkbook parsed) => new()
     {
+        IndustrialRecords = parsed.Industrial?.Count,
+        Machines = parsed.Industrial?.Machines.Count(),
+        PeriodFrom = parsed.Industrial?.Dates.DefaultIfEmpty().Min() is { } from && from != default ? from : null,
+        PeriodTo = parsed.Industrial?.Dates.DefaultIfEmpty().Max() is { } to && to != default ? to : null,
         EmployeeCount = parsed.Employees?.Count,
         EmployeesByDepartment = parsed.Employees?.ByDepartment ?? [],
         AnnualPayroll = parsed.Employees?.Payroll,

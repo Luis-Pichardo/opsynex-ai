@@ -86,18 +86,19 @@ def _amount(value: float, unit: str, currency: str) -> str:
 
 
 def _explain(label: str, unit: str, currency: str, anomaly: Anomaly) -> str:
+    """Explicación en español. `label` va en minúscula: «las ventas», «el OEE diario»."""
     value = _amount(anomaly.value, unit, currency)
     expected = _amount(anomaly.expected, unit, currency)
     if anomaly.method == "robust_zscore":
         where = "por encima" if anomaly.direction == "high" else "por debajo"
         return (
-            f"{label} de {anomaly.period} ({value}) está muy {where} de lo habitual "
-            f"(mediana {expected}). Revisa si se debe a estacionalidad, a un registro contable "
-            "atípico o a un error de carga."
+            f"El valor de {label} en {anomaly.period} ({value}) está muy {where} de lo habitual "
+            f"(mediana {expected}). Revisa si se debe a un evento puntual, a la estacionalidad "
+            "o a un error de carga."
         )
     change = (anomaly.value - anomaly.expected) / abs(anomaly.expected) * 100
     sign = "+" if change > 0 else "\u2212"  # signo menos tipográfico
     return (
-        f"{label} cambió {sign}{abs(change):.0f} % en {anomaly.period} frente al período "
-        f"anterior ({expected} → {value}). Verifica que el dato sea correcto."
+        f"El valor de {label} cambió {sign}{abs(change):.0f} % en {anomaly.period} frente al "
+        f"período anterior ({expected} → {value}). Verifica que el dato sea correcto."
     )

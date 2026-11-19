@@ -31,6 +31,15 @@ public enum UploadFileType
     CashFlow,
     CostStructure,
     Operational,
+
+    /// <summary>Producción diaria por máquina y línea (módulo industrial).</summary>
+    Production,
+
+    /// <summary>Costos por máquina y fecha (módulo industrial).</summary>
+    Costs,
+
+    /// <summary>Estándares de ciclo y costo por máquina (módulo industrial).</summary>
+    Standards,
 }
 
 /// <summary>Tipo de hoja detectado por el clasificador (por su contenido, no por su nombre).</summary>
@@ -47,6 +56,15 @@ public enum SheetType
     CashFlow,
     CostStructure,
     Operational,
+
+    /// <summary>Tabla de producción diaria por máquina (módulo industrial).</summary>
+    Production,
+
+    /// <summary>Tabla de costos por máquina (módulo industrial).</summary>
+    Costs,
+
+    /// <summary>Tabla de estándares por máquina (módulo industrial).</summary>
+    Standards,
 }
 
 /// <summary>Clase de fila de un estado financiero.</summary>
@@ -185,4 +203,15 @@ public enum ScoreInterpretation
 
     /// <summary>80–100: operación saludable.</summary>
     Healthy,
+}
+
+/// <summary>Alcance de un agregado industrial.</summary>
+public enum IndustrialLevel
+{
+    /// <summary>Toda la planta.</summary>
+    Total,
+
+    Line,
+
+    Machine,
 }

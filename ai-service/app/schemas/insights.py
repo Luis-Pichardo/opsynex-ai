@@ -108,13 +108,13 @@ class SummaryResponse(SummaryDraft):
 
 
 class SeriesPoint(BaseModel):
-    period: str = Field(description="Período, p. ej. 2024-07")
+    period: str = Field(description="Período, p. ej. 2024-07 (mes) o 2024-07-15 (día)")
     value: float
 
 
 class SeriesIn(BaseModel):
     name: str = Field(description="Código de la serie, p. ej. MonthlyRevenue")
-    label: str = Field(description="Nombre para las explicaciones, p. ej. «Ventas mensuales»")
+    label: str = Field(description="Nombre en minúscula para las explicaciones: «las ventas»")
     unit: Literal["Money", "Ratio", "Number"] = "Money"
     points: list[SeriesPoint]
 
