@@ -29,7 +29,28 @@ public sealed class ParsedWorkbook
     /// <summary>Datos operacionales (plantilla operacional y cantidad de empleados de la nómina).</summary>
     public List<OperationalValue> Operational { get; } = [];
 
+    /// <summary>Tablas industriales (producción, costos y estándares), si el archivo es del módulo industrial.</summary>
+    public IndustrialTables? Industrial { get; set; }
+
     public bool HasBlockingErrors => Errors.Count > 0;
+}
+
+/// <summary>Registros leídos de un archivo industrial (ya validados fila por fila).</summary>
+public sealed class IndustrialTables
+{
+    public List<Domain.Engines.Industrial.ProductionRecord> Production { get; } = [];
+
+    public List<Domain.Engines.Industrial.CostRecord> Costs { get; } = [];
+
+    public List<Domain.Engines.Industrial.StandardRecord> Standards { get; } = [];
+
+    public int Count => Production.Count + Costs.Count + Standards.Count;
+
+    public IEnumerable<string> Machines =>
+        Production.Select(p => p.MachineId).Concat(Costs.Select(c => c.MachineId)).Concat(Standards.Select(s => s.MachineId))
+            .Distinct(StringComparer.OrdinalIgnoreCase);
+
+    public IEnumerable<DateOnly> Dates => Production.Select(p => p.Date).Concat(Costs.Select(c => c.Date));
 }
 
 /// <summary>Fila de un estado financiero con sus valores por año.</summary>

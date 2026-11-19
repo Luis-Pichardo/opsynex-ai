@@ -90,6 +90,18 @@ public sealed record UploadSummary
 
     /// <summary>Diferencia de la "prueba cero" del balance de comprobación.</summary>
     public decimal? TrialBalanceDifference { get; init; }
+
+    /// <summary>Registros industriales guardados (producción, costos o estándares).</summary>
+    public int? IndustrialRecords { get; init; }
+
+    /// <summary>Máquinas distintas del archivo industrial.</summary>
+    public int? Machines { get; init; }
+
+    /// <summary>Primer día con datos del archivo industrial.</summary>
+    public DateOnly? PeriodFrom { get; init; }
+
+    /// <summary>Último día con datos del archivo industrial.</summary>
+    public DateOnly? PeriodTo { get; init; }
 }
 
 public sealed record DepartmentSummary(string Department, int Employees, decimal Payroll);

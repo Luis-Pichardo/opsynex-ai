@@ -7,6 +7,9 @@ export type UploadFileType =
   | 'CashFlow'
   | 'CostStructure'
   | 'Operational'
+  | 'Production'
+  | 'Costs'
+  | 'Standards'
 
 export type SheetType =
   | 'Unknown'
@@ -20,6 +23,9 @@ export type SheetType =
   | 'CashFlow'
   | 'CostStructure'
   | 'Operational'
+  | 'Production'
+  | 'Costs'
+  | 'Standards'
 
 export type UploadStatus = 'Pending' | 'Validated' | 'Failed' | 'Processed'
 export type AnalysisStatus = 'NotStarted' | 'Completed' | 'Failed'
@@ -51,6 +57,12 @@ export interface UploadSummary {
   monthlyRecords: number
   trialBalanceReliable: boolean | null
   trialBalanceDifference: number | null
+  /** Registros industriales guardados (producción, costos o estándares). */
+  industrialRecords?: number | null
+  machines?: number | null
+  /** Primer y último día con datos ("AAAA-MM-DD"). */
+  periodFrom?: string | null
+  periodTo?: string | null
 }
 
 export interface UploadReport {

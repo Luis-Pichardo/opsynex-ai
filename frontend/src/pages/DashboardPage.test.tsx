@@ -2,6 +2,7 @@ import { screen, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import { makeImpact, makeKpis, makeProblemPage, makeScore } from '@/test/fixtures'
+import { makeIndustrialKpis, makeIndustrialScore } from '@/test/industrial-fixtures'
 import { layoutHandlers, makeUser, mockApi, renderApp, storeSession } from '@/test/utils'
 
 const n = (s: string | null) => (s ?? '').replace(/\s/gu, ' ')
@@ -70,5 +71,35 @@ describe('DashboardPage', () => {
     renderApp('/')
     expect(await screen.findByText('Sube tus estados financieros para empezar')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Subir archivo' })).toHaveAttribute('href', '/uploads')
+  })
+  it('con datos industriales muestra el score industrial junto al Score Opsynex', async () => {
+    const fetchMock = setup({
+      'GET /api/v1/industrial/kpis': makeIndustrialKpis(),
+      'GET /api/v1/industrial/score': makeIndustrialScore(),
+    })
+    renderApp('/')
+
+    expect(
+      await screen.findByRole('img', {
+        name: /Score industrial 68 de 100: Oportunidades de mejora/,
+      }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: /Score Opsynex 78 de 100/ })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Ver producción' })).toHaveAttribute(
+      'href',
+      '/production',
+    )
+    // Mismo año que el dashboard (2024 tiene datos industriales).
+    expect(
+      fetchMock.mock.calls.some(([url]) => String(url).includes('/industrial/score?year=2024')),
+    ).toBe(true)
+  })
+
+  it('sin datos industriales no muestra el score industrial', async () => {
+    setup()
+    renderApp('/')
+
+    expect(await screen.findByRole('img', { name: /Score Opsynex 78 de 100/ })).toBeInTheDocument()
+    expect(screen.queryByText('Score industrial')).not.toBeInTheDocument()
   })
 })

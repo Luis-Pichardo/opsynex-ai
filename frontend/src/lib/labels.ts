@@ -20,6 +20,9 @@ export const SHEET_TYPE_LABELS: Record<SheetType, string> = {
   CashFlow: 'Flujo de efectivo',
   CostStructure: 'Estructura de costos',
   Operational: 'Datos operacionales',
+  Production: 'Producción por máquina',
+  Costs: 'Costos por máquina',
+  Standards: 'Estándares por máquina',
 }
 
 export const FILE_TYPE_LABELS: Record<UploadFileType, string> = {
@@ -29,7 +32,13 @@ export const FILE_TYPE_LABELS: Record<UploadFileType, string> = {
   CashFlow: 'Flujo de efectivo',
   CostStructure: 'Estructura de costos',
   Operational: 'Datos operacionales',
+  Production: 'Producción por máquina',
+  Costs: 'Costos por máquina',
+  Standards: 'Estándares por máquina',
 }
+
+/** Archivos del módulo industrial (tablas por máquina y fecha). */
+export const INDUSTRIAL_FILE_TYPES: UploadFileType[] = ['Production', 'Costs', 'Standards']
 
 /** Estado de una carga: variante del badge y texto. */
 export const UPLOAD_STATUS: Record<

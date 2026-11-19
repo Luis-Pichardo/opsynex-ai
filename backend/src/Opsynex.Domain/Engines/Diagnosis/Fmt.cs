@@ -30,6 +30,15 @@ internal static class Fmt
         return symbol.Length == 0 ? text : $"{symbol} {text}";
     }
 
+    /// <summary>Monto con dos decimales: "RD$ 125,40".</summary>
+    public static string Money2(decimal amount, string? currency)
+    {
+        var whole = Money(0m, currency);
+        var symbol = whole.Length > 1 ? whole[..^2] : string.Empty;
+        var text = decimal.Round(amount, 2).ToString("#,##0.00", Es);
+        return symbol.Length == 0 ? text : $"{symbol} {text}";
+    }
+
     public static decimal R(decimal value, int decimals = 4) => decimal.Round(value, decimals);
 
     private static string Signed(decimal value, string format) =>

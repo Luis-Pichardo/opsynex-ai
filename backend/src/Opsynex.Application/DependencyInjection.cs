@@ -37,6 +37,13 @@ public static class DependencyInjection
             .Validate(o => o.MaxRecommendations is >= 0 and <= 50, "Ai:MaxRecommendations debe estar entre 0 y 50.")
             .ValidateOnStart();
         services.AddScoped<Analysis.ImpactService>();
+        services.AddScoped<Industrial.IndustrialIngestionService>();
+        services.AddScoped<Industrial.IndustrialAnalysisService>();
+        services.AddScoped<Industrial.IndustrialService>();
+        services.AddOptions<Domain.Engines.Industrial.IndustrialSettings>()
+            .BindConfiguration(Domain.Engines.Industrial.IndustrialSettings.SectionName)
+            .Validate(o => o.Validate().Count == 0, "Industrial: umbrales, pesos o rangos inválidos (los pesos deben sumar 1).")
+            .ValidateOnStart();
 
         // Reglas de diagnóstico: todas las implementaciones de IDiagnosticRule del dominio.
         foreach (var rule in typeof(Domain.Engines.Diagnosis.IDiagnosticRule).Assembly.GetTypes()

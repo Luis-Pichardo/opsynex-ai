@@ -1,0 +1,96 @@
+{
+  "period": {
+    "from": "2024-10-01",
+    "to": "2024-12-31",
+    "days": 78
+  },
+  "outageDay": "2024-11-14",
+  "machines": {
+    "MAQ-01": {
+      "line": "LINEA-1",
+      "planned": 74880,
+      "downtime": 3146,
+      "total": 136696,
+      "good": 133912,
+      "produced": 133912,
+      "availability": 0.9579861111111111,
+      "performance": 0.9527978364513341,
+      "quality": 0.9796336396090595,
+      "oee": 0.8941773504273504,
+      "scrapRate": 0.02036636039094048,
+      "downtimeRatio": 0.04201388888888889,
+      "capacityUtilization": 0.912767094017094,
+      "costPerUnit": 31.87434546567895,
+      "standardCost": 32.5,
+      "downtimeCost": 179322.0,
+      "scrapCost": 90480.0,
+      "speedLossCost": 193002.0
+    },
+    "MAQ-02": {
+      "line": "LINEA-1",
+      "planned": 74880,
+      "downtime": 5822,
+      "total": 150912,
+      "good": 138743,
+      "produced": 138743,
+      "availability": 0.9222489316239316,
+      "performance": 0.9469605259347215,
+      "quality": 0.9193636026293469,
+      "oee": 0.8029108796296296,
+      "scrapRate": 0.08063639737065309,
+      "downtimeRatio": 0.07775106837606838,
+      "capacityUtilization": 0.8733333333333333,
+      "costPerUnit": 35.34557455150891,
+      "standardCost": 30.0,
+      "downtimeCost": 384252.0,
+      "scrapCost": 365070.0,
+      "speedLossCost": 241744.8000000002
+    },
+    "MAQ-03": {
+      "line": "LINEA-2",
+      "planned": 74880,
+      "downtime": 18656,
+      "total": 73362,
+      "good": 70783,
+      "produced": 70783,
+      "availability": 0.7508547008547009,
+      "performance": 0.7828898690950483,
+      "quality": 0.9648455603718546,
+      "oee": 0.5671714743589743,
+      "scrapRate": 0.035154439628145365,
+      "downtimeRatio": 0.24914529914529915,
+      "capacityUtilization": 0.5878365384615384,
+      "costPerUnit": 43.41780837206674,
+      "standardCost": 41.0,
+      "downtimeCost": 783552.0,
+      "scrapCost": 105739.0,
+      "speedLossCost": 512685.6000000001
+    }
+  },
+  "problems": {
+    "HIGH_DOWNTIME": {
+      "machines": [
+        "MAQ-03"
+      ],
+      "impact": 783552.0
+    },
+    "HIGH_SCRAP": {
+      "machines": [
+        "MAQ-02"
+      ],
+      "impact": 365070.0
+    },
+    "LOW_OEE": {
+      "machines": [
+        "MAQ-03"
+      ],
+      "impact": 618424.6
+    },
+    "COST_PER_UNIT_ABOVE_STANDARD": {
+      "machines": [
+        "MAQ-02"
+      ],
+      "impact": 376591.05
+    }
+  }
+}

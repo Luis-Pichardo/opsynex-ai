@@ -12,9 +12,14 @@ interface GroupedBarChartProps {
   formatValue: (value: number) => string
   formatAxis?: (value: number) => string
   height?: number
+  /** Barras apiladas (composición, GUIA §7): solo la última serie lleva las esquinas redondeadas. */
+  stacked?: boolean
 }
 
-/** Barras verticales agrupadas (comparar series por año): esquinas de 4 px y 2 px entre barras. */
+/**
+ * Barras verticales agrupadas (comparar series por año) o apiladas (composición): esquinas de
+ * 4 px y 2 px entre barras.
+ */
 export function GroupedBarChart({
   data,
   xKey,
@@ -22,6 +27,7 @@ export function GroupedBarChart({
   formatValue,
   formatAxis,
   height = 240,
+  stacked = false,
 }: GroupedBarChartProps) {
   return (
     <div className="space-y-2">
@@ -34,7 +40,7 @@ export function GroupedBarChart({
             tick={AXIS_TICK}
             tickLine={false}
             axisLine={false}
-            width={72}
+            width={84}
             tickFormatter={(v: number) => (formatAxis ?? formatValue)(v)}
           />
           <Tooltip
@@ -48,13 +54,14 @@ export function GroupedBarChart({
               />
             )}
           />
-          {series.map((s) => (
+          {series.map((s, index) => (
             <Bar
               key={s.key}
               dataKey={s.key}
               name={s.name}
               fill={s.color}
-              radius={[4, 4, 0, 0]}
+              stackId={stacked ? 'stack' : undefined}
+              radius={!stacked || index === series.length - 1 ? [4, 4, 0, 0] : [0, 0, 0, 0]}
               maxBarSize={40}
               isAnimationActive={false}
             />

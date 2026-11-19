@@ -95,3 +95,30 @@ solo en 2024, el año de la nómina; costo por unidad no aplica (el libro no tra
 
 Todos los valores, por archivo, año y concepto, están en `expected_values.json`, que leen las
 pruebas automáticas.
+
+## Módulo industrial (`industrial/`)
+
+Generados por `backend/tests/TestData/generate_industrial_samples.py` (semilla fija, valores
+inventados): una planta ficticia con 3 máquinas en 2 líneas y producción diaria de lunes a sábado
+del 1 de octubre al 31 de diciembre de 2024.
+
+```bash
+python3 backend/tests/TestData/generate_industrial_samples.py
+```
+
+| Archivo | Descripción |
+|---|---|
+| `produccion.xlsx` | 234 registros diarios (fecha, máquina, línea, minutos planificados y de parada, unidades totales, buenas y producidas, ciclo real). |
+| `costos.xlsx` | Costos mensuales por máquina (mano de obra, materiales, energía y gastos generales). |
+| `estandares.xlsx` | Ciclo estándar, costo estándar por unidad y costo por minuto de cada máquina. |
+| `produccion_con_errores.csv` | Encabezados de la especificación en inglés y filas inválidas (buenas > totales, sin máquina, fecha inválida, parada > planificado, repetida). |
+| `expected_industrial.json` | KPIs e impacto esperados, calculados por el generador de forma independiente al motor .NET. |
+
+| Máquina | Línea | Comportamiento | Problemas que genera |
+|---|---|---|---|
+| MAQ-01 | LINEA-1 | Sana (OEE ≈ 89 %). | Ninguno. |
+| MAQ-02 | LINEA-1 | Scrap ≈ 8 % y costo por unidad ≈ 18 % sobre el estándar. | `HIGH_SCRAP`, `COST_PER_UNIT_ABOVE_STANDARD`. |
+| MAQ-03 | LINEA-2 | Paradas ≈ 25 % del tiempo y ciclo lento (OEE ≈ 57 %). | `HIGH_DOWNTIME`, `LOW_OEE`. |
+
+El 14/11/2024 hay una avería mayor en MAQ-02 y MAQ-03: es la anomalía de las series diarias de
+OEE y minutos de parada.

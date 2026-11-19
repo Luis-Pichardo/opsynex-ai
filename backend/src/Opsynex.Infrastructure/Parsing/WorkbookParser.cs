@@ -43,6 +43,13 @@ public sealed class WorkbookParser(IOptions<UploadOptions> options, TimeProvider
         }
 
         var maxYear = timeProvider.GetUtcNow().Year + 1;
+
+        // Módulo industrial: tablas de producción, costos o estándares (por el tipo indicado o por sus encabezados).
+        if (IndustrialTableExtractor.TryParse(read.Sheets, fileTypeHint, result, maxYear, cancellationToken))
+        {
+            return result;
+        }
+
         var hintType = fileTypeHint is { } hint ? UploadTemplates.SheetTypeFor(hint) : null;
         var nonEmpty = read.Sheets.Count(s => !s.IsEmpty);
 

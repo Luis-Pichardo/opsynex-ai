@@ -46,6 +46,14 @@ public sealed class OpsynexDbContext(DbContextOptions<OpsynexDbContext> options,
 
     public DbSet<ExecutiveSummary> ExecutiveSummaries => Set<ExecutiveSummary>();
 
+    public DbSet<ProductionData> ProductionData => Set<ProductionData>();
+
+    public DbSet<CostData> CostData => Set<CostData>();
+
+    public DbSet<StandardData> StandardData => Set<StandardData>();
+
+    public DbSet<IndustrialKpiResult> IndustrialKpiResults => Set<IndustrialKpiResult>();
+
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {
         // Montos: decimal(18,2). Los ratios se sobrescriben a decimal(9,4) en cada configuración.
@@ -81,6 +89,10 @@ public sealed class OpsynexDbContext(DbContextOptions<OpsynexDbContext> options,
         ApplyCompanyFilter<Problem>(modelBuilder);
         ApplyCompanyFilter<Score>(modelBuilder);
         ApplyCompanyFilter<ExecutiveSummary>(modelBuilder);
+        ApplyCompanyFilter<ProductionData>(modelBuilder);
+        ApplyCompanyFilter<CostData>(modelBuilder);
+        ApplyCompanyFilter<StandardData>(modelBuilder);
+        ApplyCompanyFilter<IndustrialKpiResult>(modelBuilder);
     }
 
     /// <summary>

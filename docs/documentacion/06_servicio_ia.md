@@ -245,3 +245,13 @@ además `ANTHROPIC_FALLBACKS=none`).
 Configuración del API (sección `Ai`): `Enabled`, `Mode` (`Background`/`Inline`),
 `RecommendationSeverities` (`High`, `Medium`), `MaxRecommendations` (10), `DetectAnomalies`,
 `Country` y `TimeoutSeconds` (180).
+
+#### Series diarias del módulo industrial (etapa 12)
+
+Si la empresa tiene producción, el API envía además, por año, la serie diaria de la planta de OEE
+(`DailyOee{año}`, unidad `Ratio`) y de minutos de parada (`DailyDowntime{año}`, unidad `Number`),
+con períodos `AAAA-MM-DD`. Con decenas de puntos, el z-score robusto sí tiene base estadística.
+Cada anomalía se convierte en el problema `ANOMALY_OEE_AAAA_MM_DD` u `ANOMALY_DOWNTIME_AAAA_MM_DD`
+(severidad Baja, sin impacto cuantificado), con su recomendación de revisar la bitácora del día.
+Las anomalías se detectan aunque la empresa no tenga estados financieros. Las explicaciones
+empiezan con «El valor de {serie} en {período}…».

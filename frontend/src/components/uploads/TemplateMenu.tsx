@@ -8,9 +8,10 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { FILE_TYPE_LABELS } from '@/lib/labels'
+import { FILE_TYPE_LABELS, INDUSTRIAL_FILE_TYPES } from '@/lib/labels'
 import type { UploadFileType } from '@/types/uploads'
 
 const TEMPLATES: UploadFileType[] = [
@@ -39,6 +40,14 @@ export function TemplateMenu({
       <DropdownMenuContent align="start">
         <DropdownMenuLabel>Plantillas (.xlsx)</DropdownMenuLabel>
         {TEMPLATES.map((type) => (
+          <DropdownMenuItem key={type} onSelect={() => download.mutate(type)}>
+            <Download aria-hidden="true" />
+            {FILE_TYPE_LABELS[type]}
+          </DropdownMenuItem>
+        ))}
+        <DropdownMenuSeparator />
+        <DropdownMenuLabel>Módulo industrial (.xlsx)</DropdownMenuLabel>
+        {INDUSTRIAL_FILE_TYPES.map((type) => (
           <DropdownMenuItem key={type} onSelect={() => download.mutate(type)}>
             <Download aria-hidden="true" />
             {FILE_TYPE_LABELS[type]}

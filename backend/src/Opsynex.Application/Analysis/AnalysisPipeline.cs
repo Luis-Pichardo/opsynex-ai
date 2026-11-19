@@ -18,6 +18,7 @@ namespace Opsynex.Application.Analysis;
 /// <param name="LatestYear">Último año analizado.</param>
 /// <param name="LatestScore">Score del último año (si se pudo calcular).</param>
 /// <param name="LatestEstimatedLoss">Pérdida estimada total del último año.</param>
+/// <param name="IndustrialProblems">Problemas industriales detectados (solo en <c>POST /analysis/run</c>).</param>
 public sealed record AnalysisRunResult(
     Guid CompanyId,
     IReadOnlyList<int> Years,
@@ -25,7 +26,8 @@ public sealed record AnalysisRunResult(
     int Problems,
     int? LatestYear = null,
     decimal? LatestScore = null,
-    decimal? LatestEstimatedLoss = null);
+    decimal? LatestEstimatedLoss = null,
+    int? IndustrialProblems = null);
 
 /// <summary>
 /// Análisis completo de una empresa, año por año: KPIs (con tendencias y normalización) → diagnóstico
@@ -67,9 +69,11 @@ public sealed class AnalysisPipeline(
         var ranges = settings.For(company.Industry, company.Currency);
         var now = timeProvider.GetUtcNow().UtcDateTime;
 
-        // Las anomalías (ANOMALY_*) las administra el paso de IA, no las reglas.
+        // Las anomalías (ANOMALY_*) las administra el paso de IA y los problemas industriales el
+        // análisis industrial: este pipeline solo toca los de las reglas financieras.
         var existingProblems = (await problems.ListAsync(p => p.CompanyId == companyId, cancellationToken))
-            .Where(p => !p.Code.StartsWith(Insights.AiEnrichmentService.AnomalyPrefix, StringComparison.Ordinal))
+            .Where(p => !p.Code.StartsWith(Insights.AiEnrichmentService.AnomalyPrefix, StringComparison.Ordinal)
+                && !Domain.Engines.Industrial.IndustrialDiagnosisEngine.Codes.Contains(p.Code))
             .ToList();
         var detectedCount = 0;
         var computed = new Dictionary<int, YearData>();

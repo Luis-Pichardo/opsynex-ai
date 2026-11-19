@@ -85,6 +85,32 @@ export function formatDate(
   return `${parts}, ${time}`
 }
 
+const MONTHS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
+
+/**
+ * Día de un valor "AAAA-MM-DD" sin zona horaria: "14 nov 2024". Con `withYear: false`, "14 nov".
+ * (No usa `new Date(texto)`, que lo leería en UTC y podría mostrar el día anterior.)
+ */
+export function formatDay(value: Maybe<string>, options: { withYear?: boolean } = {}): string {
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(value ?? '')
+  if (!match) return EMPTY_VALUE
+  const [, year, month, day] = match
+  const text = `${Number(day)} ${MONTHS[Number(month) - 1]}`
+  return options.withYear === false ? text : `${text} ${year}`
+}
+
+/** Mes de un año: (2024, 11) → "nov 2024". Sin año: "nov". */
+export function formatMonth(year: Maybe<number>, month: Maybe<number>): string {
+  if (isMissing(month) || month < 1 || month > 12) return EMPTY_VALUE
+  return isMissing(year) ? MONTHS[month - 1]! : `${MONTHS[month - 1]} ${year}`
+}
+
+/** Minutos: 1234 → "1.234 min". */
+export function formatMinutes(value: Maybe<number>): string {
+  if (isMissing(value)) return EMPTY_VALUE
+  return `${formatNumber(value)} min`
+}
+
 /** Tamaño de archivo: "850 KB", "2,4 MB". */
 export function formatFileSize(bytes: Maybe<number>): string {
   if (isMissing(bytes)) return EMPTY_VALUE

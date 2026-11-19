@@ -59,6 +59,8 @@ La interfaz sigue la guía `docs/diseno/GUIA_DE_DISENO.md` (vista previa en
 | `/` | Dashboard | Todos |
 | `/problems` | Problemas | Todos |
 | `/kpis` | KPIs | Todos |
+| `/production` | Producción (módulo industrial) | Todos |
+| `/costs` | Costos (módulo industrial) | Todos |
 | `/uploads` | Carga de datos | Admin, Analyst |
 | `/mappings` | Homologación | Admin, Analyst |
 | `/admin/companies`, `/admin/users` | Administración | Admin |
@@ -68,7 +70,9 @@ La interfaz sigue la guía `docs/diseno/GUIA_DE_DISENO.md` (vista previa en
   página pedida.
 - `RoleGuard` protege las rutas por rol, también si se entra por URL directa: muestra "No tienes
   acceso a esta sección". El menú lateral solo muestra lo que el rol permite (`navigation.ts`).
-- "Producción" aparece deshabilitada con un tooltip hasta el módulo industrial (etapa 12).
+- "Producción" y "Costos" se habilitan cuando la empresa tiene datos industriales
+  (`GET /industrial/kpis` → `hasData`). Mientras no los tenga aparecen deshabilitados, con un
+  tooltip que explica cómo activarlos.
 - La administración y `/design` se cargan de forma diferida (code splitting).
 
 ### Sesión y manejo de estado
@@ -176,3 +180,33 @@ Capturas de referencia: `docs/capturas/etapa-08/` y `docs/documentacion/img/`.
     (`AiRecommendationPanel`: causas raíz y acciones con esfuerzo y horizonte).
 - **Informe PDF:** `DownloadReportButton` llama a `GET /reports/executive` con el token y guarda
   el archivo con el nombre que envía el API (`Content-Disposition`, expuesto por CORS).
+
+### Módulo industrial: Producción y Costos (Etapa 12)
+
+- **Datos:** `api/industrial.ts` y los hooks de `industrial/useIndustrial.ts`
+  (`useIndustrialKpis`, `useIndustrialScore`, `useHasIndustrialData` y `useIndustrialFilter`).
+  Los filtros (año, mes, línea y máquina) viven en la URL (`/production?month=11&lineId=LINEA-2`),
+  así que una vista filtrada se puede compartir. Los errores de estas consultas se muestran en la
+  página (filtro inválido → «Quitar filtros»), no como toast.
+- **Producción** (`pages/ProductionPage.tsx`): score industrial con sus componentes, pérdidas
+  operativas (paradas + scrap y la pérdida por velocidad aparte), StatCards de OEE,
+  disponibilidad, rendimiento, calidad, scrap y paradas (con un badge «Bajo el 60 %» o «En rango»
+  frente al umbral), OEE y sus componentes por mes, paradas por máquina, OEE y paradas diarios
+  (dos gráficos: nunca dos ejes Y) y el ranking de máquinas por OEE.
+- **Costos** (`pages/CostsPage.tsx`): costo por unidad, estándar, costo total y capacidad;
+  costo real frente al estándar por máquina; composición del costo por mes (barras apiladas) y
+  tabla por máquina con la desviación frente al estándar.
+- **Dashboard:** con datos industriales, el score industrial va junto al Score Opsynex (del mismo
+  año si hay producción de ese año) con el enlace «Ver producción».
+- **Carga:** el menú de plantillas suma las tres industriales y el resultado de un archivo
+  industrial muestra registros, máquinas y período, con el botón «Ir a producción».
+- **Componentes:** `components/industrial/` (`IndustrialPage`, `IndustrialFilters`,
+  `IndustrialScoreCard`, `LossesCard`, `MachineRanking` y `ThresholdStatus`) y
+  `common/ScoreComponents` (compartido con el Score Opsynex). `GroupedBarChart` admite `stacked`.
+- **Colores:** asignación industrial fija en `INDUSTRIAL_SERIES` (GUIA_DE_DISENO.md §2.4).
+- Verificado a 375 px y 1440 px en modo claro y oscuro, sin desplazamiento horizontal de la página
+  (las tablas anchas se desplazan dentro de su tarjeta).
+
+![Producción en escritorio](img/produccion-escritorio.png)
+
+![Costos en escritorio](img/costos-escritorio.png)

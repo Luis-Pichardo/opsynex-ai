@@ -279,7 +279,7 @@ sintético `libro_sintetico_3a.xls`.
 
 | Criterio | Cumple | Evidencia |
 |---|---|---|
-| Calcula KPIs automáticamente | ✅ | Igual que arriba (KPIs financieros; los industriales se suman en la etapa 12) |
+| Calcula KPIs automáticamente | ✅ | Igual que arriba (KPIs financieros y, desde la etapa 12, industriales: `IndustrialEndpointsTests`) |
 | Detecta al menos 3 tipos de problemas | ✅ | El libro de 3 años detecta 4 tipos (`ProblemsEndpointsTests`) |
 | Muestra impacto financiero | ✅ | Dashboard, detalle de problema y PDF |
 | Tiene dashboard funcional | ✅ | `DashboardPage.test.tsx` y recorrido con Playwright |
@@ -299,4 +299,16 @@ sintético `libro_sintetico_3a.xls`.
 Comandos de verificación: `cd backend && dotnet test` (SQL Server con Testcontainers) y
 `cd frontend && npm test && npm run lint && npm run build`.
 
-> Pendiente (Etapas 11 a 13): IA, módulo industrial y E2E automatizados con Playwright en la CI.
+> Pendiente (Etapa 13): E2E automatizados con Playwright en la CI.
+
+### Módulo industrial (etapa 12)
+
+| Capa | Pruebas |
+|---|---|
+| Fórmulas | `IndustrialKpiEngineTests`: disponibilidad, rendimiento, calidad, OEE, scrap, costo por unidad, paradas, capacidad, las tres pérdidas, protección contra división por cero y agregación por planta, línea, máquina, mes y año. |
+| Reglas e impacto | `IndustrialDiagnosisEngineTests`: cada regla dispara y no dispara en el umbral, severidades, impacto sin doble conteo, umbrales configurables y falta de costos. |
+| Score | `IndustrialScoreEngineTests`: pesos de la especificación, redistribución, normalización (también invertida) y validación de la configuración. |
+| Lectura | `IndustrialTableExtractorTests`: detección por encabezados, filas inválidas con su ubicación, varias tablas en un libro y plantillas generadas que se vuelven a leer. |
+| API | `IndustrialEndpointsTests`: con `sample-data/industrial/` se detectan los 3 problemas de la especificación (y el de costo), con impactos iguales a los del generador (±0,1 %). También KPIs, filtros, score, permisos y estado de los problemas. `AiInsightsEndpointsTests`: series diarias y anomalías. |
+| Servicio de IA | `test_anomalies.py`: series diarias de OEE y paradas. |
+| Frontend | `ProductionPage`, `CostsPage`, `Sidebar` (menú habilitado con datos), `DashboardPage` (score industrial), `UploadWizard` (archivo industrial) y `format` (`formatDay`, `formatMonth`, `formatMinutes`). |

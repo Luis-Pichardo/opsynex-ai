@@ -93,6 +93,24 @@ Asignación **en este orden fijo**, nunca en ciclo. El color sigue a la entidad:
 | 7 | Violeta | `#6250D6` | `#9085E9` | Mantenimiento |
 | 8 | Rojo | `#E34948` | `#E66767` | Material loss |
 
+**Asignación del módulo industrial** (páginas Producción y Costos, `INDUSTRIAL_SERIES`):
+
+| Entidad | Slot |
+|---|---|
+| OEE / costo estándar (serie de referencia) | 1 |
+| Costo real por unidad / minutos de parada | 2 |
+| Disponibilidad | 3 |
+| Materiales | 4 |
+| Gastos generales (overhead) | 5 |
+| Energía | 6 |
+| Rendimiento / mano de obra | 7 |
+| Calidad | 8 |
+
+Rendimiento y mano de obra comparten el slot 7, pero nunca aparecen en la misma página.
+
+- **Estado frente a un umbral** (OEE < 60 %, scrap > 5 %, paradas > 15 %, costo > estándar +
+  10 %): badge con icono y texto («Bajo el 60 %», «Sobre el 15 %», «En rango»), alineado al
+  inicio (no ocupa todo el ancho de la tarjeta). Solo es crítico lo que dispara un problema.
 - Máximo 8 series; más de eso se agrupa en "Otros".
 - En dispersión, mapas de calor por categoría o *small multiples*, máximo **3** series.
 - Magnitud (mapas de calor): una sola escala azul de `#CDE2FB` (bajo) a `#0D366B` (alto).
