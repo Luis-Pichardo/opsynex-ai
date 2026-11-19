@@ -44,6 +44,8 @@ public sealed class OpsynexDbContext(DbContextOptions<OpsynexDbContext> options,
 
     public DbSet<Score> Scores => Set<Score>();
 
+    public DbSet<ExecutiveSummary> ExecutiveSummaries => Set<ExecutiveSummary>();
+
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {
         // Montos: decimal(18,2). Los ratios se sobrescriben a decimal(9,4) en cada configuración.
@@ -78,6 +80,7 @@ public sealed class OpsynexDbContext(DbContextOptions<OpsynexDbContext> options,
         ApplyCompanyFilter<KpiResult>(modelBuilder);
         ApplyCompanyFilter<Problem>(modelBuilder);
         ApplyCompanyFilter<Score>(modelBuilder);
+        ApplyCompanyFilter<ExecutiveSummary>(modelBuilder);
     }
 
     /// <summary>

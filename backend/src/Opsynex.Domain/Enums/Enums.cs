@@ -151,6 +151,9 @@ public enum ImpactCategory
 
     /// <summary>Alerta financiera (liquidez, endeudamiento): no se cuantifica como pérdida.</summary>
     FinancialAlert,
+
+    /// <summary>Anomalía estadística en una serie (p. ej. ventas mensuales): no se cuantifica.</summary>
+    Anomaly,
 }
 
 /// <summary>Área del negocio afectada por un problema (alineada con las dimensiones del score).</summary>

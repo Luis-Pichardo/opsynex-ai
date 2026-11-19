@@ -111,6 +111,21 @@ public static class DependencyInjection
                 resilience.CircuitBreaker.SamplingDuration = attempt * 2 + TimeSpan.FromSeconds(1);
             });
 
+        // Recomendaciones y resumen con Claude: llamadas largas y costosas. Sin reintentos aquí (el SDK
+        // de Claude ya reintenta en el servicio de IA) y con un timeout propio (Ai:TimeoutSeconds).
+        var aiTimeout = configuration.GetValue("Ai:TimeoutSeconds", 180);
+        services.AddHttpClient<Application.Insights.IAiInsightsClient, AiInsightsClient>((sp, http) =>
+        {
+            Configure(sp, http);
+            http.Timeout = TimeSpan.FromSeconds(Math.Clamp(aiTimeout, 10, 600));
+        });
+        services.AddSingleton<AiEnrichmentQueue>();
+        services.AddHostedService<AiEnrichmentWorker>();
+        services.AddScoped<Application.Insights.IAiEnrichmentScheduler>(sp =>
+            sp.GetRequiredService<IOptions<Application.Insights.AiOptions>>().Value.Mode == Application.Insights.AiMode.Inline
+                ? ActivatorUtilities.CreateInstance<InlineAiEnrichmentScheduler>(sp)
+                : sp.GetRequiredService<AiEnrichmentQueue>());
+
         services.AddHttpClient(AiServiceHealthCheck.HttpClientName, (sp, http) =>
         {
             Configure(sp, http);

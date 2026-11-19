@@ -25,6 +25,8 @@ public class OpsynexApiFactory(DatabaseFixture database) : WebApplicationFactory
         builder.UseSetting("Jwt:Secret", TestJwt.Secret);
         // Por defecto sin servicio de IA (fallback local inmediato); ver AiApiFactory.
         builder.UseSetting("AiService:Enabled", "false");
+        // Sin IA generativa salvo en las pruebas de IA (que usan un cliente simulado y modo Inline).
+        builder.UseSetting("Ai:Enabled", "false");
         ConfigureSettings(builder);
 
         builder.ConfigureTestServices(services =>
