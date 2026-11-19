@@ -20,6 +20,15 @@ internal sealed class UserRepository(OpsynexDbContext context) : Repository<User
 
     public Task<User?> GetByIdIgnoringFiltersAsync(Guid id, CancellationToken cancellationToken = default) =>
         Set.IgnoreQueryFilters([OpsynexDbContext.CompanyFilter]).FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
+
+    public async Task<IReadOnlyDictionary<Guid, string>> GetNamesIgnoringFiltersAsync(
+        IEnumerable<Guid> ids, CancellationToken cancellationToken = default)
+    {
+        var wanted = ids.Distinct().ToList();
+        return await Set.IgnoreQueryFilters([OpsynexDbContext.CompanyFilter])
+            .Where(u => wanted.Contains(u.Id))
+            .ToDictionaryAsync(u => u.Id, u => u.FullName, cancellationToken);
+    }
 }
 
 internal sealed class CompanyRepository(OpsynexDbContext context) : Repository<Company>(context), ICompanyRepository

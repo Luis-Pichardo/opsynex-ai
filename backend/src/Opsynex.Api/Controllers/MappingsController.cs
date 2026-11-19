@@ -25,6 +25,11 @@ public sealed class MappingsController(HomologationService homologation) : Contr
     public async Task<ActionResult<IReadOnlyList<MappingDto>>> List(CancellationToken cancellationToken) =>
         Ok(await homologation.ListAsync(cancellationToken));
 
+    /// <summary>Catálogo de categorías estándar con nombre y descripción en español.</summary>
+    [HttpGet("categories")]
+    [ProducesResponseType<IReadOnlyList<CategoryDto>>(StatusCodes.Status200OK)]
+    public ActionResult<IReadOnlyList<CategoryDto>> Categories() => Ok(CategoryDto.All);
+
     /// <summary>Cuentas de una carga sin confirmar con su sugerencia; primero las dudosas.</summary>
     [HttpGet("pending")]
     [ProducesResponseType<IReadOnlyList<PendingAccountDto>>(StatusCodes.Status200OK)]

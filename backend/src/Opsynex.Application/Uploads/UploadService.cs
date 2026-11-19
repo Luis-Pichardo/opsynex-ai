@@ -19,6 +19,7 @@ public sealed class UploadService(
     IRepository<MonthlyFinancialData> monthly,
     ICompanyYearRepository<OperationalData> operational,
     ICompanyRepository companies,
+    IUserRepository users,
     IUnitOfWork unitOfWork,
     ICurrentUser currentUser,
     ICurrentTenant tenant,
@@ -88,10 +89,11 @@ public sealed class UploadService(
     public async Task<IReadOnlyList<UploadListItemDto>> ListAsync(CancellationToken cancellationToken)
     {
         var list = await uploads.ListAsync(cancellationToken);
+        var names = await users.GetNamesIgnoringFiltersAsync(list.Select(u => u.UserId), cancellationToken);
         return list
             .OrderByDescending(u => u.CreatedAt)
             .Select(u => new UploadListItemDto(u.Id, u.CompanyId, u.FileName, u.FileType, u.Status, [.. u.Years], u.RowsCount,
-                u.Warnings.Count, u.Errors.Count, u.CreatedAt, u.AnalysisStatus, u.NeedsReview))
+                u.Warnings.Count, u.Errors.Count, u.CreatedAt, u.AnalysisStatus, u.NeedsReview, names.GetValueOrDefault(u.UserId)))
             .ToList();
     }
 

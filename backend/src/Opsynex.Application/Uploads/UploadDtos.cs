@@ -50,4 +50,5 @@ public sealed record UploadListItemDto(
     int ErrorsCount,
     DateTime CreatedAt,
     AnalysisStatus AnalysisStatus,
-    bool NeedsReview);
+    bool NeedsReview,
+    string? UploadedBy = null);
