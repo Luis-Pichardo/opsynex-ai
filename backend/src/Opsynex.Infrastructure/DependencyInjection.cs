@@ -57,6 +57,12 @@ public static class DependencyInjection
             }
 
             options.AddInterceptors(sp.GetRequiredService<AuditableEntityInterceptor>());
+
+            // Lecturas (GET/HEAD) sin seguimiento de cambios: menos memoria y CPU por petición.
+            if (sp.GetService<IQueryTrackingPolicy>()?.PreferNoTracking == true)
+            {
+                options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTrackingWithIdentityResolution);
+            }
         });
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();

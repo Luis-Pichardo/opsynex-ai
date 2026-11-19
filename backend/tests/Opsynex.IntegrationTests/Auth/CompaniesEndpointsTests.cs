@@ -119,7 +119,7 @@ public sealed class CompaniesEndpointsTests(OpsynexApiFactory factory) : IClassF
         var (admin, _) = await TestUsers.CreateAuthenticatedClientAsync(factory, UserRole.Admin);
         using (admin)
         {
-            var all = await (await admin.GetAsync("/api/v1/companies", Ct)).ReadAsync<List<CompanyDto>>();
+            var all = await (await admin.GetAsync("/api/v1/companies?pageSize=500", Ct)).ReadAsync<List<CompanyDto>>();
             all.Select(c => c.Id).ShouldContain(companyA);
             all.Select(c => c.Id).ShouldContain(companyB);
 

@@ -4,6 +4,7 @@ import {
   apiRequest,
   authHeaders,
   buildUrl,
+  MAX_PAGE_SIZE,
   notifyUnauthorized,
   parseProblem,
 } from './client'
@@ -64,7 +65,8 @@ export function uploadFile(file: File, options: UploadOptions = {}): Promise<Upl
 }
 
 export const uploadsApi = {
-  list: (signal?: AbortSignal) => apiRequest<UploadListItem[]>('/uploads', { signal }),
+  list: (signal?: AbortSignal) =>
+    apiRequest<UploadListItem[]>('/uploads', { query: { pageSize: MAX_PAGE_SIZE }, signal }),
   get: (id: string, signal?: AbortSignal) => apiRequest<UploadReport>(`/uploads/${id}`, { signal }),
 }
 

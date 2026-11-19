@@ -1,3 +1,4 @@
+using Opsynex.Api.Extensions;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -62,8 +63,9 @@ public sealed class UploadsController(UploadService uploads, IUploadTemplateGene
     [HttpGet]
     [Authorize(Policy = Policies.CanView)]
     [ProducesResponseType<IReadOnlyList<UploadListItemDto>>(StatusCodes.Status200OK)]
-    public async Task<ActionResult<IReadOnlyList<UploadListItemDto>>> List(CancellationToken cancellationToken) =>
-        Ok(await uploads.ListAsync(cancellationToken));
+    public async Task<ActionResult<IReadOnlyList<UploadListItemDto>>> List(
+        [FromQuery] int? page, [FromQuery] int? pageSize, CancellationToken cancellationToken) =>
+        Ok(Response.Page(await uploads.ListAsync(cancellationToken), page, pageSize));
 
     /// <summary>Reporte completo de una carga (hojas, advertencias, errores, resumen y vista previa).</summary>
     [HttpGet("{id:guid}")]

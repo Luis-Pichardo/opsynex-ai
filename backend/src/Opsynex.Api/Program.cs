@@ -43,6 +43,8 @@ try
     builder.Services.AddExceptionHandler<AppExceptionHandler>();
     builder.Services.AddFrontendCors(builder.Configuration);
     builder.Services.AddOpsynexSecurity(builder.Configuration);
+    builder.Services.AddHttpContextAccessor();
+    builder.Services.AddScoped<Opsynex.Application.Abstractions.Persistence.IQueryTrackingPolicy, ReadOnlyRequestTrackingPolicy>();
 
     builder.Services.AddControllers()
         .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));

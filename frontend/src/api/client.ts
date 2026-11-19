@@ -8,6 +8,9 @@ import type { ProblemDetails } from '@/types/api'
 export const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:5080').replace(/\/$/, '')
 export const API_PREFIX = '/api/v1'
 
+/** Tamaño de página máximo del API en los listados que devuelven un arreglo (las tablas paginan en el cliente). */
+export const MAX_PAGE_SIZE = 500
+
 export class ApiError extends Error {
   readonly status: number
   readonly code: string
