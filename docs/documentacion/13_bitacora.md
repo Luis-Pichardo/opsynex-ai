@@ -192,3 +192,35 @@ Registro de cada etapa completada (la más reciente al final).
     (`AiServiceFixture`). La CI instala el servicio en el job de .NET y las exige.
 - **Pendientes:** `AnalysisPipeline` (KPIs, diagnóstico, impacto y score) desde la etapa 05; las
   alternativas de la IA no se guardan (se muestran solo la categoría sugerida y su confianza).
+
+### Etapa 05 — Motor de KPIs (18/11/2026)
+
+- **Resumen:**
+  - **Motor puro** (`Domain/Engines/Kpis`): catálogo de 14 KPIs, `KpiEngine`, `TrendAnalyzer`,
+    `KpiNormalizer` y `MonthlyAnalyzer`.
+  - **Benchmarks:** por industria y por moneda en `appsettings.json`, con opciones tipadas
+    `BenchmarkOptions`.
+  - **Ejecución:** `AnalysisPipeline` recalcula todos los años al consolidar y con
+    `POST /api/v1/analysis/run`. `GET /api/v1/kpis` devuelve la serie histórica o un año, con
+    tendencias, normalización y la serie mensual.
+  - **Migración `KpiEngine`:** 9 columnas nuevas en `KpiResults` y los JSON `Trends` y
+    `Normalized`.
+  - **Generador:** calcula los KPIs esperados en Python con `Decimal` y los documenta en el
+    README de `sample-data`.
+- **Archivos principales:** `backend/src/Opsynex.Domain/Engines/Kpis/`,
+  `backend/src/Opsynex.Application/Analysis/`, `Controllers/KpisController.cs`,
+  `AnalysisController.cs`, `backend/tests/*/Kpis|Analysis/`, `generate_sample_workbooks.py`.
+- **Decisiones técnicas:**
+  - Un denominador **0 o negativo** da `null` (ingresos, empleados, patrimonio…); los
+    numeradores negativos se aceptan (márgenes negativos).
+  - Dirección de la tendencia por variación **porcentual** (±1 % configurable). Si el año
+    anterior vale 0, se usa el signo del cambio absoluto.
+  - Las tendencias comparan con el año inmediatamente anterior; si falta, no hay tendencia.
+  - Los KPIs en moneda solo toman benchmarks de su moneda (nunca de la industria). El costo por
+    unidad no tiene benchmark.
+  - Los enums de las columnas JSON se guardan como texto (`"Up"`, `"BalanceSheet"`); los números
+    guardados antes se siguen leyendo.
+  - Los KPIs de años que ya no tienen datos financieros se eliminan al recalcular.
+  - `CompanyScope` centraliza la empresa de la petición (la del usuario o la que eligió el Admin).
+- **Pendientes:** diagnóstico, impacto y score se agregan al `AnalysisPipeline` en las etapas 06 y
+  07. Calibrar los benchmarks con el cliente.

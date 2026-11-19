@@ -22,6 +22,14 @@ public static class DependencyInjection
         services.AddScoped<Uploads.UploadService>();
         services.AddScoped<Uploads.DataService>();
         services.AddScoped<Homologation.HomologationService>();
+        services.AddScoped<Analysis.CompanyScope>();
+        services.AddScoped<Analysis.AnalysisPipeline>();
+        services.AddScoped<Analysis.KpiService>();
+        services.AddOptions<Analysis.BenchmarkOptions>()
+            .BindConfiguration(Analysis.BenchmarkOptions.SectionName)
+            .Validate(o => !o.InvalidKeys().Any(), "Benchmarks: hay KPIs desconocidos en la configuración.")
+            .Validate(o => o.StableThresholdPercent is >= 0 and <= 50, "Benchmarks:StableThresholdPercent fuera de rango.")
+            .ValidateOnStart();
         services.AddScoped<Homologation.UploadProcessingService>();
         services.AddOptions<Uploads.UploadOptions>()
             .BindConfiguration(Uploads.UploadOptions.SectionName)

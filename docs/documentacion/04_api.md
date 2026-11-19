@@ -193,6 +193,39 @@ consolidación) se ejecuta automáticamente al subir un archivo válido y la car
 - `consolidate` vuelve a analizar la carga con los mapeos actuales (los confirmados no se tocan;
   los no confirmados se vuelven a sugerir) y actualiza `FinancialData` de todos sus años.
 
+### KPIs y análisis
+
+| Método | Ruta | Rol | Response | Errores |
+|---|---|---|---|---|
+| GET | `/kpis?year=` | Todos | 200 `KpisResponse` | 400 `kpis.company_required` (Admin sin empresa) |
+| POST | `/analysis/run` | Admin, Analyst | 200 `{ companyId, years, calculatedAt }` | 400 `analysis.company_required`, 403 |
+
+`GET /kpis` sin `year` devuelve la serie histórica; con `year`, solo ese año. El análisis se
+ejecuta solo al consolidar una carga; `POST /analysis/run` lo repite bajo demanda.
+
+```json
+{
+  "companyId": "…", "industry": "Manufacturing", "currency": "DOP",
+  "definitions": [ { "code": "EbitdaMargin", "name": "Margen EBITDA", "formula": "EBITDA / Revenue",
+                     "unit": "Ratio", "higherIsBetter": true, "dimension": "Profitability", "description": "…" } ],
+  "years": [
+    { "year": 2024,
+      "values": { "EbitdaMargin": 0.1861, "CostEfficiency": 0.8533, "RevenuePerEmployee": 12116066.67, "CostPerUnit": null },
+      "normalized": { "EbitdaMargin": 93.05, "RevenuePerEmployee": 78.64, "CostPerUnit": null },
+      "trends": { "year": 2024, "previousYear": 2023,
+                  "kpis": { "EbitdaMargin": { "previous": 0.1975, "current": 0.1861, "change": -0.0114,
+                                              "changePercent": -5.77, "direction": "Down", "favorable": false } },
+                  "revenueGrowth": { "previous": 169198600, "current": 181741000, "changePercent": 7.41, "direction": "Up", "favorable": true },
+                  "totalCostGrowth": { … }, "overheadGrowth": { … } },
+      "calculatedAt": "2026-11-18T15:00:00Z" }
+  ],
+  "monthly": [ { "year": 2024, "month": 1, "revenue": 13352400, "growthPercent": null,
+                 "movingAverage3": null, "seasonalityIndex": 0.864 } ]
+}
+```
+
+`trends` es `null` en el primer año. `monthly` es `null` si la empresa no tiene serie mensual.
+
 ### Datos — `/api/v1/data`
 
 | Método | Ruta | Rol | Response |
@@ -217,7 +250,6 @@ rowKind, values: { "2023": …, "2024": … } }`.
 
 | Grupo | Endpoints | Etapa |
 |---|---|---|
-| KPIs | `GET /kpis` | 05 |
 | Problemas | `GET /problems`, `GET /problems/{id}`, `PATCH /problems/{id}` | 06 |
 | Score | `GET /score` | 07 |
 

@@ -9,7 +9,7 @@ Leyenda: ⬜ pendiente · 🟡 en progreso · ✅ completada
 | 02 | Autenticación y roles | `etapas/ETAPA_02_autenticacion.md` | ✅ | 18/11/2026 | Rama `etapa-02-autenticacion`. JWT, bloqueo, roles y aislamiento por empresa, CRUD de empresas/usuarios (solo Admin), seed del Admin; 163 pruebas .NET. |
 | 03 | Carga y validación de datos | `etapas/ETAPA_03_carga_de_datos.md` | ✅ | 18/11/2026 | Rama `etapa-03-carga-de-datos` (PR apilado sobre el de la etapa 02). Parser del libro contable real, 9 validaciones de calidad, `/uploads`, `/data`, plantillas; 19 libros sintéticos; 322 pruebas .NET. |
 | 04 | Homologación contable + servicio de IA | `etapas/ETAPA_04_homologacion.md` | ✅ | 18/11/2026 | Rama `etapa-04-homologacion` (PR apilado sobre el de la etapa 03). Homologación automática con IA y fallback, consolidación sin doble conteo, revisión opcional; 355 pruebas .NET y 98 de Python. |
-| 05 | Motor de KPIs | `etapas/ETAPA_05_motor_kpis.md` | ⬜ | | |
+| 05 | Motor de KPIs | `etapas/ETAPA_05_motor_kpis.md` | ✅ | 18/11/2026 | Rama `etapa-05-motor-kpis` (PR apilado sobre el de la etapa 04). 14 KPIs, tendencias, normalización por industria y moneda, serie mensual, `AnalysisPipeline`, `/kpis` y `/analysis/run`; 426 pruebas .NET. |
 | 06 | Motor de diagnóstico | `etapas/ETAPA_06_motor_diagnostico.md` | ⬜ | | |
 | 07 | Impacto financiero y score | `etapas/ETAPA_07_impacto_y_score.md` | ⬜ | | |
 | 08 | Frontend base y sistema de diseño | `etapas/ETAPA_08_frontend_base.md` | ⬜ | | |

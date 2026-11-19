@@ -189,15 +189,105 @@ categoría correcta con confianza ≥ 0,8 (77 de 77 en las pruebas). Algunos eje
 
 ### Motor de KPIs
 
-| KPI | Fórmula | Mide |
-|---|---|---|
-| EBITDA Margin | EBITDA / Revenue | Rentabilidad operacional |
-| Margen bruto | (Revenue − COGS) / Revenue | Rentabilidad de producción o servicios |
-| Cost Efficiency Ratio | Total Cost / Revenue | Proporción del costo total sobre ingresos |
-| Revenue per Employee | Revenue / Number of Employees | Productividad laboral |
-| Operating Cost Ratio | Operating Expenses / Revenue | Carga de gastos operacionales |
+Clases puras en `Opsynex.Domain/Engines/Kpis`, sin EF ni HTTP. El `AnalysisPipeline` recalcula
+los KPIs de **todos los años** de la empresa cada vez que se consolida una carga, y también bajo
+demanda (`POST /api/v1/analysis/run`). Los resultados se guardan en `KpiResults`, uno por año.
 
-> Pendiente (Etapa 05): tendencias, normalización y benchmarks.
+#### Fórmulas
+
+| KPI | Nombre | Fórmula | Unidad | Mejor si | Dimensión del score |
+|---|---|---|---|---|---|
+| `EbitdaMargin` | Margen EBITDA | EBITDA / Revenue | proporción | sube | Rentabilidad |
+| `GrossMargin` | Margen bruto | (Revenue − COGS) / Revenue | proporción | sube | Rentabilidad |
+| `NetMargin` | Margen neto | Net Income / Revenue | proporción | sube | Rentabilidad |
+| `CostEfficiency` | Eficiencia de costos | Total Cost / Revenue | proporción | baja | Eficiencia de costos |
+| `OperatingCostRatio` | Gastos operacionales / ingresos | Operating Expenses / Revenue | proporción | baja | Eficiencia de costos |
+| `OverheadRatio` | Gastos generales / ingresos | Overhead Cost / Revenue | proporción | baja | Eficiencia de costos |
+| `EnergyCostRatio` | Energía / ingresos | Energy Cost / Revenue | proporción | baja | Eficiencia de costos |
+| `LaborCostRatio` | Costo de personal / ingresos | Labor Cost / Revenue | proporción | baja | Eficiencia de costos |
+| `InventoryDays` | Días de inventario | Inventory / COGS × 365 | días | baja | Eficiencia de costos |
+| `RevenuePerEmployee` | Ingresos por empleado | Revenue / Number of Employees | monto | sube | Productividad |
+| `CostPerUnit` | Costo por unidad | Total Cost / Units Produced | monto | baja | Productividad |
+| `CurrentRatio` | Razón corriente | Current Assets / Current Liabilities | veces | sube | Estabilidad financiera |
+| `DebtToEquity` | Endeudamiento | Total Liabilities / Equity | veces | baja | Estabilidad financiera |
+| `DaysSalesOutstanding` | Días de cobro | Accounts Receivable / Revenue × 365 | días | baja | Estabilidad financiera |
+
+Reglas:
+
+- **Divisiones protegidas:** el KPI es `null` si falta un dato o si el denominador es 0 o
+  negativo. Ingresos, costo de ventas, empleados, unidades, pasivos corrientes o patrimonio
+  negativos no tienen una interpretación útil. Los numeradores negativos sí se aceptan (margen
+  negativo, pérdida neta).
+- **Redondeo:** ratios con 4 decimales; montos y días con 2 (al par, como en SQL Server).
+- **Datos:** los financieros salen de `FinancialData`; los empleados y las unidades, de
+  `OperationalData` del mismo año. Si un año no tiene nómina, los ingresos por empleado quedan
+  en `null`.
+
+Interpretación rápida: un margen EBITDA de 0,1861 es 18,61 %; una eficiencia de costos de
+0,8533 significa que se gastan 85,33 centavos por cada peso de ingreso; una razón corriente de
+2,77 indica que los activos corrientes cubren 2,77 veces los pasivos corrientes.
+
+#### Tendencias (`TrendAnalyzer`)
+
+Para cada KPI de un año frente al **año anterior** se calculan la variación absoluta, la variación
+porcentual (sobre el valor absoluto del año anterior) y la **dirección**: `Up`, `Down` o
+`Stable`. Es `Stable` si la variación porcentual está dentro de ±1 %
+(`Benchmarks:StableThresholdPercent`). Una tendencia es **favorable** si va en el sentido bueno
+del KPI: bajar la eficiencia de costos es favorable y bajar el margen no. Las estables no son ni
+favorables ni desfavorables. También se calcula el crecimiento año a año de los ingresos, el
+costo total y los gastos generales, que usa el diagnóstico (etapa 06). El primer año no tiene
+tendencias.
+
+#### Normalización (0–100) y benchmarks
+
+`KpiNormalizer` convierte cada KPI en puntos con interpolación lineal entre un valor que vale 0
+(`Worst`) y uno que vale 100 (`Best`), con tope en 0 y 100. Para los KPIs donde bajar es mejor,
+`Worst` es mayor que `Best`. Los rangos están en `appsettings.json`, sección `Benchmarks`
+(opciones tipadas `BenchmarkOptions`, validadas al arrancar):
+
+- **Por industria** (`Industries:Manufacturing`, `Industries:Services`): KPIs en proporción,
+  veces o días. Por ejemplo, el margen EBITDA en manufactura va de 0 % → 0 pts a 20 % → 100 pts,
+  y la eficiencia de costos de 1,00 → 0 pts a 0,75 → 100 pts.
+- **Por moneda** (`Currencies:DOP`, `Currencies:USD`): KPIs en monto. Los ingresos por empleado
+  en RD$ van de 1,5 M → 0 a 15 M → 100; en US$, de 30 000 → 0 a 300 000 → 100. El costo por unidad
+  no tiene benchmark porque depende del producto.
+
+Los rangos de referencia son configurables y conviene calibrarlos con el cliente. La
+normalización la usa el score (etapa 07).
+
+#### Serie mensual (`MonthlyAnalyzer`)
+
+Con la hoja de ventas mensuales (`MonthlyFinancialData`) se calculan:
+
+- El crecimiento contra el mes anterior (solo entre meses consecutivos).
+- El promedio móvil de 3 meses.
+- Un índice de estacionalidad: ventas del mes / promedio mensual de su año, donde 1 es un mes
+  promedio.
+
+Se devuelve en `GET /kpis` y lo usarán el dashboard y la detección de anomalías (etapa 11).
+
+#### KPIs del libro sintético
+
+Los valores esperados se calculan a mano (en Python, con `Decimal`) en el generador y se comparan
+con los del motor en las pruebas:
+
+| KPI | 2023 | 2024 |
+|---|---:|---:|
+| `CostEfficiency` | 0.842 | 0.8533 |
+| `CostPerUnit` | — | — |
+| `CurrentRatio` | 2.3823 | 2.7659 |
+| `DaysSalesOutstanding` | 35.22 | 36.83 |
+| `DebtToEquity` | 0.6042 | 0.474 |
+| `EbitdaMargin` | 0.1975 | 0.1861 |
+| `EnergyCostRatio` | 0.0582 | 0.0617 |
+| `GrossMargin` | 0.2897 | 0.2805 |
+| `InventoryDays` | 44.5 | 45.17 |
+| `LaborCostRatio` | 0.1688 | 0.1723 |
+| `NetMargin` | 0.1003 | 0.0946 |
+| `OperatingCostRatio` | 0.1318 | 0.1338 |
+| `OverheadRatio` | 0.0468 | 0.0469 |
+| `RevenuePerEmployee` | — | 12116066.67 |
+
 
 ### Motor de diagnóstico
 

@@ -26,5 +26,6 @@
   <ItemGroup>
     <!-- Libros sintéticos generados por tests/TestData/generate_sample_workbooks.py -->
     <None Include="..\..\sample-data\**\*" LinkBase="sample-data" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\src\Opsynex.Api\appsettings.json" Link="appsettings.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

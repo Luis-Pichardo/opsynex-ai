@@ -35,6 +35,7 @@ en `backend/src/Opsynex.Api`). Nunca subas secretos al repositorio.
 | `Upload__MaxRowsPerSheet` / `Upload__MaxSheets` | API | Filas por hoja y hojas por libro que se leen | `5000` / `60` |
 | `Database__Provider` | API | `SqlServer` (normal) o `Sqlite` (solo pruebas) | `SqlServer` |
 | `Database__MigrateOnStartup` | API | Aplica migraciones al arrancar (`true` en Development) | `true` |
+| `Benchmarks__…` | API | Rangos de referencia de los KPIs por industria y moneda (ver *Motores analíticos → Normalización*); se editan en `appsettings.json` | — |
 | `OPSYNEX_AI_PYTHON` / `OPSYNEX_REQUIRE_AI` | Pruebas | Intérprete con el servicio de IA para las pruebas de punta a punta (por defecto `ai-service/.venv`); `true` las exige en vez de omitirlas | (vacío) |
 | `OPSYNEX_TEST_DB` | Pruebas | Vacío = Testcontainers si hay Docker, si no SQLite; `sqlserver` o `sqlite` para forzar | (vacío) |
 | `AI_SERVICE_API_KEY` | IA | Misma clave que `AiService__ApiKey` | valor aleatorio |

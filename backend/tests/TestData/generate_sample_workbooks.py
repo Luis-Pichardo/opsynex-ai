@@ -23,6 +23,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from decimal import ROUND_HALF_EVEN, Decimal
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -990,6 +991,35 @@ def write_fiscal_sheets(wb) -> None:
 # ---------------------------------------------------------------------------------------------
 # Construcción de variantes
 # ---------------------------------------------------------------------------------------------
+def _q(value: Decimal, places: str) -> float:
+    return float(value.quantize(Decimal(places), rounding=ROUND_HALF_EVEN))
+
+
+def expected_kpis(v: dict[str, float], employees: int | None) -> dict[str, float | None]:
+    """KPIs de un año calculados a mano con Decimal (mismo redondeo al par que .NET)."""
+    d = {k: Decimal(str(x)) for k, x in v.items()}
+    revenue = d["net_sales"]
+    total_cost = d["cogs"] + d["opex_total"]
+    ratio = lambda num, den: _q(num / den, "0.0001")  # noqa: E731
+    days = lambda num, den: _q(num / den * 365, "0.01")  # noqa: E731
+    return {
+        "EbitdaMargin": ratio(d["ebitda"], revenue),
+        "GrossMargin": ratio(revenue - d["cogs"], revenue),
+        "CostEfficiency": ratio(total_cost, revenue),
+        "RevenuePerEmployee": _q(revenue / employees, "0.01") if employees else None,
+        "OperatingCostRatio": ratio(d["opex_total"], revenue),
+        "OverheadRatio": ratio(d["admin_total"], revenue),
+        "EnergyCostRatio": ratio(d["g_energia"] + d["fab_energia"], revenue),
+        "CostPerUnit": None,
+        "NetMargin": ratio(d["net_income"], revenue),
+        "LaborCostRatio": ratio(d["comp_total"] + d["labor_total"], revenue),
+        "CurrentRatio": ratio(d["current_assets"], d["pasivo_corriente"]),
+        "DebtToEquity": ratio(d["total_liabilities"], d["equity"]),
+        "DaysSalesOutstanding": days(d["cxc_total"], revenue),
+        "InventoryDays": days(d["inventory"], d["cogs"]),
+    }
+
+
 def build_workbook(variant: Variant) -> tuple[Workbook, dict]:
     years_desc = sorted(variant.years, reverse=True)  # año actual primero, como en los libros reales
     # Toda variante usa la misma serie 2022–2024, así los años coinciden entre archivos.
@@ -1007,6 +1037,11 @@ def build_workbook(variant: Variant) -> tuple[Workbook, dict]:
     write_fiscal_sheets(wb)
     expected["years"] = sorted(variant.years) if not variant.income_single_year else sorted(variant.years)
     expected["values"] = {str(y): {k: data[y][k] for k in sorted(data[y])} for y in sorted(variant.years)}
+    # KPIs esperados (cálculo independiente del motor .NET). Solo hay empleados en el año de la nómina.
+    employees_year = years_desc[0]
+    expected["kpis"] = {
+        str(y): expected_kpis(data[y], len(EMPLOYEES) if y == employees_year else None) for y in sorted(variant.years)
+    }
     return wb, expected
 
 
@@ -1274,6 +1309,11 @@ def write_readme(table: list[str], manifest: dict) -> None:
         else:
             a, b = base["2023"][key], base["2024"][key]
         rows.append(f"| {label} | {money(a)} | {money(b)} |")
+    kpis = manifest["libro_sintetico_2a.xls"]["kpis"]
+    kpi_rows = ["| KPI | 2023 | 2024 |", "|---|---:|---:|"]
+    for code in kpis["2024"]:
+        a, b = kpis["2023"][code], kpis["2024"][code]
+        kpi_rows.append(f"| {code} | {'—' if a is None else a} | {'—' if b is None else b} |")
     employees = manifest["libro_sintetico_2a.xls"]["employees"]
     text = f"""# Datos de prueba sintéticos
 
@@ -1302,6 +1342,13 @@ Nómina (`REGPASCUAL`, {manifest["libro_sintetico_2a.xls"]["years"][-1]}): **{em
 total RD$ {money(employees["payroll"])}.
 
 `EBITDA = Ganancia antes de ISR + Gastos financieros + D&A en gastos + Depreciación en el costo`.
+
+## KPIs esperados del libro de 2 años
+
+Calculados a mano con estos valores (ratios con 4 decimales; días con 2). Ingresos por empleado
+solo en 2024, el año de la nómina; costo por unidad no aplica (el libro no trae unidades).
+
+{chr(10).join(kpi_rows)}
 
 Todos los valores, por archivo, año y concepto, están en `expected_values.json`, que leen las
 pruebas automáticas.

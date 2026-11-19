@@ -291,10 +291,30 @@ namespace Opsynex.Infrastructure.Persistence.Migrations
                         .HasPrecision(9, 4)
                         .HasColumnType("decimal(9,4)");
 
+                    b.Property<decimal?>("CostPerUnit")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<decimal?>("CurrentRatio")
+                        .HasPrecision(9, 4)
+                        .HasColumnType("decimal(9,4)");
+
+                    b.Property<decimal?>("DaysSalesOutstanding")
+                        .HasPrecision(9, 2)
+                        .HasColumnType("decimal(9,2)");
+
+                    b.Property<decimal?>("DebtToEquity")
+                        .HasPrecision(9, 4)
+                        .HasColumnType("decimal(9,4)");
+
                     b.Property<decimal?>("EbitdaMargin")
+                        .HasPrecision(9, 4)
+                        .HasColumnType("decimal(9,4)");
+
+                    b.Property<decimal?>("EnergyCostRatio")
                         .HasPrecision(9, 4)
                         .HasColumnType("decimal(9,4)");
 
@@ -302,13 +322,37 @@ namespace Opsynex.Infrastructure.Persistence.Migrations
                         .HasPrecision(9, 4)
                         .HasColumnType("decimal(9,4)");
 
+                    b.Property<decimal?>("InventoryDays")
+                        .HasPrecision(9, 2)
+                        .HasColumnType("decimal(9,2)");
+
+                    b.Property<decimal?>("LaborCostRatio")
+                        .HasPrecision(9, 4)
+                        .HasColumnType("decimal(9,4)");
+
+                    b.Property<decimal?>("NetMargin")
+                        .HasPrecision(9, 4)
+                        .HasColumnType("decimal(9,4)");
+
+                    b.Property<string>("Normalized")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<decimal?>("OperatingCostRatio")
+                        .HasPrecision(9, 4)
+                        .HasColumnType("decimal(9,4)");
+
+                    b.Property<decimal?>("OverheadRatio")
                         .HasPrecision(9, 4)
                         .HasColumnType("decimal(9,4)");
 
                     b.Property<decimal?>("RevenuePerEmployee")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Trends")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -324,6 +368,10 @@ namespace Opsynex.Infrastructure.Persistence.Migrations
                     b.ToTable("KpiResults", null, t =>
                         {
                             t.HasCheckConstraint("CK_KpiResult_Year", "[Year] BETWEEN 1900 AND 2200");
+
+                            t.HasCheckConstraint("CK_KpiResults_Normalized_Json", "ISJSON([Normalized]) = 1");
+
+                            t.HasCheckConstraint("CK_KpiResults_Trends_Json", "ISJSON([Trends]) = 1");
                         });
                 });
 

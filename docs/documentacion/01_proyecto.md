@@ -136,3 +136,8 @@ automáticamente con el servicio de IA, consolida los estados financieros de tod
 archivo y avisa cuando conviene revisar cuentas dudosas. El analista puede corregir los mapeos,
 que se recuerdan para las cargas siguientes. Sin IA, el análisis funciona con un diccionario
 básico. La siguiente etapa es el motor de KPIs (Etapa 05).
+
+Etapa 05 completada (18/11/2026): el sistema calcula automáticamente 14 KPIs por año
+(rentabilidad, eficiencia de costos, productividad y estabilidad financiera), sus tendencias
+frente al año anterior, una versión normalizada de 0 a 100 con referencias por industria y moneda,
+y la serie mensual de ventas. La siguiente etapa es el motor de diagnóstico (Etapa 06).
