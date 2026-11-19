@@ -1,5 +1,5 @@
 // Alertas básicas por correo: API con errores 5xx, salud no disponible (prueba de
-// disponibilidad cada 5 minutos desde 3 regiones) y base de datos con CPU o espacio altos.
+// disponibilidad cada 15 minutos desde 3 regiones) y base de datos con CPU o espacio altos.
 
 param location string
 param namePrefix string
@@ -69,7 +69,7 @@ resource availability 'Microsoft.Insights/webtests@2022-06-15' = {
     Name: 'API /health/ready'
     Kind: 'standard'
     Enabled: true
-    Frequency: 300
+    Frequency: 900 // cada 15 min (las pruebas estándar se cobran por ejecución)
     Timeout: 30
     RetryEnabled: true
     Locations: [

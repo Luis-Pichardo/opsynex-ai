@@ -134,6 +134,12 @@ module connection 'modules/sql-connection.bicep' = {
 }
 
 // --- Entorno de Container Apps ---
+// La clave del workspace se lee aquí (no viaja como output de un módulo). listKeys se evalúa al
+// desplegar el entorno, que ya depende del módulo de monitoreo por su customerId.
+resource workspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' existing = {
+  name: 'log-${namePrefix}'
+}
+
 resource environment 'Microsoft.App/managedEnvironments@2024-03-01' = {
   name: 'cae-${namePrefix}'
   location: location
@@ -143,7 +149,7 @@ resource environment 'Microsoft.App/managedEnvironments@2024-03-01' = {
       destination: 'log-analytics'
       logAnalyticsConfiguration: {
         customerId: monitoring.outputs.workspaceCustomerId
-        sharedKey: monitoring.outputs.workspaceSharedKey
+        sharedKey: workspace.listKeys().primarySharedKey
       }
     }
   }

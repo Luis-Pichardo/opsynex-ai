@@ -11,7 +11,7 @@ services:
     image: mcr.microsoft.com/mssql/server:2022-latest
     environment:
       ACCEPT_EULA: "Y"
-      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:?OBLIGATORIO: define MSSQL_SA_PASSWORD}
+      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD:?OBLIGATORIO, define MSSQL_SA_PASSWORD}"
       MSSQL_PID: Express
     volumes:
       - sqlserver-prod-data:/var/opt/mssql
@@ -40,7 +40,7 @@ services:
   ai-service:
     build: ./ai-service
     environment:
-      AI_SERVICE_API_KEY: ${AiService__ApiKey:?OBLIGATORIO: define AiService__ApiKey}
+      AI_SERVICE_API_KEY: "${AiService__ApiKey:?OBLIGATORIO, define AiService__ApiKey}"
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-opus-5-5}
       ANTHROPIC_EFFORT: ${ANTHROPIC_EFFORT:-medium}
@@ -55,7 +55,7 @@ services:
       ASPNETCORE_ENVIRONMENT: Production
       Database__MigrateOnStartup: "false"
       ConnectionStrings__Default: Server=sqlserver,1433;Database=Opsynex;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True
-      Jwt__Secret: ${Jwt__Secret:?OBLIGATORIO: define Jwt__Secret (32+ caracteres)}
+      Jwt__Secret: "${Jwt__Secret:?OBLIGATORIO, define Jwt__Secret (32+ caracteres)}"
       Seed__AdminEmail: ${Seed__AdminEmail:-}
       Seed__AdminPassword: ${Seed__AdminPassword:-}
       Cors__Origins: ${PROD_WEB_ORIGIN:-http://localhost:8081}

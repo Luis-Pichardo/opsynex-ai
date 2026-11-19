@@ -30,9 +30,8 @@ resource insights 'Microsoft.Insights/components@2020-02-02' = {
 }
 
 output workspaceId string = workspace.id
+output workspaceName string = workspace.name
 output workspaceCustomerId string = workspace.properties.customerId
-#disable-next-line outputs-should-not-contain-secrets
-output workspaceSharedKey string = workspace.listKeys().primarySharedKey
 output insightsId string = insights.id
 output insightsName string = insights.name
 output insightsConnectionString string = insights.properties.ConnectionString
