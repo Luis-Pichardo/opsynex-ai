@@ -120,6 +120,18 @@ namespace Opsynex.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<decimal?>("AccountsPayable")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("AccountsReceivable")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("Cash")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<decimal?>("Cogs")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
@@ -130,7 +142,19 @@ namespace Opsynex.Infrastructure.Persistence.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<decimal?>("CurrentAssets")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("CurrentLiabilities")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<decimal?>("Depreciation")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("EarningsBeforeTax")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
@@ -143,6 +167,26 @@ namespace Opsynex.Infrastructure.Persistence.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal?>("Equity")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("FinancialDebt")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("FinancialExpenses")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("GrossSales")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("IncomeTax")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("Inventory")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
@@ -174,7 +218,15 @@ namespace Opsynex.Infrastructure.Persistence.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<decimal?>("RawMaterials")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<decimal?>("Revenue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("SalesDiscounts")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
@@ -255,6 +307,52 @@ namespace Opsynex.Infrastructure.Persistence.Migrations
                     b.ToTable("KpiResults", null, t =>
                         {
                             t.HasCheckConstraint("CK_KpiResult_Year", "[Year] BETWEEN 1900 AND 2200");
+                        });
+                });
+
+            modelBuilder.Entity("Opsynex.Domain.Entities.MonthlyFinancialData", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Month")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("Purchases")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("Revenue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("UploadId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UploadId");
+
+                    b.HasIndex("CompanyId", "Year", "Month")
+                        .IsUnique();
+
+                    b.ToTable("MonthlyFinancialData", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_MonthlyFinancialData_Month", "[Month] BETWEEN 1 AND 12");
+
+                            t.HasCheckConstraint("CK_MonthlyFinancialData_Year", "[Year] BETWEEN 1900 AND 2200");
                         });
                 });
 
@@ -403,6 +501,11 @@ namespace Opsynex.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("AccountCode")
+                        .HasMaxLength(32)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(32)");
+
                     b.Property<string>("ClientAccount")
                         .IsRequired()
                         .HasMaxLength(300)
@@ -413,6 +516,38 @@ namespace Opsynex.Infrastructure.Persistence.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("NormalizedLabel")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("OriginalLabel")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("RowKind")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("RowNumber")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Section")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("SheetName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("SheetType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -429,9 +564,9 @@ namespace Opsynex.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UploadId");
-
                     b.HasIndex("CompanyId", "Year");
+
+                    b.HasIndex("UploadId", "SheetType");
 
                     b.ToTable("RawAccountValues", null, t =>
                         {
@@ -520,6 +655,9 @@ namespace Opsynex.Infrastructure.Persistence.Migrations
                         .HasMaxLength(260)
                         .HasColumnType("nvarchar(260)");
 
+                    b.Property<long>("FileSizeBytes")
+                        .HasColumnType("bigint");
+
                     b.Property<string>("FileType")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -528,16 +666,32 @@ namespace Opsynex.Infrastructure.Persistence.Migrations
                     b.Property<int>("RowsCount")
                         .HasColumnType("int");
 
+                    b.Property<string>("Sheets")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Summary")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Warnings")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Years")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -548,6 +702,14 @@ namespace Opsynex.Infrastructure.Persistence.Migrations
                     b.ToTable("Uploads", null, t =>
                         {
                             t.HasCheckConstraint("CK_Uploads_Errors_Json", "ISJSON([Errors]) = 1");
+
+                            t.HasCheckConstraint("CK_Uploads_Sheets_Json", "ISJSON([Sheets]) = 1");
+
+                            t.HasCheckConstraint("CK_Uploads_Summary_Json", "ISJSON([Summary]) = 1");
+
+                            t.HasCheckConstraint("CK_Uploads_Warnings_Json", "ISJSON([Warnings]) = 1");
+
+                            t.HasCheckConstraint("CK_Uploads_Years_Json", "ISJSON([Years]) = 1");
                         });
                 });
 
@@ -639,6 +801,20 @@ namespace Opsynex.Infrastructure.Persistence.Migrations
                         .HasForeignKey("CompanyId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Opsynex.Domain.Entities.MonthlyFinancialData", b =>
+                {
+                    b.HasOne("Opsynex.Domain.Entities.Company", null)
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Opsynex.Domain.Entities.Upload", null)
+                        .WithMany()
+                        .HasForeignKey("UploadId")
+                        .OnDelete(DeleteBehavior.Restrict);
                 });
 
             modelBuilder.Entity("Opsynex.Domain.Entities.OperationalData", b =>

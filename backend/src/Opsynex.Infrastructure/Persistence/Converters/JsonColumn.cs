@@ -45,6 +45,19 @@ internal static class JsonColumn
                 v => Deserialize<Dictionary<string, TValue>>(JsonSerializer.Serialize(v, Options)) ?? new Dictionary<string, TValue>()))
         .IsRequired();
 
+    /// <summary>Mapea un objeto (record) como objeto JSON.</summary>
+    public static PropertyBuilder<T> HasJsonValueConversion<T>(this PropertyBuilder<T> builder)
+        where T : class, new() =>
+        builder.HasConversion(
+            new ValueConverter<T, string>(
+                v => JsonSerializer.Serialize(v, Options),
+                v => Deserialize<T>(v) ?? new T()),
+            new ValueComparer<T>(
+                (a, b) => JsonSerializer.Serialize(a, Options) == JsonSerializer.Serialize(b, Options),
+                v => JsonSerializer.Serialize(v, Options).GetHashCode(StringComparison.Ordinal),
+                v => Deserialize<T>(JsonSerializer.Serialize(v, Options)) ?? new T()))
+        .IsRequired();
+
     /// <summary>Mapea un <see cref="JsonObject"/> libre.</summary>
     public static PropertyBuilder<JsonObject> HasJsonObjectConversion(this PropertyBuilder<JsonObject> builder) =>
         builder.HasConversion(

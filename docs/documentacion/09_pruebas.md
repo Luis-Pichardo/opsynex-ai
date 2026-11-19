@@ -34,4 +34,25 @@ sin migración.
   Client. Usa un controlador solo de pruebas (`TestPolicyController`) por política, porque los
   endpoints de carga y análisis llegan en etapas posteriores.
 
+### Carga y validación de datos (Etapa 03)
+
+Todas las pruebas usan los **libros sintéticos** de `backend/sample-data/` (nunca datos reales).
+Para regenerarlos se necesita LibreOffice:
+
+```bash
+python3 backend/tests/TestData/generate_sample_workbooks.py
+```
+
+- `Parsing/WorkbookParserTests` (unitarias): clasificación de las 20 hojas, valores en bruto
+  contra `expected_values.json` (ventas netas, descuentos, costo de ventas, total de activos,
+  total de capital, energía de las notas…), nómina sin datos personales, serie mensual, balance
+  de comprobación, cada inconsistencia de la sección 5 con su hoja y fila, archivos inválidos y
+  plantillas.
+- `Parsing/ParsingComponentTests` (unitarias): normalización de etiquetas, lectura de números
+  contables, filtro de datos sensibles, clasificador, extractor, tolerancia e ISO 4217.
+- `Uploads/UploadsEndpointsTests` y `DataEndpointsTests` (integración): carga del `.xls` y del
+  `.xlsx`, valores guardados en la BD, privacidad (ningún nombre ni cédula en la BD ni en la
+  respuesta), advertencias, 422 para archivos inválidos, 403 para el Client, 413 por tamaño,
+  plantillas descargadas que el parser reconoce, y `/data` por tipo.
+
 > Pendiente (Etapas 07, 10 y 12): estrategia completa, cobertura y checklist del MVP.

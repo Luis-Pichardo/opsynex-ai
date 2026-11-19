@@ -50,6 +50,12 @@ protegidos, pega en Scalar el `accessToken` obtenido en `POST /api/v1/auth/login
 | 409 | `company.in_use` | La empresa tiene usuarios o datos y no se puede eliminar |
 | 409 | `conflict` | Registro duplicado (restricción única) |
 | 423 | `auth.locked_out` | Cuenta bloqueada tras 5 intentos fallidos (cabecera `Retry-After` en segundos) |
+| 400 | `upload.file_required` | Falta el archivo en el campo `file` |
+| 400 | `upload.unsupported_extension` | El archivo no es `.xls`, `.xlsx` ni `.csv` |
+| 400 | `upload.company_required` / `upload.company_not_found` | El Admin no indicó la empresa o no existe |
+| 400 | `data.company_required` | El Admin consulta `/data` sin elegir empresa |
+| 413 | `upload.too_large` | El archivo supera `Upload:MaxMb` (20 MB) |
+| 422 | `upload.*` (en `errors[]` del reporte) | Error bloqueante del archivo: `empty_file`, `invalid_signature`, `unreadable`, `no_financial_statements`, `years_not_found`, `file_type_required` |
 | 500 | `internal_error` | Error inesperado (se registra en el log con su `traceId`) |
 
 ### Roles y permisos
@@ -60,7 +66,7 @@ Políticas de autorización: `CanManage` (Admin), `CanAnalyze` (Admin y Analyst)
 | Acción | Admin | Analyst | Client |
 |---|---|---|---|
 | Gestionar empresas y usuarios | ✅ | ❌ | ❌ |
-| Subir archivos, homologar y recalcular (etapas 03–07) | ✅ | ✅ | ❌ |
+| Subir archivos y descargar plantillas (etapa 03); homologar y recalcular (etapas 04–07) | ✅ | ✅ | ❌ |
 | Ver KPIs, problemas, score y dashboard | ✅ | ✅ | ✅ |
 
 No existe auto-registro: **solo un Admin crea usuarios** (de cualquier rol).
@@ -120,6 +126,60 @@ si el usuario tiene empresa), `iat`, `nbf`, `exp`, `iss` (`opsynex-api`) y `aud`
   `currency` es un código ISO 4217 de 3 letras en mayúsculas (por defecto `USD`; p. ej. `DOP`).
 - `CompanyDto`: `{ id, name, industry, sector, currency, createdAt, updatedAt }`.
 
+### Cargas — `/api/v1/uploads`
+
+| Método | Ruta | Rol | Request | Response | Errores |
+|---|---|---|---|---|---|
+| POST | `/uploads` | Admin, Analyst | multipart: `file` (obligatorio), `companyId` (solo Admin), `fileType` (opcional; necesario para un CSV sin título) | 201 `UploadReportDto` + `Location` · 422 `UploadReportDto` con `status: "Failed"` | 400, 401, 403, 413 |
+| GET | `/uploads` | Todos | — | 200 `UploadListItemDto[]` (más reciente primero) | 401 |
+| GET | `/uploads/{id}` | Todos (otra empresa → 404) | — | 200 `UploadReportDto` | 404 |
+| GET | `/uploads/templates/{fileType}` | Admin, Analyst | `fileType`: `IncomeStatement`, `BalanceSheet`, `CashFlow`, `CostStructure` u `Operational` | 200 archivo `.xlsx` con los dos últimos años cerrados | 403, 404 |
+
+`UploadReportDto`:
+
+```json
+{
+  "uploadId": "…", "companyId": "…", "fileName": "estados_2024.xls",
+  "fileType": "AccountingWorkbook", "status": "Validated", "years": [2023, 2024],
+  "sheets": [
+    { "name": "BALANCE", "detectedType": "BalanceSheet", "rowsExtracted": 24, "ignored": false, "reason": null },
+    { "name": "REGPASCUAL", "detectedType": "EmployeeRoster", "rowsExtracted": 15, "ignored": false,
+      "reason": "Solo se guarda la cantidad de empleados." },
+    { "name": "ANEXOA1", "detectedType": "Unknown", "rowsExtracted": 0, "ignored": true,
+      "reason": "No se reconoce el contenido (hoja fiscal o de trabajo); se ignora." }
+  ],
+  "errors": [],
+  "warnings": [
+    { "code": "quality.note_mismatch", "message": "2024: la nota 4 suma … y no cuadra con «Cuentas por Cobrar» …",
+      "sheet": "nota1", "row": 18, "column": "G" }
+  ],
+  "summary": { "employeeCount": 15, "employeesByDepartment": [{ "department": "Produccion", "employees": 8, "payroll": 3048000.0 }, …],
+               "annualPayroll": 7598000.0, "monthlyRecords": 12, "trialBalanceReliable": true, "trialBalanceDifference": 0 },
+  "rowsCount": 412,
+  "preview": { "lines": [ { "sheet": "g&P", "sheetType": "IncomeStatement", "row": 8, "section": null,
+                           "label": "Ventas netas", "rowKind": "Detail", "values": { "2023": 172300000.0, "2024": 185450000.0 } } ] },
+  "createdAt": "2026-11-18T15:00:00Z"
+}
+```
+
+`UploadListItemDto`: `{ id, companyId, fileName, fileType, status, years, rowsCount, warningsCount, errorsCount, createdAt }`.
+
+Las inconsistencias de calidad nunca bloquean la carga (ver el capítulo *Motores analíticos →
+Ingesta y validación*). El archivo original no se guarda.
+
+### Datos — `/api/v1/data`
+
+| Método | Ruta | Rol | Response |
+|---|---|---|---|
+| GET | `/data?type=&year=&sheetType=&uploadId=` | Todos (el Admin elige la empresa con `X-Company-Id` o `companyId`) | 200 `DataResponse` · 400 `data.company_required` |
+
+`type`: `Raw` (por defecto: filas en bruto de la carga más reciente que tenga el año, filtrables
+por `sheetType` o `uploadId`), `Financial` (datos consolidados; se llenan con la homologación de
+la etapa 04), `Operational` o `Monthly`. La respuesta trae `{ companyId, type, year, uploadId,
+availableYears, raw | financial | operational | monthly }`; solo se llena la lista del tipo pedido.
+Cada fila `raw`: `{ sheet, sheetType, row, section, originalLabel, normalizedLabel, accountCode,
+rowKind, values: { "2023": …, "2024": … } }`.
+
 ### Sistema
 
 | Método | Ruta | Rol | Response |
@@ -131,10 +191,9 @@ si el usuario tiene empresa), `iat`, `nbf`, `exp`, `iss` (`opsynex-api`) y `aud`
 
 | Grupo | Endpoints | Etapa |
 |---|---|---|
-| Datos | `POST /uploads`, `GET /data` | 03 |
 | Homologación | mapeo de cuentas | 04 |
 | KPIs | `GET /kpis` | 05 |
 | Problemas | `GET /problems`, `GET /problems/{id}`, `PATCH /problems/{id}` | 06 |
 | Score | `GET /score` | 07 |
 
-> Pendiente (Etapas 03 a 07): especificación detallada de esos endpoints.
+> Pendiente (Etapas 04 a 07): especificación detallada de esos endpoints.

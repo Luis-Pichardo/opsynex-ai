@@ -36,6 +36,8 @@ public sealed class OpsynexDbContext(DbContextOptions<OpsynexDbContext> options,
 
     public DbSet<OperationalData> OperationalData => Set<OperationalData>();
 
+    public DbSet<MonthlyFinancialData> MonthlyFinancialData => Set<MonthlyFinancialData>();
+
     public DbSet<KpiResult> KpiResults => Set<KpiResult>();
 
     public DbSet<Problem> Problems => Set<Problem>();
@@ -72,6 +74,7 @@ public sealed class OpsynexDbContext(DbContextOptions<OpsynexDbContext> options,
         ApplyCompanyFilter<AccountMapping>(modelBuilder);
         ApplyCompanyFilter<FinancialData>(modelBuilder);
         ApplyCompanyFilter<OperationalData>(modelBuilder);
+        ApplyCompanyFilter<MonthlyFinancialData>(modelBuilder);
         ApplyCompanyFilter<KpiResult>(modelBuilder);
         ApplyCompanyFilter<Problem>(modelBuilder);
         ApplyCompanyFilter<Score>(modelBuilder);
@@ -86,7 +89,7 @@ public sealed class OpsynexDbContext(DbContextOptions<OpsynexDbContext> options,
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
         {
             var unsupported = entityType.GetCheckConstraints()
-                .Where(c => !c.ModelName.EndsWith("_Year", StringComparison.Ordinal))
+                .Where(c => !c.ModelName.EndsWith("_Year", StringComparison.Ordinal) && !c.ModelName.EndsWith("_Month", StringComparison.Ordinal))
                 .Select(c => c.ModelName)
                 .ToList();
             foreach (var name in unsupported)

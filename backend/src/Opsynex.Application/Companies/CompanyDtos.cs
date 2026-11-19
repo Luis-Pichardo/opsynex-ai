@@ -1,4 +1,5 @@
 using FluentValidation;
+using Opsynex.Domain.Catalogs;
 using Opsynex.Domain.Entities;
 using Opsynex.Domain.Enums;
 
@@ -34,7 +35,7 @@ internal sealed class CompanyRequestValidator : AbstractValidator<CompanyRequest
         RuleFor(r => r.Industry).IsInEnum().WithMessage("La industria no es válida.");
         RuleFor(r => r.Sector).MaximumLength(100);
         RuleFor(r => r.Currency)
-            .Matches("^[A-Z]{3}$").WithMessage("La moneda debe ser un código ISO 4217 de 3 letras en mayúsculas (p. ej. USD, DOP).")
+            .Must(Iso4217.IsValid).WithMessage("La moneda debe ser un código ISO 4217 vigente en mayúsculas (p. ej. DOP o USD).")
             .When(r => r.Currency is not null);
     }
 }

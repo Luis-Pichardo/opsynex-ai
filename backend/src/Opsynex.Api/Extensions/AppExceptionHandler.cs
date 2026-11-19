@@ -31,6 +31,7 @@ public sealed class AppExceptionHandler(IProblemDetailsService problemDetails, T
             ForbiddenException forbidden => Problem(StatusCodes.Status403Forbidden, forbidden),
             NotFoundException notFound => Problem(StatusCodes.Status404NotFound, notFound),
             ConflictException conflict => Problem(StatusCodes.Status409Conflict, conflict),
+            PayloadTooLargeException tooLarge => Problem(StatusCodes.Status413PayloadTooLarge, tooLarge),
             UniqueConstraintViolationException unique => new ProblemDetails
             {
                 Status = StatusCodes.Status409Conflict,
