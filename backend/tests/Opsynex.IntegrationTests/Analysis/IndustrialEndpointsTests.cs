@@ -21,8 +21,8 @@ public sealed class IndustrialEndpointsTests(OpsynexApiFactory factory) : IClass
 {
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
-    private static readonly JsonElement Expected = JsonDocument.Parse(
-        File.ReadAllText(Path.Combine(UploadClient.SampleDirectory, "industrial", "expected_industrial.json"))).RootElement;
+    private static readonly JsonElement Expected = JsonElement.Parse(
+        File.ReadAllText(Path.Combine(UploadClient.SampleDirectory, "industrial", "expected_industrial.json")));
 
     private static decimal Machine(string id, string field) => Expected.GetProperty("machines").GetProperty(id).GetProperty(field).GetDecimal();
 
