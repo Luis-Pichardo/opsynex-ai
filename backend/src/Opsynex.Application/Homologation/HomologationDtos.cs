@@ -39,6 +39,13 @@ public sealed record PendingAccountDto(
     int Year,
     decimal Amount);
 
+/// <summary>Categoría estándar del catálogo (para elegirla en la revisión).</summary>
+public sealed record CategoryDto(OpsynexCategory Category, string Name, string Description, Domain.Catalogs.FinancialStatement Statement)
+{
+    public static IReadOnlyList<CategoryDto> All { get; } =
+        [.. Domain.Catalogs.OpsynexCategoryCatalog.All.Select(c => new CategoryDto(c.Category, c.Name, c.Description, c.Statement))];
+}
+
 public sealed record MappingUpdate(Guid Id, OpsynexCategory Category);
 
 /// <summary>Guardar o confirmar mapeos (masivo). La categoría queda confirmada por el usuario.</summary>

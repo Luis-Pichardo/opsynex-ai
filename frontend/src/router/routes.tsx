@@ -6,13 +6,9 @@ import { RoleGuard } from '@/auth/RoleGuard'
 import { AppLayout, type RouteHandle } from '@/components/layout/AppLayout'
 import { LoginPage } from '@/pages/LoginPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
-import {
-  DashboardPage,
-  KpisPage,
-  MappingsPage,
-  ProblemsPage,
-  UploadsPage,
-} from '@/pages/SectionPages'
+import { MappingsPage } from '@/pages/MappingsPage'
+import { DashboardPage, KpisPage, ProblemsPage } from '@/pages/SectionPages'
+import { UploadsPage } from '@/pages/UploadsPage'
 
 const handle = (title: string): RouteHandle => ({ title })
 

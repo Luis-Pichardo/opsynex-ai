@@ -9,6 +9,9 @@ public interface IUserRepository : IRepository<User>
 
     /// <summary>Busca por Id ignorando el filtro por empresa (validación de la sesión).</summary>
     Task<User?> GetByIdIgnoringFiltersAsync(Guid id, CancellationToken cancellationToken = default);
+
+    /// <summary>Nombres de usuarios por Id, ignorando el filtro por empresa (p. ej. el Admin que hizo una carga).</summary>
+    Task<IReadOnlyDictionary<Guid, string>> GetNamesIgnoringFiltersAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken = default);
 }
 
 /// <summary>Repositorio de datos anuales por empresa (FinancialData, OperationalData, KpiResult, Score).</summary>

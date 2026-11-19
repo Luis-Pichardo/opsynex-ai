@@ -156,6 +156,30 @@ Sin Python, las pruebas con IA real se omiten con su motivo. En la CI se exigen
   - El impacto de `EBITDA_DECLINE` coincide con los KPIs y los ingresos.
   - Errores (`company_required`, `invalid_year`), empresa sin datos y re-análisis sin duplicar scores.
 
+### Frontend: carga y homologación (Etapa 09)
+
+- **`UploadWizard.test.tsx`:**
+  - Valida la extensión en el cliente sin subir nada.
+  - Recorre el flujo completo: hojas detectadas (con las ignoradas y su motivo), resumen del
+    análisis, advertencias con su ubicación y enlace al dashboard.
+  - Muestra el aviso de revisión recomendada con el enlace a la carga.
+  - Un archivo con errores muestra los mensajes, no permite ir al dashboard y deja subir otro.
+- **`MappingReviewTable.test.tsx`:** cuenta con hoja, fila y sección; confianza Alta, Media o
+  Baja; método; cambio de categoría; marca de cambios sin guardar; cuentas confirmadas.
+- **`MappingsPage.test.tsx`:**
+  - Muestra solo las dudosas al inicio, con el guardado deshabilitado sin cambios.
+  - «Confirmar todas», luego guardar y volver a analizar (verifica el `PUT` y el resumen
+    «Score 64,0 → 67,0» y «Cuentas dudosas 2 → 0»).
+- **`upload-rules.test.ts`:** extensiones, archivo vacío y tamaño máximo; formatos de tamaño y
+  de años.
+- **Backend** (`Analysis/AnalysisSummaryEndpointsTests`): `/analysis/summary` coherente con
+  `/score`, `/problems` e `/impact/summary`; catálogo de categorías; usuario de cada carga.
+- **Manual con Playwright contra el API real:**
+  - libro de 3 años → resumen → dashboard sin pasos intermedios;
+  - variante con cuentas desconocidas → aviso → corrección → resumen actualizado;
+  - archivo sin estados → errores sin continuar;
+  - 375 px en modo oscuro sin scroll horizontal.
+
 ### Checklist de backend del MVP (sección 20)
 
 | Criterio | Cómo se verifica |

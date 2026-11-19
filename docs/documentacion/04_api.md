@@ -166,7 +166,7 @@ si el usuario tiene empresa), `iat`, `nbf`, `exp`, `iss` (`opsynex-api`) y `aud`
 }
 ```
 
-`UploadListItemDto`: `{ id, companyId, fileName, fileType, status, years, rowsCount, warningsCount, errorsCount, createdAt }`.
+`UploadListItemDto`: `{ id, companyId, fileName, fileType, status, years, rowsCount, warningsCount, errorsCount, createdAt, analysisStatus, needsReview, uploadedBy }` (`uploadedBy`: nombre de quien subió el archivo).
 
 Las inconsistencias de calidad nunca bloquean la carga (ver el capítulo *Motores analíticos →
 Ingesta y validación*). El archivo original no se guarda.
@@ -181,6 +181,7 @@ consolidación) se ejecuta automáticamente al subir un archivo válido y la car
 | Método | Ruta | Request | Response | Errores |
 |---|---|---|---|---|
 | GET | `/mappings` | — (el Admin elige la empresa con `X-Company-Id`) | 200 `MappingDto[]` | 400 `mapping.company_required` |
+| GET | `/mappings/categories` | — | 200 `CategoryDto[]`: `{ category, name, description, statement }` (catálogo en español) | — |
 | GET | `/mappings/pending?uploadId=` | — | 200 `PendingAccountDto[]` (dudosas primero, luego por monto) | 404 |
 | PUT | `/mappings` | `{ items: [{ id, category }] }` | 200 `MappingDto[]` (confirmados, `method: "Manual"`, confianza 1) | 400 `validation_failed`, 404 |
 | POST | `/mappings/consolidate?uploadId=` | — | 200 `ProcessingResult` | 404, 409 `upload.failed` |
@@ -200,7 +201,13 @@ consolidación) se ejecuta automáticamente al subir un archivo válido y la car
 | Método | Ruta | Rol | Response | Errores |
 |---|---|---|---|---|
 | GET | `/kpis?year=` | Todos | 200 `KpisResponse` | 400 `kpis.company_required` (Admin sin empresa) |
+| GET | `/analysis/summary` | Todos | 200 `AnalysisSummaryDto` | 400 `analysis.company_required` |
 | POST | `/analysis/run` | Admin, Analyst | 200 `{ companyId, years, calculatedAt, problems, latestYear, latestScore, latestEstimatedLoss }` | 400 `analysis.company_required`, 403 |
+
+`AnalysisSummaryDto` (lo usa el asistente de carga): `{ companyId, currency, years, latestYear,
+kpisCalculated, kpisTotal, problems: { total, high, medium, low }, score, interpretation,
+interpretationLabel, estimatedLoss, calculatedAt }`, todo del último año analizado. Sin análisis:
+`latestYear: null` y contadores en 0.
 
 `GET /kpis` sin `year` devuelve la serie histórica; con `year`, solo ese año. El análisis
 (KPIs → diagnóstico → impacto → score, en una sola transacción) se ejecuta solo al consolidar una
