@@ -1,4 +1,5 @@
 import { cva, type VariantProps } from 'class-variance-authority'
+import { CircleCheck, Eye, Info, OctagonAlert, TriangleAlert, type LucideIcon } from 'lucide-react'
 import type * as React from 'react'
 
 import { cn } from '@/lib/utils'
@@ -27,11 +28,29 @@ const badgeVariants = cva(
   },
 )
 
-export interface BadgeProps
-  extends React.HTMLAttributes<HTMLSpanElement>, VariantProps<typeof badgeVariants> {}
+/** Icono de cada variante semántica (GUIA_DE_DISENO.md §2.2). */
+const BADGE_ICONS: Partial<Record<NonNullable<BadgeProps['variant']>, LucideIcon>> = {
+  critical: OctagonAlert,
+  serious: TriangleAlert,
+  warning: Eye,
+  good: CircleCheck,
+  info: Info,
+}
 
-function Badge({ className, variant, ...props }: BadgeProps) {
-  return <span className={cn(badgeVariants({ variant }), className)} {...props} />
+export interface BadgeProps
+  extends React.HTMLAttributes<HTMLSpanElement>, VariantProps<typeof badgeVariants> {
+  /** Las variantes semánticas incluyen su icono; `false` lo oculta (solo si el texto lo explica). */
+  icon?: boolean
+}
+
+function Badge({ className, variant, icon = true, children, ...props }: BadgeProps) {
+  const Icon = variant ? BADGE_ICONS[variant] : undefined
+  return (
+    <span className={cn(badgeVariants({ variant }), className)} {...props}>
+      {icon && Icon ? <Icon aria-hidden="true" /> : null}
+      {children}
+    </span>
+  )
 }
 
 export { Badge, badgeVariants }

@@ -44,6 +44,9 @@
   --sidebar-muted: #a9b4e8;
   --sidebar-active: rgba(255, 255, 255, 0.08);
 
+  /* Capa detrás de modales y drawers (igual en ambos modos) */
+  --overlay: rgba(13, 13, 13, 0.5);
+
   /* Semánticos: base / texto / fondo suave */
   --critical: #d03b3b;
   --critical-text: #b42318;
