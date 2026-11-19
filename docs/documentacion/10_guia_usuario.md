@@ -8,6 +8,44 @@
 | Analyst | Sube archivos, revisa la homologación y vuelve a analizar |
 | Client | Ve los resultados de su empresa |
 
+### Iniciar sesión
+
+1. Abre la plataforma y escribe el correo y la contraseña que te dio el administrador.
+2. Si te equivocas, verás "Correo o contraseña incorrectos". Después de 5 intentos fallidos la
+   cuenta se bloquea 15 minutos.
+3. ¿Olvidaste tu contraseña? Pide al administrador que te asigne una nueva. No hay registro
+   público: las cuentas solo las crea el administrador.
+
+Por seguridad, la sesión dura 60 minutos. Al vencer, el sistema te lleva al inicio de sesión con
+el aviso "Tu sesión expiró". Para salir antes, abre el menú de tu usuario (círculo con tus
+iniciales, arriba a la derecha) y elige **Cerrar sesión**.
+
+### Navegación
+
+- **Menú lateral:** Dashboard, Problemas, KPIs y, para administradores y analistas, Carga de
+  datos y Homologación. El administrador ve también **Administración**. Puedes colapsarlo para
+  ver solo los iconos. En el teléfono se abre con el botón ☰.
+- **Barra superior:** el administrador elige aquí la **empresa** que quiere consultar. Todos
+  pueden elegir el **año** que quieren ver (por defecto, el más reciente).
+- **Tema:** el botón del sol o la luna cambia entre modo claro, oscuro o el del sistema.
+
+### Administración de empresas y usuarios (solo administrador)
+
+En **Administración → Empresas**:
+- **Nueva empresa:** nombre, industria (manufactura o servicios), sector opcional y moneda
+  (código ISO, por ejemplo DOP). La industria y la moneda definen las referencias del análisis.
+- **Eliminar:** solo se puede eliminar una empresa sin usuarios ni datos cargados.
+
+En **Administración → Usuarios**:
+- **Nuevo usuario:** nombre, correo, rol, empresa y contraseña inicial (al menos 8 caracteres,
+  con letras y números). Los analistas y clientes deben pertenecer a una empresa. Comparte la
+  contraseña por un canal seguro.
+- **Editar:** cambia datos, rol, empresa o el estado activo. Si cambias el rol o la empresa, la
+  persona debe volver a iniciar sesión.
+- **Cambiar contraseña:** asigna una nueva y desbloquea la cuenta.
+- **Desactivar:** la persona ya no puede entrar. Se puede reactivar desde **Editar**.
+- Usa el buscador y los filtros de rol y empresa para encontrar usuarios.
+
 ### Qué archivos acepta el sistema
 
 **Opción 1 — el libro contable completo (recomendado).** El mismo archivo de Excel que prepara

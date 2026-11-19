@@ -294,3 +294,37 @@ Registro de cada etapa completada (la más reciente al final).
   debe descontar la superposición entre problemas; la IA enriquecerá las recomendaciones en la
   etapa 11.
 
+### Etapa 08 — Frontend base y sistema de diseño (19/11/2026)
+
+- **Resumen:**
+  - **Tema y tokens:** `ThemeProvider` (claro, oscuro, sistema), tokens mapeados en Tailwind y una
+    prueba que prohíbe colores hex, tamaños de fuente y sombras sueltos.
+  - **Componentes:** shadcn/ui adaptados a la guía (Button con estado de carga, Input, Select,
+    Label, Card, Badge con icono, Table y DataTable, Tabs, Dialog, Sheet, DropdownMenu, Tooltip,
+    Skeleton, Toaster, Form) y propios (`StatCard`, `EmptyState`, `PageHeader`, `ScoreGauge`,
+    `SeverityBadge`, `TrendIndicator`, `ConfirmDialog`). Página `/design` solo en desarrollo.
+  - **Cliente de API** con token, empresa (`X-Company-Id`), 401 → cierre de sesión y
+    ProblemDetails → toast.
+  - **Autenticación:** login a pantalla dividida sin registro, `AuthProvider`, `ProtectedRoute`
+    y `RoleGuard` (también por URL directa).
+  - **Layout:** sidebar colapsable por rol, topbar con empresa, año, tema y usuario, y drawer en
+    móvil.
+  - **Administración:** empresas y usuarios (alta, edición, contraseña, desactivación, filtros).
+  - Secciones de las etapas 09 y 10 con `EmptyState`.
+- **Archivos principales:** `frontend/src/{api,auth,workspace,theme,router}/`,
+  `frontend/src/components/{ui,common,layout,admin}/`, `frontend/src/pages/`,
+  `docs/capturas/etapa-08/`.
+- **Decisiones técnicas:**
+  - React Router 7 (modo data router) con rutas diferidas para Administración y `/design`; el
+    bundle se divide en chunks de librerías (react, ui, data) y el principal pesa ~41 kB.
+  - Token en `localStorage` con cierre por vencimiento y por 401. Se descartaron las cookies
+    httpOnly porque el API ya usa JWT Bearer y CORS sin credenciales.
+  - Errores del API como toast persistente (los de error no se cierran solos); los formularios
+    los muestran en sus campos.
+  - `tailwind-merge` extendido con la escala tipográfica de la guía.
+  - Nuevo token `--overlay` para el fondo de modales y drawers (agregado a la guía).
+  - El Admin elige la empresa en la topbar; las demás pantallas la usan sin repetir el filtro.
+  - Se retiró la tarjeta provisional de salud del API (etapa 00): el layout la reemplaza.
+- **Pendientes:** pantallas de carga y homologación (etapa 09); dashboard, problemas y KPIs
+  (etapa 10).
+

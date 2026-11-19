@@ -153,3 +153,8 @@ el margen que representa y la magnitud del deterioro, y la empresa recibe un Sco
 100 por año (rentabilidad, eficiencia de costos, productividad y estabilidad financiera) con su
 interpretación. Las recomendaciones incluyen las cifras del problema y su impacto. Con esto el
 backend del MVP está completo. La siguiente etapa es el frontend base (Etapa 08).
+
+Etapa 08 completada (19/11/2026): ya existe la interfaz web base. Incluye el inicio de sesión, el
+menú y la barra superior según el rol, el modo claro y oscuro, la versión para teléfono, y la
+administración de empresas y usuarios. Sigue el sistema de diseño de Opsynex. La siguiente etapa
+es la carga de datos y la homologación en la interfaz (Etapa 09).
