@@ -30,7 +30,8 @@ public sealed record AnalysisRunResult(
 /// <summary>
 /// Análisis completo de una empresa, año por año: KPIs (con tendencias y normalización) → diagnóstico
 /// (problemas y hallazgos positivos) → impacto económico de cada problema → score Opsynex. Todo se
-/// confirma con un único <c>SaveChanges</c> (una transacción). Se ejecuta al consolidar una carga y bajo
+/// confirma con un único <c>SaveChanges</c> (una transacción). Después, si está activa, se programa
+/// la IA (anomalías, resumen ejecutivo y recomendaciones), que nunca hace fallar el análisis. Se ejecuta al consolidar una carga y bajo
 /// demanda (<c>POST /api/v1/analysis/run</c>).
 /// </summary>
 public sealed class AnalysisPipeline(
@@ -45,6 +46,8 @@ public sealed class AnalysisPipeline(
     IOptions<BenchmarkOptions> benchmarks,
     IOptions<DiagnosisSettings> diagnosisSettings,
     IOptions<ScoreSettings> scoreSettings,
+    IOptions<Insights.AiOptions> aiOptions,
+    Insights.IAiEnrichmentScheduler aiScheduler,
     TimeProvider timeProvider)
 {
     private sealed record YearData(
@@ -64,7 +67,10 @@ public sealed class AnalysisPipeline(
         var ranges = settings.For(company.Industry, company.Currency);
         var now = timeProvider.GetUtcNow().UtcDateTime;
 
-        var existingProblems = (await problems.ListAsync(p => p.CompanyId == companyId, cancellationToken)).ToList();
+        // Las anomalías (ANOMALY_*) las administra el paso de IA, no las reglas.
+        var existingProblems = (await problems.ListAsync(p => p.CompanyId == companyId, cancellationToken))
+            .Where(p => !p.Code.StartsWith(Insights.AiEnrichmentService.AnomalyPrefix, StringComparison.Ordinal))
+            .ToList();
         var detectedCount = 0;
         var computed = new Dictionary<int, YearData>();
         var scored = new Dictionary<int, Score>();
@@ -144,6 +150,12 @@ public sealed class AnalysisPipeline(
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
         int? latest = computed.Count == 0 ? null : computed.Keys.Max();
+
+        // Paso opcional con IA (anomalías, resumen y recomendaciones): no bloquea ni rompe el análisis.
+        if (latest is not null && aiOptions.Value.Enabled)
+        {
+            await aiScheduler.ScheduleAsync(companyId, latest, force: false, cancellationToken);
+        }
         return new AnalysisRunResult(
             companyId,
             [.. computed.Keys.Order()],

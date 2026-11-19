@@ -20,6 +20,7 @@ public sealed class ReportService(
     ICompanyYearRepository<FinancialData> financialData,
     IRepository<Problem> problems,
     IRepository<Upload> uploads,
+    ICompanyYearRepository<ExecutiveSummary> summaries,
     IExecutiveReportRenderer renderer,
     TimeProvider timeProvider)
 {
@@ -30,6 +31,7 @@ public sealed class ReportService(
         [ImpactCategory.ProductivityLoss] = "Pérdida de productividad",
         [ImpactCategory.OperationalWaste] = "Desperdicio operacional",
         [ImpactCategory.FinancialAlert] = "Alertas financieras",
+        [ImpactCategory.Anomaly] = "Anomalías",
     };
 
     public static string CategoryName(ImpactCategory category) => CategoryNames[category];
@@ -67,7 +69,7 @@ public sealed class ReportService(
         var ordered = DiagnosisEngine.Prioritize(yearProblems, p => p.Severity, p => p.ImpactValue)
             .ThenBy(p => p.Code, StringComparer.Ordinal)
             .Select((p, i) => new ReportProblem(i + 1, p.Code, p.Title, p.Severity, p.ImpactCategory, p.ImpactValue, p.Description,
-                p.Recommendation, p.AiRecommendation))
+                p.Recommendation, AiText(p.AiRecommendation)))
             .ToList();
 
         var totalLoss = yearProblems.Sum(p => p.ImpactValue ?? 0m);
@@ -92,8 +94,23 @@ public sealed class ReportService(
             [.. financial.OrderBy(f => f.Year).Select(f => new ReportTrendPoint(
                 f.Year, f.Revenue, f.TotalCost, kpis.FirstOrDefault(k => k.Year == f.Year)?.EbitdaMargin))],
             ordered,
-            await WarningsAsync(companyId, current.Year, cancellationToken));
+            await WarningsAsync(companyId, current.Year, cancellationToken),
+            SummaryText(await summaries.GetByCompanyAndYearAsync(companyId, current.Year, cancellationToken)));
     }
+
+    /// <summary>Resumen ejecutivo con IA como texto del informe (párrafos y prioridades).</summary>
+    private static string? SummaryText(ExecutiveSummary? summary) => summary is null || summary.Paragraphs.Count == 0
+        ? null
+        : string.Join("\n\n", summary.Paragraphs)
+            + (summary.Priorities.Count == 0
+                ? string.Empty
+                : "\n\nPrioridades: " + string.Join(" · ", summary.Priorities.Select((p, i) => $"{i + 1}. {p}")))
+            + $"\n\n(Generado con IA, modelo {summary.Model}, el {summary.GeneratedAt:dd/MM/yyyy}.)";
+
+    /// <summary>Recomendación de IA como texto (diagnóstico y acciones), o <c>null</c>.</summary>
+    private static string? AiText(string? json) => Insights.AiEnrichmentService.ParseRecommendation(json) is { } ai
+        ? ai.Summary + " Acciones: " + string.Join(" ", ai.Actions.Take(3).Select((a, i) => $"{i + 1}) {a.Title}."))
+        : null;
 
     private async Task<IReadOnlyList<ReportWarning>> WarningsAsync(Guid companyId, int year, CancellationToken cancellationToken)
     {

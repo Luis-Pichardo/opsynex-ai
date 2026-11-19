@@ -278,4 +278,29 @@ está disponible para todos los roles. Descarga un informe en tamaño Carta con:
 
 ![Primera página del informe](img/informe-pdf.png){width=60%}
 
-> Pendiente (Etapa 11): recomendaciones y resumen ejecutivo con IA.
+### Recomendaciones y resumen con inteligencia artificial
+
+- **Resumen ejecutivo:** en el dashboard aparece una lectura gerencial del año, de 3 a 5
+  párrafos, con **3 prioridades**. Lleva la etiqueta **Generado con IA** y la fecha. El analista
+  o el administrador puede pulsar **Regenerar** para pedir una versión nueva; mientras se genera
+  verás «Generando el análisis con IA…». Suele tardar menos de un minuto.
+- **Recomendación IA de un problema:** en el detalle de los problemas de severidad alta y media,
+  la pestaña **Recomendación IA** muestra un diagnóstico, las **causas raíz** probables y
+  **acciones**. Cada acción indica su esfuerzo (bajo, medio o alto) y su horizonte (corto: menos
+  de 3 meses; mediano: 3 a 12 meses; largo: más de 12 meses). La pestaña **Recomendación base**
+  siempre está disponible.
+- **Anomalías:** si las ventas de un mes se alejan mucho de lo habitual, aparece un problema de
+  severidad baja «Ventas mensuales atípicas (mes)». Verifica el registro de ese mes: puede ser
+  una venta extraordinaria, una devolución o un error de carga.
+
+**Límites de la IA:**
+- Trabaja solo con los indicadores agregados de la empresa. Nunca recibe nombres, cédulas ni
+  salarios.
+- No conoce el mercado ni la operación por dentro: sus causas son **probables**, no
+  comprobadas.
+- Las recomendaciones son orientativas. Valídalas con tu equipo y con el contador antes de
+  decidir, y verifica las cifras.
+- Si la IA no está configurada o no está disponible, el sistema lo indica y sigue funcionando
+  con las recomendaciones base.
+
+![Resumen ejecutivo cuando la IA no está configurada](img/ia-resumen-no-configurada.png){width=80%}

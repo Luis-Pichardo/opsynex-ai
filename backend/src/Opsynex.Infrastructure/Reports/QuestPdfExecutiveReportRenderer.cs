@@ -73,7 +73,7 @@ internal sealed class QuestPdfExecutiveReportRenderer : IExecutiveReportRenderer
             column.Item().Element(c => Cover(c, model));
             if (model.ExecutiveSummary is { Length: > 0 } summary)
             {
-                column.Item().Element(c => Section(c, "Resumen ejecutivo", body => body.Text(summary)));
+                column.Item().Element(c => Section(c, "Resumen ejecutivo (generado con IA)", body => body.Text(summary)));
             }
 
             column.Item().Element(c => ScoreSection(c, model));
@@ -293,8 +293,16 @@ internal sealed class QuestPdfExecutiveReportRenderer : IExecutiveReportRenderer
                     block.Item().Text(t =>
                     {
                         t.Span("Recomendación: ").SemiBold();
-                        t.Span(problem.AiRecommendation ?? problem.Recommendation);
+                        t.Span(problem.Recommendation);
                     });
+                    if (problem.AiRecommendation is { } ai)
+                    {
+                        block.Item().Background(ReportTheme.PrimarySoft).Padding(6).Text(t =>
+                        {
+                            t.Span("Recomendación con IA: ").SemiBold().FontColor(ReportTheme.InfoText);
+                            t.Span(ai);
+                        });
+                    }
                 });
             }
         }));

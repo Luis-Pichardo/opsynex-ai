@@ -319,6 +319,32 @@ Sin `year` resume el último año con datos. Una empresa sin datos devuelve `yea
 `top` trae hasta 5 problemas ordenados por pérdida (mayor primero). `unquantifiedProblems` cuenta
 las alertas financieras y los problemas sin datos para estimar la pérdida.
 
+### IA — `/api/v1/ai`
+
+| Método | Ruta | Rol | Response | Errores |
+|---|---|---|---|---|
+| GET | `/ai/summary?year=` | Todos | 200 `AiSummaryDto` | 400 `ai.company_required` / `ai.invalid_year` |
+| POST | `/ai/regenerate?year=` | Admin, Analyst | 202 `AiSummaryDto` (se genera en segundo plano) | 400 `ai.disabled` / `ai.no_data` / `ai.invalid_year`, 403 |
+
+`AiSummaryDto`: `{ companyId, year, status, paragraphs[], priorities[], model, generatedAt,
+message }`. Valores de `status`:
+
+| `status` | Significado |
+|---|---|
+| `ready` | Hay resumen |
+| `pending` | Generándose; la UI consulta cada 3 s |
+| `none` | Todavía no hay resumen |
+| `disabled` | `Ai:Enabled = false` |
+| `not_configured` | Falta la clave de Claude |
+| `unavailable` | Falló el servicio de IA o Claude |
+
+Sin `year`, se usa el último año analizado. `regenerate` vuelve a pedir el resumen y las
+recomendaciones de los problemas High y Medium del año, aunque los datos no hayan cambiado.
+
+En `GET /problems/{id}`, `aiRecommendation` es `null` o `{ summary, rootCauses[],
+actions[{ title, description, expectedImpact, effort, horizon }], model, generatedAt,
+inputHash }`.
+
 ### Informes — `/api/v1/reports`
 
 | Método | Ruta | Rol | Response | Errores |

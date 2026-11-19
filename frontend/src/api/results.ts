@@ -1,4 +1,5 @@
 import type {
+  AiSummary,
   ImpactSummary,
   ProblemDetail,
   ProblemPage,
@@ -32,6 +33,14 @@ export const problemsApi = {
     apiRequest<ProblemDetail>(`/problems/${id}`, { signal }),
   setStatus: (id: string, status: ProblemStatus) =>
     apiRequest<ProblemDetail>(`/problems/${id}`, { method: 'PATCH', body: { status } }),
+}
+
+export const aiApi = {
+  summary: (year?: number | null, signal?: AbortSignal) =>
+    apiRequest<AiSummary>('/ai/summary', { query: { year: year ?? undefined }, signal }),
+  /** Vuelve a generar el resumen y las recomendaciones con IA (202: se genera en segundo plano). */
+  regenerate: (year?: number | null) =>
+    apiRequest<AiSummary>('/ai/regenerate', { method: 'POST', query: { year: year ?? undefined } }),
 }
 
 /** Descarga el informe ejecutivo en PDF (todos los roles) y lo guarda en el equipo. */

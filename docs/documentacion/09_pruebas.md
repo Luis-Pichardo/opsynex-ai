@@ -215,6 +215,50 @@ Sin Python, las pruebas con IA real se omiten con su motivo. En la CI se exigen
 
   Capturas en `docs/capturas/etapa-10/`.
 
+### Inteligencia artificial (Etapa 11)
+
+Ninguna prueba llama a la API real de Claude: el servicio de IA usa un SDK simulado (`FakeSdk`) o
+un cliente falso (`FakeLlm`), y el API .NET un `FakeAiInsightsClient`.
+
+- **Servicio de IA (pytest, 134 pruebas):**
+  - `test_llm_client.py` verifica los parámetros que se envían:
+    - `output_format` Pydantic y `output_config.effort`;
+    - `system` con `cache_control`;
+    - `fallbacks="default"` y su beta, sin `thinking`.
+  - También cubre `stop_reason` (`refusal` con categoría, `max_tokens`, salida inválida), la
+    traducción de cada error del SDK (429, 5xx, 401, 404, 400, conexión, timeout), el registro de
+    tokens y el bloqueo de datos personales antes de llamar al SDK.
+  - `test_insights_api.py`: recomendación con causas y acciones; resumen recortado a 5 párrafos y
+    3 prioridades; 503 `llm_not_configured` sin clave; errores como ProblemDetails; clave
+    interna; validación.
+  - `test_anomalies.py`: series sintéticas con un pico y una caída, pico estacional bajo el umbral
+    de materialidad, serie corta, MAD = 0 y explicación en el endpoint.
+  - `test_privacy.py`: patrones de datos personales y prompts construidos solo con agregados.
+- **API .NET:**
+  - `Analysis/AiInsightsEndpointsTests` (modo Inline con cliente simulado):
+    - resumen del año y recomendaciones de los problemas Medium (la base se conserva);
+    - caché por hash al volver a analizar, y «Regenerar» que fuerza la llamada;
+    - anomalías como problemas Low que sobreviven al motor de reglas y se eliminan cuando ya no
+      se detectan;
+    - sin clave o con el servicio caído, el estado lo dice y KPIs, problemas y PDF siguen
+      funcionando;
+    - **payloads sin datos personales** con el libro sintético (que trae nómina);
+    - el PDF incluye el resumen;
+    - permisos.
+  - `AiDisabledTests`: estado `disabled` y `regenerate` rechazado.
+  - `AiInsightsClientTests`: JSON en snake_case, `llm_not_configured` como error propio y el resto
+    como no disponible.
+- **Frontend:** `ExecutiveSummaryCard.test.tsx` (listo, Client sin «Regenerar», generando, no
+  configurada, no disponible) y `AiRecommendationPanel.test.tsx` (causas, acciones con esfuerzo y
+  horizonte, y el estado vacío).
+- **Manual contra el stack real sin clave de Claude:**
+  - el servicio de IA recibe `/anomalies/detect` (200, sin anomalías por la materialidad) y
+    `/executive-summary` (503 `llm_not_configured`);
+  - el dashboard muestra «La IA generativa no está configurada…» y el resto del MVP funciona.
+
+**Pendiente:** la prueba con una `ANTHROPIC_API_KEY` real (calidad y coherencia de las
+respuestas en español con el libro sintético).
+
 ### Checklist MVP
 
 Verificación punto por punto de la definición de MVP de las dos especificaciones, con el libro

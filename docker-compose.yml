@@ -32,6 +32,8 @@ services:
       AI_SERVICE_API_KEY: ${AiService__ApiKey:-dev-internal-key}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-opus-5-5}
+      ANTHROPIC_EFFORT: ${ANTHROPIC_EFFORT:-medium}
+      ANTHROPIC_FALLBACKS: ${ANTHROPIC_FALLBACKS:-default}
     ports:
       - "8001:8001"
 
@@ -49,6 +51,8 @@ services:
       AiService__Enabled: "true"
       AiService__BaseUrl: http://ai-service:8001
       AiService__ApiKey: ${AiService__ApiKey:-dev-internal-key}
+      Ai__Enabled: ${Ai__Enabled:-true}
+      Ai__MaxRecommendations: ${Ai__MaxRecommendations:-10}
       Upload__MaxMb: ${Upload__MaxMb:-20}
     ports:
       - "8080:8080"

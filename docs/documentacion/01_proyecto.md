@@ -177,3 +177,12 @@ datos consolidados por año. La siguiente etapa es el dashboard ejecutivo y los 
 Se cumplen todos los puntos de la «Definición MVP» de las dos especificaciones (ver *Pruebas →
 Checklist MVP*). Las etapas siguientes agregan inteligencia artificial (11), el módulo
 industrial (12), calidad y datos demo (13) y el despliegue (14).
+
+Etapa 11 (19/11/2026): la plataforma suma inteligencia artificial.
+- **Resumen ejecutivo:** escrito con Claude para la gerencia, con 3 prioridades.
+- **Recomendaciones:** para los problemas de severidad alta y media, con causas raíz y
+  acciones.
+- **Anomalías:** detección en las ventas mensuales.
+- **Funcionamiento sin IA:** si la IA no está configurada o no responde, todo sigue funcionando
+  con las recomendaciones base y la pantalla lo indica.
+- **Privacidad:** a la IA solo llegan cifras agregadas, nunca datos personales.

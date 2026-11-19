@@ -28,6 +28,11 @@ export default defineConfig({
               test: /node_modules[\\/](@radix-ui|@floating-ui|sonner|lucide-react)[\\/]/,
             },
             {
+              // Recharts y sus dependencias: solo los usan el dashboard, problemas y KPIs.
+              name: 'charts',
+              test: /node_modules[\\/](recharts|d3-[a-z-]+|victory-vendor|es-toolkit|immer|reselect|@reduxjs|react-redux|redux|decimal\.js-light|eventemitter3)[\\/]/,
+            },
+            {
               name: 'data',
               test: /node_modules[\\/](@tanstack|react-hook-form|@hookform|zod)[\\/]/,
             },

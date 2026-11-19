@@ -15,7 +15,7 @@ Leyenda: ⬜ pendiente · 🟡 en progreso · ✅ completada
 | 08 | Frontend base y sistema de diseño | `etapas/ETAPA_08_frontend_base.md` | ✅ | 19/11/2026 | Rama `etapa-08-frontend-base` (PR apilado sobre el de la etapa 07). Tokens y tema claro/oscuro, componentes shadcn/ui y propios, cliente de API, login JWT, rutas por rol, layout responsive, administración de empresas y usuarios; 49 pruebas de frontend; capturas en `docs/capturas/etapa-08/`. |
 | 09 | Frontend: carga de datos y homologación | `etapas/ETAPA_09_frontend_carga.md` | ✅ | 19/11/2026 | Rama `etapa-09-frontend-carga` (PR apilado sobre el de la etapa 08). Asistente de carga de 3 pasos, homologación opcional con re-análisis, historial y datos consolidados; `/analysis/summary` y `/mappings/categories`; 62 pruebas de frontend y 523 .NET. |
 | 10 | Dashboard ejecutivo y problemas (cierre MVP) | `etapas/ETAPA_10_dashboard.md` | ✅ | 19/11/2026 | Rama `etapa-10-dashboard` (PR apilado sobre el de la etapa 09). Dashboard, problemas con detalle, KPIs, gráficos Recharts e informe PDF (QuestPDF) para todos los roles; Checklist MVP en `09_pruebas.md`; 540 pruebas .NET y 69 de frontend. **MVP completo.** |
-| 11 | Inteligencia artificial: recomendaciones, anomalías y resumen | `etapas/ETAPA_11_inteligencia_artificial.md` | ⬜ | | |
+| 11 | Inteligencia artificial: recomendaciones, anomalías y resumen | `etapas/ETAPA_11_inteligencia_artificial.md` | 🟡 | 19/11/2026 | Rama `etapa-11-inteligencia-artificial` (PR apilado sobre el de la etapa 10). Implementado y probado con Claude simulado: cliente de Claude, recomendaciones, resumen, anomalías, `/ai/*`, UI y PDF; 555 pruebas .NET, 134 de Python y 76 de frontend. **Falta** validar con `ANTHROPIC_API_KEY` real (criterio 1). |
 | 12 | Módulo industrial | `etapas/ETAPA_12_modulo_industrial.md` | ⬜ | | |
 | 13 | Seguridad, calidad y datos demo | `etapas/ETAPA_13_calidad_y_demo.md` | ⬜ | | |
 | 14 | Despliegue en la nube | `etapas/ETAPA_14_despliegue.md` | ⬜ | | |
@@ -67,6 +67,10 @@ Revisado el 15/11/2026 (contenedor de Claude Code en la nube, Ubuntu 24.04, usua
   `ai-service/.venv`; ejecutar `ai-service/.venv/bin/pytest` y `.venv/bin/ruff`.
 - **Node:** v22 y npm 10 instalados. Frontend con `npm ci`.
 - **Word:** `python3 scripts/generar_documentacion.py` funciona (pandoc y python-docx presentes).
+- **Clave de Claude en la nube (etapa 11):** las claves de la API de Claude no se pueden guardar
+  como secretos de red. Hay que agregar `ANTHROPIC_API_KEY` como variable del entorno
+  «opsynex-ai» (la leen todos los que usan el entorno) y abrir una sesión nueva. Ese entorno
+  tiene un script de preparación que ejecuta `scripts/setup_cloud.sh`.
 - **Variables necesarias para desarrollo:** ninguna obligatoria todavía; `.env.example` tiene
   los valores por defecto. `ANTHROPIC_API_KEY` solo hará falta desde la Etapa 04/11.
 - **Ramas:** las sesiones en la nube trabajan en la rama asignada por el entorno (p. ej.

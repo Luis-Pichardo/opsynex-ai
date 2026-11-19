@@ -40,6 +40,7 @@ public sealed record ReportProblem(
     string Recommendation,
     string? AiRecommendation);
 
+
 public sealed record ReportWarning(string Message, string? Location);
 
 /// <summary>Todo lo que contiene el informe ejecutivo en PDF de una empresa y un año.</summary>

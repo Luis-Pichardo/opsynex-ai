@@ -15,6 +15,15 @@ class Settings(BaseSettings):
     internal_api_key: str = Field(default="", alias="AI_SERVICE_API_KEY")
     anthropic_api_key: str = Field(default="", alias="ANTHROPIC_API_KEY")
     anthropic_model: str = Field(default="claude-opus-5-5", alias="ANTHROPIC_MODEL")
+    # Esfuerzo de razonamiento de Claude (low, medium, high, xhigh, max). En Opus 5.5 el
+    # predeterminado es "medium"; se fija explícito para que no cambie con el modelo.
+    anthropic_effort: str = Field(default="medium", alias="ANTHROPIC_EFFORT")
+    # Respaldo del servidor si el modelo rechaza la petición: "default" (recomendado) o "none".
+    # Los modelos sin fallbacks del lado del servidor (p. ej. Haiku) necesitan "none".
+    anthropic_fallbacks: str = Field(default="default", alias="ANTHROPIC_FALLBACKS")
+    # Tiempo máximo de una llamada a Claude (segundos) y reintentos del SDK.
+    llm_timeout_seconds: float = Field(default=90.0, alias="LLM_TIMEOUT_SECONDS")
+    llm_max_retries: int = Field(default=2, alias="LLM_MAX_RETRIES")
     log_level: str = Field(default="INFO", alias="LOG_LEVEL")
 
 

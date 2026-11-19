@@ -11,6 +11,7 @@ import { DownloadReportButton } from '@/components/common/DownloadReportButton'
 import { EmptyState } from '@/components/common/EmptyState'
 import { PageHeader } from '@/components/common/PageHeader'
 import { RequireCompany } from '@/components/common/RequireCompany'
+import { ExecutiveSummaryCard } from '@/components/dashboard/ExecutiveSummaryCard'
 import { ImpactCard } from '@/components/dashboard/ImpactCard'
 import { KpiCards } from '@/components/dashboard/KpiCards'
 import { ScoreCard } from '@/components/dashboard/ScoreCard'
@@ -125,6 +126,7 @@ function Dashboard() {
           <ImpactCard impact={impact.data} loading={impact.isLoading} />
         </div>
       </section>
+      {companyId ? <ExecutiveSummaryCard companyId={companyId} year={year} /> : null}
       <section aria-label="KPIs principales">
         <KpiCards definitions={kpis.data.definitions} year={kpiYear} currency={currency} />
       </section>

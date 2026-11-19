@@ -385,3 +385,42 @@ Registro de cada etapa completada (la más reciente al final).
 - **Pendientes:** IA (etapa 11): recomendaciones enriquecidas, anomalías y resumen ejecutivo en
   el PDF. Módulo industrial (etapa 12). E2E automatizados en la CI (etapa 13).
 
+### Etapa 11 — Inteligencia artificial: recomendaciones, anomalías y resumen ejecutivo (19/11/2026)
+
+- **Resumen:**
+  - **Servicio de IA:** cliente de Claude con el SDK oficial `anthropic` 2.x. Usa salida
+    estructurada con Pydantic, revisa `stop_reason` (incluido `refusal`), tiene respaldo de
+    servidor, errores por tipo, timeouts, registro de tokens y prompt caching del system prompt.
+  - **Endpoints:** `/recommendations/generate`, `/executive-summary` y `/anomalies/detect`
+    (z-score robusto con MAD y materialidad, o variaciones bruscas).
+  - **API .NET:** paso opcional `Ai:Enabled` después del análisis, en segundo plano. Guarda las
+    recomendaciones en `Problem.AiRecommendation`, la entidad `ExecutiveSummary` y los
+    problemas `ANOMALY_*`, con caché por hash de la entrada. Endpoints `GET /ai/summary` y
+    `POST /ai/regenerate`. El PDF incluye el resumen y las recomendaciones de IA.
+  - **Frontend:** tarjeta «Resumen ejecutivo» y pestañas de recomendación base / IA.
+- **Archivos principales:** `ai-service/app/llm/`, `ai-service/app/engines/anomalies.py`,
+  `ai-service/app/routers/insights.py`, `backend/src/Opsynex.Application/Insights/`,
+  `backend/src/Opsynex.Infrastructure/AiService/{AiInsightsClient,AiEnrichmentQueue}.cs`,
+  `Controllers/AiController.cs`, `frontend/src/components/{dashboard/ExecutiveSummaryCard,problems/AiRecommendationPanel}.tsx`.
+- **Decisiones técnicas:**
+  - **Segundo plano:** el enriquecimiento usa una cola en memoria y un `BackgroundService` para
+    que subir un archivo no espere a Claude. El estado vive en un `AiJobTracker` en memoria (una
+    instancia del API); los resultados, en la base de datos.
+  - **Materialidad en anomalías (25 %):** sin ella, diciembre +22 % del libro sintético salía
+    como anomalía con z ≈ 4,2.
+  - **Hash con decimales normalizados:** un valor calculado y el mismo leído de SQL Server
+    tienen distinta escala (`181741000` frente a `181741000.00`) y regeneraban sin necesidad.
+  - **Orden de las llamadas:** el resumen va primero. Si la IA no está configurada, falla ahí y
+    no se hacen más llamadas.
+  - **Respaldo ante rechazos:** `fallbacks="default"` está activado por defecto
+    (`ANTHROPIC_FALLBACKS=none` lo apaga).
+  - **Privacidad:** el servicio bloquea antes de llamar a Claude cualquier texto con forma de
+    cédula, RNC, correo, teléfono o fila de nómina, además de la prueba de payloads del API.
+  - **Entorno de la nube:** las claves de Claude no se pueden guardar como secretos de red, así
+    que en esta sesión no hubo prueba con Claude real.
+- **Pendientes:**
+  - Validar con `ANTHROPIC_API_KEY` real la calidad de las recomendaciones y del resumen con el
+    libro sintético (criterio 1 de la etapa).
+  - Si se despliega más de una instancia del API, mover la cola y el estado de la IA a un
+    almacenamiento compartido.
+

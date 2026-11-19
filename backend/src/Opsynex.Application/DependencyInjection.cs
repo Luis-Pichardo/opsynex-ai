@@ -29,6 +29,13 @@ public static class DependencyInjection
         services.AddScoped<Analysis.ScoreService>();
         services.AddScoped<Analysis.AnalysisSummaryService>();
         services.AddScoped<Reports.ReportService>();
+        services.AddScoped<Insights.AiEnrichmentService>();
+        services.AddScoped<Insights.AiInsightsService>();
+        services.AddSingleton<Insights.AiJobTracker>();
+        services.AddOptions<Insights.AiOptions>()
+            .BindConfiguration(Insights.AiOptions.SectionName)
+            .Validate(o => o.MaxRecommendations is >= 0 and <= 50, "Ai:MaxRecommendations debe estar entre 0 y 50.")
+            .ValidateOnStart();
         services.AddScoped<Analysis.ImpactService>();
 
         // Reglas de diagnóstico: todas las implementaciones de IDiagnosticRule del dominio.

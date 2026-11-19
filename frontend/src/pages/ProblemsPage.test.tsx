@@ -69,6 +69,8 @@ describe('ProblemDetailPage', () => {
     expect(screen.getByText('Margen anterior')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /Histórico/ })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Evidencia' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Recomendación base' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Recomendación IA' })).toBeInTheDocument()
     expect(screen.getByText(/revisa qué costos crecieron/)).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('combobox', { name: 'Estado' }))

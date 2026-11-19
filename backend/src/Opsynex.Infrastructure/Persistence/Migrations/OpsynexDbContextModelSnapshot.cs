@@ -132,6 +132,61 @@ namespace Opsynex.Infrastructure.Persistence.Migrations
                     b.ToTable("Companies", (string)null);
                 });
 
+            modelBuilder.Entity("Opsynex.Domain.Entities.ExecutiveSummary", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("GeneratedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("InputHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<string>("Model")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("Paragraphs")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Priorities")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanyId", "Year")
+                        .IsUnique();
+
+                    b.ToTable("ExecutiveSummaries", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_ExecutiveSummaries_Paragraphs_Json", "ISJSON([Paragraphs]) = 1");
+
+                            t.HasCheckConstraint("CK_ExecutiveSummaries_Priorities_Json", "ISJSON([Priorities]) = 1");
+
+                            t.HasCheckConstraint("CK_ExecutiveSummary_Year", "[Year] BETWEEN 1900 AND 2200");
+                        });
+                });
+
             modelBuilder.Entity("Opsynex.Domain.Entities.FinancialData", b =>
                 {
                     b.Property<Guid>("Id")
@@ -874,6 +929,15 @@ namespace Opsynex.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("ConfirmedBy")
                         .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("Opsynex.Domain.Entities.ExecutiveSummary", b =>
+                {
+                    b.HasOne("Opsynex.Domain.Entities.Company", null)
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Opsynex.Domain.Entities.FinancialData", b =>

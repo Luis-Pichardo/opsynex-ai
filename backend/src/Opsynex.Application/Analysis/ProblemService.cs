@@ -39,7 +39,7 @@ public sealed record ProblemDetailDto(
     decimal? ImpactValue,
     ProblemStatus Status,
     string Recommendation,
-    string? AiRecommendation,
+    Insights.AiRecommendation? AiRecommendation,
     JsonObject Evidence,
     KpiCode? RelatedKpi,
     IReadOnlyList<KpiHistoryPoint> KpiHistory,
@@ -113,7 +113,7 @@ public sealed class ProblemService(
         }
 
         return new ProblemDetailDto(problem.Id, problem.Year, problem.Code, problem.Title, problem.Description, problem.Category,
-            problem.Severity, problem.ImpactCategory, problem.ImpactValue, problem.Status, problem.Recommendation, problem.AiRecommendation,
+            problem.Severity, problem.ImpactCategory, problem.ImpactValue, problem.Status, problem.Recommendation, Insights.AiEnrichmentService.ParseRecommendation(problem.AiRecommendation),
             problem.Evidence, relatedKpi, history, problem.UpdatedAt);
     }
 

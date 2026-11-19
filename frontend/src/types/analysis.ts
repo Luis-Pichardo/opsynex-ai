@@ -94,7 +94,12 @@ export interface ScoreResponse {
 }
 
 export type ImpactCategory =
-  'MarginLoss' | 'ExcessCost' | 'ProductivityLoss' | 'OperationalWaste' | 'FinancialAlert'
+  | 'MarginLoss'
+  | 'ExcessCost'
+  | 'ProductivityLoss'
+  | 'OperationalWaste'
+  | 'FinancialAlert'
+  | 'Anomaly'
 export type Severity = 'High' | 'Medium' | 'Low'
 export type ProblemCategory =
   'Profitability' | 'CostEfficiency' | 'Productivity' | 'FinancialStability' | 'Operations'
@@ -168,7 +173,7 @@ export interface ImpactEvidence {
 }
 
 export interface ProblemDetail extends Omit<ProblemListItem, 'priority'> {
-  aiRecommendation: string | null
+  aiRecommendation: AiRecommendation | null
   evidence: Record<string, unknown> & { impact?: ImpactEvidence }
   relatedKpi: KpiCode | null
   kpiHistory: { year: number; value: number | null; normalized: number | null }[]
@@ -182,4 +187,39 @@ export interface ProblemQuery {
   status?: ProblemStatus
   page?: number
   pageSize?: number
+}
+
+// --- IA (etapa 11) ---
+
+export interface AiAction {
+  title: string
+  description: string
+  expectedImpact: string
+  effort: 'low' | 'medium' | 'high'
+  horizon: 'short' | 'medium' | 'long'
+}
+
+/** Recomendación generada con IA (Claude) para un problema. */
+export interface AiRecommendation {
+  summary: string
+  rootCauses: string[]
+  actions: AiAction[]
+  model: string
+  generatedAt: string
+  inputHash: string
+}
+
+export type AiSummaryStatus =
+  'ready' | 'pending' | 'none' | 'disabled' | 'not_configured' | 'unavailable'
+
+/** Resumen ejecutivo con IA y estado de la IA para la empresa. */
+export interface AiSummary {
+  companyId: string
+  year: number | null
+  status: AiSummaryStatus
+  paragraphs: string[]
+  priorities: string[]
+  model: string | null
+  generatedAt: string | null
+  message: string | null
 }
