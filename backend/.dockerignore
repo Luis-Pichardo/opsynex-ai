@@ -3,3 +3,7 @@
 **/*.user
 **/.vs/
 tests/
+TestResults/
+sample-data/*.json
+sample-data/inc*
+sample-data/invalido*

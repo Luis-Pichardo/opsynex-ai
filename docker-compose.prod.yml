@@ -1,0 +1,88 @@
+# Opsynex AI en modo producción, en local (mismas imágenes que en la nube).
+#   cp .env.example .env   # y completa los secretos marcados como OBLIGATORIO
+#   docker compose -f docker-compose.prod.yml up -d --build
+#   → frontend http://localhost:8081 · API http://localhost:8080/health
+# El servicio de IA no publica puertos: solo el API lo alcanza por la red interna.
+
+name: opsynex-prod
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:?OBLIGATORIO: define MSSQL_SA_PASSWORD}
+      MSSQL_PID: Express
+    volumes:
+      - sqlserver-prod-data:/var/opt/mssql
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$$MSSQL_SA_PASSWORD" -C -Q "SELECT 1" -b -o /dev/null
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    restart: unless-stopped
+
+  # Aplica las migraciones de EF Core (bundle) y termina; el API arranca después.
+  migrations:
+    build:
+      context: ./backend
+      target: migrations
+    environment:
+      ConnectionStrings__Default: Server=sqlserver,1433;Database=Opsynex;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    restart: "no"
+
+  ai-service:
+    build: ./ai-service
+    environment:
+      AI_SERVICE_API_KEY: ${AiService__ApiKey:?OBLIGATORIO: define AiService__ApiKey}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-opus-5-5}
+      ANTHROPIC_EFFORT: ${ANTHROPIC_EFFORT:-medium}
+      UVICORN_WORKERS: ${UVICORN_WORKERS:-2}
+    expose:
+      - "8001"
+    restart: unless-stopped
+
+  api:
+    build: ./backend
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      Database__MigrateOnStartup: "false"
+      ConnectionStrings__Default: Server=sqlserver,1433;Database=Opsynex;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True
+      Jwt__Secret: ${Jwt__Secret:?OBLIGATORIO: define Jwt__Secret (32+ caracteres)}
+      Seed__AdminEmail: ${Seed__AdminEmail:-}
+      Seed__AdminPassword: ${Seed__AdminPassword:-}
+      Cors__Origins: ${PROD_WEB_ORIGIN:-http://localhost:8081}
+      AiService__BaseUrl: http://ai-service:8001
+      AiService__ApiKey: ${AiService__ApiKey}
+      Ai__Enabled: ${Ai__Enabled:-true}
+    ports:
+      - "8080:8080"
+    depends_on:
+      migrations:
+        condition: service_completed_successfully
+      ai-service:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: ${PROD_API_URL:-http://localhost:8080}
+    environment:
+      API_ORIGIN: ${PROD_API_URL:-http://localhost:8080}
+    ports:
+      - "8081:8080"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  sqlserver-prod-data:

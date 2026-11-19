@@ -11,9 +11,11 @@ ARG VITE_API_URL=http://localhost:8080
 ENV VITE_API_URL=$VITE_API_URL
 RUN npm run build
 
-FROM nginx:1.27-alpine AS runtime
+# nginx sin privilegios (usuario nginx, puerto 8080).
+FROM nginxinc/nginx-unprivileged:1.27-alpine AS runtime
 # Origen del API para la CSP (connect-src). Se puede cambiar al ejecutar: -e API_ORIGIN=https://api…
 ENV API_ORIGIN=http://localhost:8080
 COPY nginx.conf.template /etc/nginx/templates/default.conf.template
 COPY --from=build /app/dist /usr/share/nginx/html
-EXPOSE 80
+EXPOSE 8080
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD wget -qO- http://127.0.0.1:8080/healthz || exit 1

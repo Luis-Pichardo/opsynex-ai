@@ -173,6 +173,19 @@ try
         ResponseWriter = HealthResponseWriter.WriteAsync,
     }).RequireCors(CorsExtensions.PolicyName).AllowAnonymous();
 
+    // Sondas del orquestador (Container Apps): "live" solo el proceso; "ready" también la base de
+    // datos (el servicio de IA es opcional: si falla, el estado es Degraded y sigue listo).
+    app.MapHealthChecks("/health/live", new HealthCheckOptions
+    {
+        Predicate = check => check.Tags.Contains("live"),
+        ResponseWriter = HealthResponseWriter.WriteAsync,
+    }).AllowAnonymous();
+    app.MapHealthChecks("/health/ready", new HealthCheckOptions
+    {
+        Predicate = check => check.Tags.Contains("ready"),
+        ResponseWriter = HealthResponseWriter.WriteAsync,
+    }).AllowAnonymous();
+
     await app.RunAsync();
 }
 catch (Exception ex) when (ex is not HostAbortedException)
