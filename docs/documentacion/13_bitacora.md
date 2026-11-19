@@ -523,3 +523,60 @@ Registro de cada etapa completada (la más reciente al final).
 - **Pendientes:**
   - Rotación de secretos y gestor de secretos de la nube (etapa 14).
   - La validación con una clave real de Claude (etapa 11) sigue pendiente.
+
+### Etapa 14 — Despliegue en la nube (19/11/2026) — versión 1.0
+
+- **Resumen:**
+  - **Nube:** Azure, la opción recomendada. El usuario no indicó otra preferencia ni tenía una
+    cuenta conectada a la sesión.
+  - **Contenedores de producción** sin privilegios:
+    - API con el bundle de migraciones de EF Core.
+    - IA con varios workers de uvicorn.
+    - Frontend en `nginx-unprivileged`.
+    - `docker-compose.prod.yml` para probarlos en local.
+  - **Bicep** (`infra/`):
+    - Container Apps: web y api públicos, ai **interno**, job de migraciones.
+    - Azure SQL serverless con PITR 14 días geo-redundante y LTR 4 semanas / 12 meses / 5 años.
+    - Key Vault, ACR, identidad administrada, Log Analytics, Application Insights con prueba de
+      disponibilidad y 4 alertas.
+  - **Bootstrap** (`scripts/azure-bootstrap.sh`): Key Vault con secretos generados e identidad
+    OIDC de GitHub.
+  - **Workflow `deploy.yml`:** después de la CI en verde sobre `main` despliega la base, sube las
+    imágenes, aplica las migraciones, actualiza las apps y hace una prueba de humo.
+  - **Otros:** sondas `/health/live` y `/health/ready`; manual de despliegue, operación y costos.
+- **Archivos principales:**
+  - `infra/main.bicep`, `infra/main.bicepparam`, `infra/modules/*`
+  - `.github/workflows/deploy.yml`
+  - `scripts/azure-bootstrap.sh`
+  - `docker-compose.prod.yml`
+  - `backend/Dockerfile` (targets `runtime` y `migrations`)
+  - `frontend/nginx.conf.template`
+  - `docs/documentacion/11_despliegue.md`
+- **Decisiones técnicas:**
+  - **Container Apps** en lugar de App Service: un solo entorno para las tres apps, ingreso
+    interno nativo para la IA, jobs para las migraciones y escalado por peticiones.
+  - **Migraciones en un job** (bundle) antes de desplegar las apps: el pipeline no necesita
+    acceso de red a SQL y una migración fallida detiene la versión.
+  - **Despliegue en fases** con el mismo Bicep (`deployJob` / `deployApps`), porque las apps no
+    pueden crearse antes de que existan sus imágenes en el ACR.
+  - **Secretos solo en Key Vault**, leídos por las apps con identidad administrada. GitHub solo
+    guarda variables no secretas (OIDC).
+  - **SQL con usuario y contraseña** (en Key Vault). La autenticación sin contraseña con identidad
+    administrada queda para la fase 2, porque requiere crear el usuario de la identidad con T-SQL.
+  - **Analizadores desactivados en el build de las imágenes** (`ContainerBuild=true`): ya los
+    exige la CI y el contexto de Docker no incluye el `.editorconfig` de la raíz.
+  - **Clave de Claude «disabled»:** Key Vault no admite secretos vacíos; el servicio de IA lo
+    trata como «sin configurar».
+- **Verificación:**
+  - Las cuatro imágenes se construyeron y se probaron juntas: migraciones con el bundle
+    (idempotentes), salud `Healthy` con BD e IA, usuarios sin privilegios, IA sin puerto
+    publicado y `seed-demo` desde la imagen (6 s).
+  - El compose de producción valida.
+  - El Bicep no se pudo compilar en este entorno (sin Azure CLI ni Bicep CLI). Lo valida el job
+    **Infraestructura (Bicep)** de la CI (`az bicep build` y `lint`, sin cuenta).
+- **Pendientes:**
+  - Primer despliegue con la suscripción del cliente: ejecutar el bootstrap y el workflow Deploy.
+    Después, la URL pública HTTPS queda en el resumen del workflow.
+  - Dominio propio (opcional).
+  - Validación con una clave real de Claude (etapa 11).
+  - Confirmar con el cliente el alcance del módulo industrial.

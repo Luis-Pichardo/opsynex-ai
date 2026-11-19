@@ -186,3 +186,37 @@ Etapa 11 (19/11/2026): la plataforma suma inteligencia artificial.
 - **Funcionamiento sin IA:** si la IA no está configurada o no responde, todo sigue funcionando
   con las recomendaciones base y la pantalla lo indica.
 - **Privacidad:** a la IA solo llegan cifras agregadas, nunca datos personales.
+
+Etapa 12 (19/11/2026): **módulo industrial**.
+- Producción, costos y estándares por máquina y línea.
+- OEE con sus componentes, scrap, paradas y costo por unidad.
+- Problemas industriales con su impacto.
+- Score industrial junto al Score Opsynex.
+- Páginas de Producción y Costos.
+
+Su alcance está pendiente de confirmar con el cliente.
+
+Etapa 13 (19/11/2026): **seguridad, calidad y demo**.
+- Límites de peticiones, cabeceras de seguridad y CSP, y matriz de permisos de todos los
+  endpoints.
+- Cobertura superior al 95 % en el núcleo.
+- Pruebas E2E con auditoría de accesibilidad en la CI.
+- Comando `seed-demo` para presentar la plataforma.
+
+**Etapa 14 (19/11/2026) — versión 1.0.**
+- **Contenedores de producción:** sin privilegios.
+- **Infraestructura como código:** Azure Container Apps, Azure SQL con backups, Key Vault,
+  Container Registry y Application Insights con alertas.
+- **Despliegue automático:** en cada merge a `main`, con migraciones previas y prueba de humo.
+- **Manual:** despliegue, operación y costos.
+
+**Estado final:** la plataforma está lista para producción. Falta el primer despliegue con una
+suscripción de Azure del cliente (se hace con el bootstrap y el workflow Deploy).
+
+## Roadmap
+
+| Fase | Contenido |
+|---|---|
+| **1 — MVP y versión 1.0** (completada) | Carga y homologación de libros contables, KPIs, diagnóstico por reglas, impacto económico, Score Opsynex, dashboard, informe PDF, IA (resumen, recomendaciones y anomalías), módulo industrial, seguridad, E2E y despliegue en Azure |
+| **2 — Integración y predicción** | Conectores con ERP (en lugar de archivos), benchmarking entre empresas del mismo sector (anonimizado), forecasting de ingresos, costos y márgenes, alertas por correo cuando aparece un problema alto, sección industrial en el informe PDF y SQL sin contraseña (identidad administrada) |
+| **3 — Tiempo real e IoT** | Ingesta continua de datos de planta (MES / IoT) para OEE en tiempo real, modelos de machine learning por industria, detección automática de anomalías en streaming, módulos analíticos específicos por sector y API pública para integraciones de clientes |

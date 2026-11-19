@@ -134,6 +134,10 @@ análisis ya hecho (KPIs, problemas, impacto, score y módulo industrial). Se pu
 vez: no duplica datos y restablece las contraseñas demo. Las cargas pasan por el mismo flujo que
 la interfaz. Los usuarios están en la *Guía de usuario → Usuarios de demostración*.
 
+### Con Docker en modo producción
+
+`docker-compose.prod.yml` levanta las mismas imágenes que se despliegan en Azure: el bundle de migraciones, la IA sin puertos publicados, y el API y la web sin privilegios. Ver *Despliegue y operación → Contenedores de producción*.
+
 ### Con Docker (plataforma completa)
 
 ```bash
