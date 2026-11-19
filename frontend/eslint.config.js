@@ -32,6 +32,11 @@ export default tseslint.config(
     },
   },
   {
+    // Utilidades de pruebas y definición de rutas: no son módulos de componentes con Fast Refresh.
+    files: ['src/test/**/*.tsx', 'src/router/**/*.tsx', 'src/**/*.test.tsx'],
+    rules: { 'react-refresh/only-export-components': 'off' },
+  },
+  {
     // Los componentes de shadcn/ui exportan variantes junto al componente.
     files: ['src/components/ui/**/*.tsx'],
     rules: { 'react-refresh/only-export-components': 'off' },

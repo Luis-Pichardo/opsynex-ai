@@ -168,6 +168,11 @@ caracteres por línea; nunca menos de 12 px.
 - **Contenido** con ancho máximo de 1440 px, en grilla de 12 columnas y gap de 16 px.
 - **Breakpoints:** `sm` 640, `md` 768, `lg` 1024, `xl` 1280, `2xl` 1536. Por debajo de
   `lg` la sidebar se convierte en un drawer con botón de hamburguesa.
+- Por debajo de `md`, los selectores de empresa y año pasan a una segunda fila de la topbar.
+- Un ítem del menú aún no disponible se muestra con opacidad del 50 % y un tooltip que lo
+  explica (no se oculta).
+- **Login:** pantalla dividida en `lg` (panel de marca con `--sidebar` a la izquierda y
+  formulario a la derecha); en móvil el panel queda como una franja superior con el logo.
 - **Orden del dashboard:** (1) Score + resumen de impacto, (2) fila de KPIs, (3) tendencias,
   (4) principales problemas + recomendaciones.
 
@@ -188,7 +193,7 @@ solo mediante tokens; no se crean variantes ad hoc.
 | **Badge** | Altura 22 px, radio 6 px, `caption`, fondo suave + texto oscuro + icono de 12 px. |
 | **Table** | Cabecera `overline` sobre `--surface-muted`; filas de 48 px; hover `--surface-muted`; números alineados a la derecha con `tabular-nums`; paginación abajo a la derecha; columna de acciones a la derecha. |
 | **Tabs** | Subrayado de 2 px `--primary` en la pestaña activa. |
-| **Dialog / Sheet** | Radio 14 px, `--shadow-lg`, overlay `rgba(13,13,13,0.5)`. Botones abajo a la derecha: secundario, luego primario. |
+| **Dialog / Sheet** | Radio 14 px, `--shadow-lg`, overlay `--overlay` (`rgba(13,13,13,0.5)`). Botones abajo a la derecha: secundario, luego primario. |
 | **Toast** (sonner) | Arriba a la derecha (abajo en móvil); icono semántico; duración de 4 s; los errores no se cierran solos. |
 | **Skeleton** | Para estados de carga (nunca una pantalla en blanco): bloques `--surface-muted` con animación pulse. |
 | **EmptyState** | Icono lucide de 40 px en `--foreground-muted`, título `h3`, descripción `small` y botón de acción. |

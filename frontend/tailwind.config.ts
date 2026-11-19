@@ -66,6 +66,7 @@ export default {
           muted: token('sidebar-muted'),
           active: token('sidebar-active'),
         },
+        overlay: token('overlay'),
         critical: semantic('critical'),
         serious: semantic('serious'),
         warning: semantic('warning'),
@@ -116,6 +117,15 @@ export default {
       },
       maxWidth: {
         content: '1440px',
+      },
+      // Layout (GUIA_DE_DISENO.md §5): sidebar 256 px / 72 px colapsada; topbar 64 px.
+      spacing: {
+        sidebar: '256px',
+        'sidebar-collapsed': '72px',
+        topbar: '64px',
+      },
+      transitionDuration: {
+        DEFAULT: '150ms',
       },
     },
   },
