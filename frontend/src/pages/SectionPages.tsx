@@ -2,7 +2,6 @@ import {
   Building2,
   ChartColumn,
   FileUp,
-  GitMerge,
   LayoutDashboard,
   TriangleAlert,
   type LucideIcon,
@@ -107,30 +106,6 @@ export function KpisPage() {
       icon={ChartColumn}
       emptyTitle="Aún no hay KPIs para mostrar"
       emptyDescription="Los indicadores y sus tendencias estarán disponibles próximamente."
-    />
-  )
-}
-
-export function UploadsPage() {
-  return (
-    <Section
-      title="Carga de datos"
-      description="Sube el libro contable de la empresa (.xls, .xlsx o .csv) para analizarlo."
-      icon={FileUp}
-      emptyTitle="La carga de archivos estará disponible pronto"
-      emptyDescription="Desde aquí podrás subir el archivo, ver el reporte de calidad y lanzar el análisis."
-    />
-  )
-}
-
-export function MappingsPage() {
-  return (
-    <Section
-      title="Homologación"
-      description="Revisa cómo se clasificaron las cuentas contables de la empresa."
-      icon={GitMerge}
-      emptyTitle="La revisión de cuentas estará disponible pronto"
-      emptyDescription="Aquí podrás confirmar o corregir la categoría de las cuentas dudosas."
     />
   )
 }

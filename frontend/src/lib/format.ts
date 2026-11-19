@@ -76,3 +76,18 @@ export function formatDate(
   const time = new Intl.DateTimeFormat(LOCALE, { hour: '2-digit', minute: '2-digit' }).format(date)
   return `${parts}, ${time}`
 }
+
+/** Tamaño de archivo: "850 KB", "2,4 MB". */
+export function formatFileSize(bytes: Maybe<number>): string {
+  if (isMissing(bytes)) return EMPTY_VALUE
+  if (bytes < 1024 * 1024) return `${formatNumber(Math.max(1, Math.round(bytes / 1024)))} KB`
+  return `${formatNumber(bytes / (1024 * 1024), 1)} MB`
+}
+
+/** Lista de años: [2022, 2023, 2024] → "2022, 2023 y 2024". */
+export function formatYears(years: readonly number[]): string {
+  if (years.length === 0) return EMPTY_VALUE
+  const sorted = [...years].sort((a, b) => a - b).map(String)
+  if (sorted.length === 1) return sorted[0]!
+  return `${sorted.slice(0, -1).join(', ')} y ${sorted.at(-1)}`
+}

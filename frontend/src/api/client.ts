@@ -44,6 +44,29 @@ export function configureApiClient(partial: Partial<ClientConfig>) {
   config = { ...config, ...partial }
 }
 
+/** Cabeceras de autenticación y empresa (para peticiones que no usan `apiRequest`, como la subida). */
+export function authHeaders(options: { withoutCompany?: boolean } = {}): Record<string, string> {
+  const headers: Record<string, string> = {}
+  const token = config.getToken()
+  if (token) headers.Authorization = `Bearer ${token}`
+  const companyId = options.withoutCompany ? null : config.getCompanyId()
+  if (companyId) headers['X-Company-Id'] = companyId
+  return headers
+}
+
+/** Avisa al cliente de un 401 (cierra la sesión). */
+export function notifyUnauthorized() {
+  config.onUnauthorized()
+}
+
+/** Parsea un cuerpo de error del API. */
+export function parseProblem(text: string, status: number, statusText = ''): ProblemDetails {
+  const data = text ? safeJson(text) : undefined
+  return data && typeof data === 'object'
+    ? { status, ...(data as ProblemDetails) }
+    : { status, title: statusText }
+}
+
 export type QueryParams = Record<string, string | number | boolean | null | undefined>
 
 export interface RequestOptions {
