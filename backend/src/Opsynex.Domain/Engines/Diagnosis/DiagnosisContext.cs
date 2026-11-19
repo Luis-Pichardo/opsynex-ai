@@ -19,6 +19,9 @@ public sealed record FinancialSnapshot
     public decimal? MaterialLoss { get; init; }
 
     public decimal? EnergyCost { get; init; }
+
+    /// <summary>Empleados del año (datos operacionales o nómina), si se conocen.</summary>
+    public int? EmployeeCount { get; init; }
 }
 
 /// <summary>Todo lo que una regla necesita para evaluar un año (con el año anterior, si existe).</summary>

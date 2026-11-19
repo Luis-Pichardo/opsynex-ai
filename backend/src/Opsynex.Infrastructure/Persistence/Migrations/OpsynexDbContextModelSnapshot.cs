@@ -653,14 +653,18 @@ namespace Opsynex.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("CompanyId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<decimal>("CostEfficiencyScore")
+                    b.Property<string>("Components")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("CostEfficiencyScore")
                         .HasPrecision(5, 2)
                         .HasColumnType("decimal(5,2)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<decimal>("FinancialStabilityScore")
+                    b.Property<decimal?>("FinancialStabilityScore")
                         .HasPrecision(5, 2)
                         .HasColumnType("decimal(5,2)");
 
@@ -669,11 +673,11 @@ namespace Opsynex.Infrastructure.Persistence.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<decimal>("ProductivityScore")
+                    b.Property<decimal?>("ProductivityScore")
                         .HasPrecision(5, 2)
                         .HasColumnType("decimal(5,2)");
 
-                    b.Property<decimal>("ProfitabilityScore")
+                    b.Property<decimal?>("ProfitabilityScore")
                         .HasPrecision(5, 2)
                         .HasColumnType("decimal(5,2)");
 
@@ -699,6 +703,8 @@ namespace Opsynex.Infrastructure.Persistence.Migrations
                     b.ToTable("Scores", null, t =>
                         {
                             t.HasCheckConstraint("CK_Score_Year", "[Year] BETWEEN 1900 AND 2200");
+
+                            t.HasCheckConstraint("CK_Scores_Components_Json", "ISJSON([Components]) = 1");
 
                             t.HasCheckConstraint("CK_Scores_TotalScore", "[TotalScore] BETWEEN 0 AND 100");
 

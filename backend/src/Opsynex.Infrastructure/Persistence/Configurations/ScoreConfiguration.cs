@@ -12,6 +12,7 @@ internal sealed class ScoreConfiguration : IEntityTypeConfiguration<Score>
         builder.ToTable("Scores", t =>
         {
             t.HasCheckConstraint("CK_Scores_WeightsUsed_Json", "ISJSON([WeightsUsed]) = 1");
+            t.HasCheckConstraint("CK_Scores_Components_Json", "ISJSON([Components]) = 1");
             t.HasCheckConstraint("CK_Scores_TotalScore", "[TotalScore] BETWEEN 0 AND 100");
         });
         builder.ConfigureCompanyYear();
@@ -22,5 +23,6 @@ internal sealed class ScoreConfiguration : IEntityTypeConfiguration<Score>
         builder.Property(s => s.ProductivityScore).HasPrecision(5, 2);
         builder.Property(s => s.FinancialStabilityScore).HasPrecision(5, 2);
         builder.Property(s => s.WeightsUsed).HasJsonDictionaryConversion();
+        builder.Property(s => s.Components).HasJsonListConversion();
     }
 }

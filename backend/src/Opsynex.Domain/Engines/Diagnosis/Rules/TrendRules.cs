@@ -17,7 +17,7 @@ public abstract class MarginDeclineRule(KpiCode kpi) : IDiagnosticRule
 
     protected abstract string Describe(string previous, string current, string change, int previousYear, int year);
 
-    protected abstract string Recommend(Severity severity);
+    protected abstract string Recommend(string previous, string current, string change);
 
     public RuleResult? Evaluate(DiagnosisContext context)
     {
@@ -45,7 +45,7 @@ public abstract class MarginDeclineRule(KpiCode kpi) : IDiagnosticRule
         return new RuleResult(
             severity,
             Describe(Fmt.Pct(previous), Fmt.Pct(current), Fmt.Pp(-dropPp), context.PreviousYear!.Value, context.Year),
-            Recommend(severity),
+            Recommend(Fmt.Pct(previous), Fmt.Pct(current), Fmt.Pp(-dropPp)),
             evidence,
             kpi);
     }
@@ -61,9 +61,10 @@ public sealed class EbitdaDeclineRule() : MarginDeclineRule(KpiCode.EbitdaMargin
     protected override string Describe(string previous, string current, string change, int previousYear, int year) =>
         $"El margen EBITDA bajó de {previous} en {previousYear} a {current} en {year} ({change}).";
 
-    protected override string Recommend(Severity severity) =>
-        "Revisa qué costos crecieron más que los ingresos (costo de ventas, personal, gastos generales) y prioriza las " +
-        "acciones de precio, mezcla de productos y control de gastos con mayor efecto sobre el margen.";
+    protected override string Recommend(string previous, string current, string change) =>
+        $"Para recuperar el margen EBITDA ({current} frente a {previous}, {change}), revisa qué costos crecieron más que los " +
+        "ingresos (costo de ventas, personal, gastos generales) y prioriza las acciones de precio, mezcla de productos y " +
+        "control de gastos con mayor efecto sobre el margen.";
 }
 
 /// <summary>GROSS_MARGIN_DECLINE: se deteriora el margen bruto → problema de absorción de costos.</summary>
@@ -76,9 +77,9 @@ public sealed class GrossMarginDeclineRule() : MarginDeclineRule(KpiCode.GrossMa
     protected override string Describe(string previous, string current, string change, int previousYear, int year) =>
         $"El margen bruto bajó de {previous} en {previousYear} a {current} en {year} ({change}): el costo de ventas crece más que los ingresos.";
 
-    protected override string Recommend(Severity severity) =>
-        "Analiza el costo de producción (materias primas, labor directa, gastos de fabricación) y los precios de venta; " +
-        "negocia con proveedores y revisa la eficiencia de la planta.";
+    protected override string Recommend(string previous, string current, string change) =>
+        $"El margen bruto pasó de {previous} a {current} ({change}): analiza el costo de producción (materias primas, labor " +
+        "directa, gastos de fabricación) y los precios de venta; negocia con proveedores y revisa la eficiencia de la planta.";
 }
 
 /// <summary>Regla por un costo que crece más que los ingresos (magnitud = diferencia en pp).</summary>
@@ -137,7 +138,7 @@ public abstract class CostOutpacesRevenueRule : IDiagnosticRule
         return new RuleResult(
             severity,
             $"{CostName} creció {Fmt.Percent(cg)} entre {context.PreviousYear} y {context.Year}, más que los ingresos ({Fmt.Percent(rg)}).",
-            Recommendation,
+            $"{CostName} creció {Fmt.Percent(cg)} frente a {Fmt.Percent(rg)} de los ingresos; {Recommendation}",
             evidence,
             RelatedKpi);
     }
@@ -157,8 +158,8 @@ public sealed class OverheadOutpacesRevenueRule : CostOutpacesRevenueRule
     protected override decimal? Cost(FinancialSnapshot snapshot) => snapshot.OverheadCost;
 
     protected override string Recommendation =>
-        "Revisa los gastos generales (honorarios, alquileres, seguros, servicios) y fija un presupuesto que crezca por " +
-        "debajo de las ventas; elimina gastos que no aportan a la operación.";
+        "revisa la estructura administrativa (honorarios, alquileres, seguros, servicios) y fija un presupuesto que crezca " +
+        "por debajo de las ventas; elimina gastos que no aportan a la operación.";
 }
 
 /// <summary>LABOR_COST_OUTPACES_REVENUE: el costo laboral crece más que los ingresos.</summary>
@@ -175,7 +176,7 @@ public sealed class LaborCostOutpacesRevenueRule : CostOutpacesRevenueRule
     protected override decimal? Cost(FinancialSnapshot snapshot) => snapshot.LaborCost;
 
     protected override string Recommendation =>
-        "Compara la dotación y los salarios con el volumen de producción y ventas; revisa horas extras, bonificaciones y " +
+        "compara la dotación y los salarios con el volumen de producción y ventas; revisa horas extras, bonificaciones y " +
         "la productividad por área antes de nuevas contrataciones.";
 }
 
@@ -211,8 +212,8 @@ public sealed class CostGrowthFlatRevenueRule : IDiagnosticRule
         return new RuleResult(
             severity,
             $"El costo total creció {Fmt.Percent(cg)} entre {context.PreviousYear} y {context.Year} mientras los ingresos se mantuvieron estables ({Fmt.Percent(rg)}).",
-            "Identifica las partidas de costo que aumentaron sin un aumento de ventas (energía, mantenimiento, personal, " +
-            "materiales) y fija metas de reducción por área.",
+            $"El costo total subió {Fmt.Percent(cg)} con ingresos estables ({Fmt.Percent(rg)}): identifica las partidas que " +
+            "aumentaron sin un aumento de ventas (energía, mantenimiento, personal, materiales) y fija metas de reducción por área.",
             new JsonObject
             {
                 ["kpi"] = KpiCode.CostEfficiency.ToString(),
@@ -258,8 +259,9 @@ public sealed class ProductivityDeclineRule : IDiagnosticRule
         return new RuleResult(
             severity,
             $"Los ingresos por empleado bajaron {Fmt.Percent(-dropPercent)} entre {context.PreviousYear} y {context.Year}.",
-            "Revisa la dotación frente al volumen de ventas y producción, la capacidad ociosa y los procesos con más horas " +
-            "por unidad; evalúa automatización y capacitación.",
+            $"Los ingresos por empleado variaron {Fmt.Percent(-dropPercent)} frente al año anterior: revisa la dotación " +
+            "frente al volumen de ventas y producción, la capacidad ociosa y los procesos con más horas por unidad; evalúa " +
+            "automatización y capacitación.",
             new JsonObject
             {
                 ["kpi"] = KpiCode.RevenuePerEmployee.ToString(),
@@ -296,8 +298,8 @@ public sealed class RevenueDeclineRule : IDiagnosticRule
         return new RuleResult(
             severity,
             $"Los ingresos cayeron {Fmt.Percent(growth)} entre {context.PreviousYear} y {context.Year}.",
-            "Analiza la caída por cliente, producto y canal; refuerza la gestión comercial y ajusta la estructura de costos " +
-            "fijos al nuevo nivel de ventas.",
+            $"Con ventas {Fmt.Percent(growth)} frente al año anterior, analiza la caída por cliente, producto y canal; refuerza " +
+            "la gestión comercial y ajusta la estructura de costos fijos al nuevo nivel de ventas.",
             new JsonObject
             {
                 ["kpi"] = KpiCode.EbitdaMargin.ToString(),
@@ -341,8 +343,8 @@ public sealed class EnergyCostSpikeRule : IDiagnosticRule
         return new RuleResult(
             severity,
             $"El costo de energía pasó de {Fmt.Pct(p)} a {Fmt.Pct(c)} de los ingresos entre {context.PreviousYear} y {context.Year} ({Fmt.Percent(increase)}).",
-            "Audita el consumo eléctrico de la planta (equipos, turnos, factor de potencia), revisa la tarifa contratada y " +
-            "evalúa medidas de eficiencia energética.",
+            $"La energía pasó a representar {Fmt.Pct(c)} de los ingresos (antes {Fmt.Pct(p)}): audita el consumo eléctrico " +
+            "de la planta (equipos, turnos, factor de potencia), revisa la tarifa contratada y evalúa medidas de eficiencia energética.",
             new JsonObject
             {
                 ["kpi"] = KpiCode.EnergyCostRatio.ToString(),

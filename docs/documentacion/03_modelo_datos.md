@@ -169,6 +169,7 @@ erDiagram
         int Year
         decimal TotalScore
         nvarchar WeightsUsed "JSON"
+        nvarchar Components "JSON"
         nvarchar Interpretation
     }
 ```
@@ -398,10 +399,10 @@ Ineficiencias detectadas por el motor de diagnóstico. Único por (`CompanyId`, 
 | Category | nvarchar(50) | No | `Profitability`, `CostEfficiency`, `Productivity`, `FinancialStability` u `Operations`. |
 | Severity | nvarchar(50) | No | `High`, `Medium` o `Low`. |
 | ImpactCategory | nvarchar(50) | No | `MarginLoss`, `ExcessCost`, `ProductivityLoss`, `OperationalWaste` o `FinancialAlert` (liquidez y endeudamiento: sin pérdida cuantificable). |
-| ImpactValue | decimal(18,2) | Sí | Pérdida económica estimada (etapa 07). |
-| Recommendation | nvarchar(4000) | No | Recomendación base del motor de reglas. |
+| ImpactValue | decimal(18,2) | Sí | Pérdida económica anual estimada por el motor de impacto (`null` en alertas financieras o sin datos). |
+| Recommendation | nvarchar(4000) | No | Recomendación base con las cifras del problema y el impacto estimado. |
 | AiRecommendation | nvarchar(max) | Sí | Recomendación generada por IA (etapa 11). |
-| Evidence | nvarchar(max) | No | JSON con la evidencia de la regla (`kpi`, `year`, `previousYear`, valores y variación) y, desde la etapa 07, el cálculo de impacto. |
+| Evidence | nvarchar(max) | No | JSON con la evidencia de la regla (`kpi`, `year`, `previousYear`, valores y variación) y `impact`: `{ estimatedLoss, affectedMarginPp, deteriorationMagnitude, severityLevel, formula, reason, inputs }`. |
 | Status | nvarchar(50) | No | `Open`, `Acknowledged` o `Resolved`. |
 | CreatedAt | datetime2 | No | Fecha de creación (UTC). |
 | UpdatedAt | datetime2 | No | Última modificación (UTC). |
@@ -416,11 +417,12 @@ Score Opsynex por año (0–100). Único por (`CompanyId`, `Year`).
 | CompanyId | uniqueidentifier | No | Empresa dueña del registro (FK a Companies). |
 | Year | int | No | Año fiscal (1900–2200). |
 | TotalScore | decimal(5,2) | No | Score total (0–100). |
-| ProfitabilityScore | decimal(5,2) | No | Dimensión rentabilidad. |
-| CostEfficiencyScore | decimal(5,2) | No | Dimensión eficiencia de costos. |
-| ProductivityScore | decimal(5,2) | No | Dimensión productividad. |
-| FinancialStabilityScore | decimal(5,2) | No | Dimensión estabilidad financiera. |
-| WeightsUsed | nvarchar(max) | No | JSON: peso usado por dimensión, p. ej. `{ "Profitability": 0.35 }`. |
+| ProfitabilityScore | decimal(5,2) | Sí | Dimensión rentabilidad (`null` si faltan datos y su peso se redistribuyó). |
+| CostEfficiencyScore | decimal(5,2) | Sí | Dimensión eficiencia de costos. |
+| ProductivityScore | decimal(5,2) | Sí | Dimensión productividad. |
+| FinancialStabilityScore | decimal(5,2) | Sí | Dimensión estabilidad financiera. |
+| WeightsUsed | nvarchar(max) | No | JSON: peso usado por dimensión tras redistribuir, p. ej. `{ "Profitability": 0.4, "Productivity": 0 }`. |
+| Components | nvarchar(max) | No | JSON: detalle de cada componente `[{ dimension, baseWeight, weight, value, inputs, missingReason }]`. |
 | Interpretation | nvarchar(50) | No | `Healthy` (80–100), `Improvable` (60–79) o `Deteriorated` (0–59). |
 | CreatedAt | datetime2 | No | Fecha de creación (UTC). |
 | UpdatedAt | datetime2 | No | Última modificación (UTC). |

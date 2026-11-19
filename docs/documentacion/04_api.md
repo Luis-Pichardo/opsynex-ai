@@ -54,6 +54,8 @@ protegidos, pega en Scalar el `accessToken` obtenido en `POST /api/v1/auth/login
 | 400 | `upload.unsupported_extension` | El archivo no es `.xls`, `.xlsx` ni `.csv` |
 | 400 | `upload.company_required` / `upload.company_not_found` | El Admin no indicó la empresa o no existe |
 | 400 | `data.company_required` | El Admin consulta `/data` sin elegir empresa |
+| 400 | `score.company_required` / `impact.company_required` | El Admin consulta `/score` o `/impact/summary` sin elegir empresa |
+| 400 | `score.invalid_year` / `impact.invalid_year` | `year` fuera de 1900–2200 |
 | 413 | `upload.too_large` | El archivo supera `Upload:MaxMb` (20 MB) |
 | 400 | `mapping.company_required` | El Admin consulta `/mappings` sin elegir empresa |
 | 409 | `upload.failed` | Se intenta analizar una carga con errores bloqueantes |
@@ -198,10 +200,11 @@ consolidación) se ejecuta automáticamente al subir un archivo válido y la car
 | Método | Ruta | Rol | Response | Errores |
 |---|---|---|---|---|
 | GET | `/kpis?year=` | Todos | 200 `KpisResponse` | 400 `kpis.company_required` (Admin sin empresa) |
-| POST | `/analysis/run` | Admin, Analyst | 200 `{ companyId, years, calculatedAt }` | 400 `analysis.company_required`, 403 |
+| POST | `/analysis/run` | Admin, Analyst | 200 `{ companyId, years, calculatedAt, problems, latestYear, latestScore, latestEstimatedLoss }` | 400 `analysis.company_required`, 403 |
 
-`GET /kpis` sin `year` devuelve la serie histórica; con `year`, solo ese año. El análisis se
-ejecuta solo al consolidar una carga; `POST /analysis/run` lo repite bajo demanda.
+`GET /kpis` sin `year` devuelve la serie histórica; con `year`, solo ese año. El análisis
+(KPIs → diagnóstico → impacto → score, en una sola transacción) se ejecuta solo al consolidar una
+carga; `POST /analysis/run` lo repite bajo demanda.
 
 ```json
 {
@@ -246,6 +249,68 @@ ejecuta solo al consolidar una carga; `POST /analysis/run` lo repite bajo demand
   regla), `relatedKpi` y `kpiHistory: [{ year, value, normalized }]` (todos los años del KPI
   relacionado).
 - El estado que pone el usuario se conserva cuando el análisis se vuelve a ejecutar.
+- `impactValue` es la pérdida anual estimada (`null` en las alertas financieras). El detalle del
+  cálculo está en `evidence.impact`: `{ estimatedLoss, affectedMarginPp, deteriorationMagnitude,
+  severityLevel, formula, reason, inputs }`. La recomendación termina con la frase
+  "Impacto estimado: RD$ … en el año, equivalente a … pp de margen."
+
+### Score — `/api/v1/score`
+
+| Método | Ruta | Rol | Response | Errores |
+|---|---|---|---|---|
+| GET | `/score?year=` | Todos | 200 `ScoreResponse` | 400 `score.company_required` / `score.invalid_year` |
+
+Sin `year` devuelve la serie histórica (un elemento por año); con `year`, solo ese año (lista
+vacía si no hay score). Ejemplo (libro sintético de 3 años, 2024):
+
+```json
+{
+  "companyId": "…",
+  "years": [
+    { "year": 2024, "totalScore": 83.24, "interpretation": "Healthy",
+      "interpretationLabel": "Operación saludable", "changeFromPrevious": 3.04,
+      "weightsRedistributed": false,
+      "weightsUsed": { "Profitability": 0.3, "CostEfficiency": 0.25, "Productivity": 0.25, "FinancialStability": 0.2 },
+      "components": [
+        { "dimension": "Profitability", "name": "Rentabilidad", "score": 76.61, "baseWeight": 0.3, "weight": 0.3,
+          "inputs": { "EbitdaMargin": 93.05, "GrossMargin": 60.17 }, "missingReason": null },
+        { "dimension": "Productivity", "name": "Productividad", "score": 100, "baseWeight": 0.25, "weight": 0.25,
+          "inputs": { "RevenuePerEmployee": 100, "RevenuePerEmployeeTrend": null }, "missingReason": null }
+      ],
+      "calculatedAt": "2026-11-19T15:00:00Z" }
+  ]
+}
+```
+
+Si un componente no tiene datos, `score` es `null`, `weight` es 0, `missingReason` explica por
+qué y `weightsRedistributed` es `true`.
+
+### Impacto — `/api/v1/impact`
+
+| Método | Ruta | Rol | Response | Errores |
+|---|---|---|---|---|
+| GET | `/impact/summary?year=` | Todos | 200 `ImpactSummaryDto` | 400 `impact.company_required` / `impact.invalid_year` |
+
+Sin `year` resume el último año con datos. Una empresa sin datos devuelve `year: null` y montos en 0.
+
+```json
+{
+  "companyId": "…", "year": 2024, "currency": "DOP",
+  "totalEstimatedLoss": 4397941.56, "revenue": 181741000, "lossPercentOfRevenue": 2.42,
+  "quantifiedProblems": 4, "unquantifiedProblems": 0,
+  "byCategory": [
+    { "category": "MarginLoss", "estimatedLoss": 3743864.6, "problems": 2, "share": 85.13 },
+    { "category": "ExcessCost", "estimatedLoss": 654076.96, "problems": 2, "share": 14.87 }
+  ],
+  "top": [
+    { "id": "…", "year": 2024, "code": "EBITDA_DECLINE", "title": "Deterioro de rentabilidad",
+      "severity": "Low", "impactCategory": "MarginLoss", "impactValue": 2071847.4, "affectedMarginPp": 1.14 }
+  ]
+}
+```
+
+`top` trae hasta 5 problemas ordenados por pérdida (mayor primero). `unquantifiedProblems` cuenta
+las alertas financieras y los problemas sin datos para estimar la pérdida.
 
 ### Datos — `/api/v1/data`
 
@@ -266,11 +331,3 @@ rowKind, values: { "2023": …, "2024": … } }`.
 |---|---|---|---|
 | GET | `/health` | Público | 200/503 `{ status, service, version, checks: [self, database] }` |
 | GET | `/api/v1/system/info` | Público | 200 `{ name, version, environment }` |
-
-### Próximos endpoints
-
-| Grupo | Endpoints | Etapa |
-|---|---|---|
-| Score | `GET /score` | 07 |
-
-> Pendiente (Etapa 07): especificación detallada de esos endpoints.

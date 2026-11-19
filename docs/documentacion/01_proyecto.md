@@ -147,3 +147,9 @@ ineficiencias (caída de márgenes, costos que crecen más que las ventas, baja 
 liquidez y endeudamiento), asigna su severidad, las prioriza, propone una recomendación base y
 registra también los hallazgos positivos. El analista puede marcar cada problema como reconocido
 o resuelto. La siguiente etapa es el impacto financiero y el score (Etapa 07).
+
+Etapa 07 completada (19/11/2026): cada problema tiene ahora una pérdida económica estimada, con
+el margen que representa y la magnitud del deterioro, y la empresa recibe un Score Opsynex de 0 a
+100 por año (rentabilidad, eficiencia de costos, productividad y estabilidad financiera) con su
+interpretación. Las recomendaciones incluyen las cifras del problema y su impacto. Con esto el
+backend del MVP está completo. La siguiente etapa es el frontend base (Etapa 08).

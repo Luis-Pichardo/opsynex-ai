@@ -256,3 +256,41 @@ Registro de cada etapa completada (la más reciente al final).
     frente a ingresos 7,41 %). Se detectan como Low, coherente con "recomendación de monitoreo".
 - **Pendientes:** el impacto económico (etapa 07) completará `ImpactValue` y el segundo criterio
   de la priorización.
+
+### Etapa 07 — Impacto financiero y score (19/11/2026)
+
+- **Resumen:**
+  - **Motor de impacto** (`Domain/Engines/Impact/ImpactEngine.cs`): pérdida estimada, margen
+    afectado, magnitud del deterioro y severidad para cada problema. Una fórmula por categoría:
+    Margin Loss, Excess Cost, Productivity Loss y Operational Waste. Se guarda en
+    `Problems.ImpactValue` y `Evidence.impact`.
+  - **Score Opsynex** (`Domain/Engines/Scoring/ScoreEngine.cs`): 4 componentes con pesos
+    30/25/25/20, redistribución proporcional si falta uno, e interpretación.
+  - **`AnalysisPipeline` completo:** KPIs → diagnóstico → impacto → score en un único
+    `SaveChanges`.
+  - **API:** `GET /score` (un año o la serie) y `GET /impact/summary` (total, por categoría y top 5).
+  - **Recomendaciones base con cifras** y la frase del impacto en la moneda de la empresa.
+  - **Migración `ImpactAndScore`:** dimensiones del score anulables y columna `Scores.Components`.
+- **Archivos principales:** `backend/src/Opsynex.Domain/Engines/Impact/`, `Engines/Scoring/`,
+  `Engines/Diagnosis/Rules/`, `Opsynex.Application/Analysis/AnalysisPipeline.cs`,
+  `ScoreService.cs`, `ImpactService.cs`, `Controllers/ScoreController.cs`,
+  `Controllers/ImpactController.cs`, `backend/tests/*/Diagnosis|Analysis/`.
+- **Decisiones técnicas:**
+  - El impacto se calcula **por regla** con la fórmula de su categoría (una regla contra una
+    referencia valora solo el exceso sobre la referencia, que es la parte evitable).
+  - Las alertas financieras (liquidez, endeudamiento) no se cuantifican como pérdida: guardan
+    `null` con el motivo y la magnitud.
+  - La pérdida total del resumen es la **suma** de las estimaciones; puede superponer efectos
+    (por ejemplo, costo de personal y margen EBITDA) y se documenta como orden de magnitud.
+  - Productividad = 70 % nivel de ingresos por empleado + 30 % tendencia (±10 % → 0/100).
+    Estabilidad incluye la volatilidad del margen EBITDA (desviación de los últimos 3 años;
+    5 pp → 0). El flujo de caja operativo no se usa porque el archivo no lo trae.
+  - El score se guarda con el detalle de cada componente (insumos, peso base y usado, motivo
+    si falta) para que el dashboard explique el cálculo.
+  - Pesos y parámetros configurables en `appsettings.json` (`Score`), validados al arrancar.
+  - `GET /score` responde siempre con una lista de años (con `year`, 0 o 1 elemento), igual que
+    `/kpis`.
+- **Pendientes:** calibrar con el cliente benchmarks, umbrales y pesos; decidir si el resumen
+  debe descontar la superposición entre problemas; la IA enriquecerá las recomendaciones en la
+  etapa 11.
+
