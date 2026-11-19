@@ -100,6 +100,40 @@ La interfaz sigue la guía `docs/diseno/GUIA_DE_DISENO.md` (vista previa en
 - Contenido de hasta 1440 px con márgenes de 16 px en móvil y 32 px en escritorio. Verificado a
   375 px sin scroll horizontal (las tablas tienen scroll propio).
 
-Capturas de referencia: `docs/capturas/etapa-08/`.
+Capturas de referencia: `docs/capturas/etapa-08/` y `docs/documentacion/img/`.
 
-> Pendiente (Etapas 09 a 11): carga de datos, homologación, dashboard, problemas y KPIs.
+### Carga de datos y homologación (Etapa 09)
+
+- **`/uploads`** tiene tres pestañas (la pestaña activa queda en la URL: `?tab=historial|datos`):
+  - **Nueva carga** — `UploadWizard`, un asistente de 3 pasos con `Stepper`:
+    1. `FileDropzone`: arrastrar y soltar, con validación de extensión y tamaño en el cliente
+       (`lib/upload-rules.ts`) y barra de progreso.
+    2. `SheetList`: hojas detectadas, con las ignoradas atenuadas y su motivo.
+    3. Resultado:
+       - `IssueList`: errores bloqueantes o advertencias con hoja, fila y columna.
+       - `AnalysisSummaryCard`: score, años, KPIs, problemas e impacto.
+       - `ReviewNotice`: aviso de revisión recomendada.
+
+    El estado del asistente se conserva al cambiar de pestaña.
+  - **Historial** (`UploadHistory`): tabla de cargas con estado, revisión recomendada, fecha,
+    usuario y filas. `ReportDialog` muestra el reporte de cada carga.
+  - **Datos consolidados** (`ConsolidatedData`): `FinancialData` y datos operacionales del año
+    de la topbar, en tablas de solo lectura con `tabular-nums`.
+- **Subida con progreso:** `api/uploads.ts` usa `XMLHttpRequest`, porque fetch no informa el
+  avance del envío. El 201 y el 422 traen el reporte; un 422 se muestra como error del archivo,
+  no como fallo de red.
+- **Resumen del análisis:** `GET /analysis/summary` (nuevo en el API). Al terminar una carga se
+  invalidan todas las consultas para que topbar, KPIs y problemas se actualicen.
+- **`/mappings`** (`MappingsPage` + `MappingReviewTable`):
+  - **Elección de la carga:** por `?uploadId=`, o la última que necesita revisión.
+  - **Filtro y búsqueda:** el filtro inicial es «Solo dudosas»; también se puede buscar.
+  - **Categoría:** un `Select` por fila, agrupado por estado financiero. El catálogo viene de
+    `GET /mappings/categories`.
+  - **Confianza:** `lib/confidence.ts`; Alta ≥ 0,8, Media ≥ 0,5 y Baja por debajo, siempre con
+    icono y palabra.
+  - **Método:** traducido con `METHOD_LABELS`.
+  - **Cambios:** se guardan localmente hasta pulsar «Guardar y volver a analizar». Ese botón
+    hace `PUT /mappings` (confirma) y `POST /mappings/consolidate`, y muestra el resumen antes y
+    después («Score 64,0 → 67,0», «Cuentas dudosas 2 → 0»).
+
+> Pendiente (Etapas 10 y 11): dashboard, problemas y KPIs.

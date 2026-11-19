@@ -69,6 +69,79 @@ suma de sueldos; nunca nombres, cédulas ni sueldos individuales. Los números d
 cédulas y RNC que aparezcan en las notas se reemplazan por `***`. Nada de esto se envía al
 servicio de inteligencia artificial.
 
+### Paso a paso: subir el libro contable (Analyst o Admin)
+
+En **Carga de datos → Nueva carga** hay un asistente de tres pasos. El análisis se hace solo: no
+hace falta confirmar nada para ver los resultados.
+
+1. **Subir el archivo.** Arrastra el libro contable (`.xls` o `.xlsx`) al recuadro o pulsa
+   **Elegir archivo**, y luego **Subir y analizar**. Una barra muestra el avance del envío y
+   después el análisis. Si el archivo no es `.xls`, `.xlsx` ni `.csv`, o supera 20 MB, se avisa
+   antes de enviarlo. Si subes un CSV, puedes indicar qué plantilla es. Si no tienes estados
+   financieros, usa el enlace **¿No tienes estados financieros? Descarga la plantilla**.
+
+   ![Paso 1: subir el archivo](img/carga-paso1.png){width=90%}
+
+2. **Hojas detectadas.** Verás cada hoja con el tipo reconocido (Balance general, Estado de
+   resultados, Notas, Empleados, Ventas mensuales…) y las filas extraídas. Arriba aparecen los
+   años encontrados. Las hojas fiscales o de trabajo aparecen atenuadas como **Ignoradas**, con
+   el motivo. Pulsa **Ver el resultado del análisis**.
+
+   ![Paso 2: hojas detectadas](img/carga-paso2.png){width=90%}
+
+3. **Resultado.** Muestra:
+   - el score;
+   - los años analizados;
+   - los KPIs calculados (por ejemplo, 13 de 14);
+   - los problemas detectados por severidad;
+   - el impacto estimado;
+   - las advertencias de calidad, con su hoja, fila y columna.
+
+   Pulsa **Ir al dashboard** para ver el detalle.
+
+   ![Paso 3: resultado del análisis](img/carga-paso3.png){width=90%}
+
+Si el archivo tiene un **error que impide usarlo** (por ejemplo, no trae ni balance ni estado de
+resultados), el paso 3 explica qué falta y no deja continuar. Corrígelo y pulsa **Subir otro
+archivo**. No se guarda ningún dato de un archivo con errores.
+
+![Archivo con errores](img/carga-error.png){width=90%}
+
+### Revisión de cuentas (opcional)
+
+Si alguna cuenta importante se clasificó con poca seguridad, el resultado muestra el aviso
+**«Algunas cuentas se clasificaron con baja confianza. Revisa la homologación para mayor
+precisión»** con el botón **Revisar**.
+
+![Revisión recomendada](img/carga-revision-recomendada.png){width=90%}
+
+En **Homologación**:
+
+1. Elige la carga. Por defecto se muestran **solo las cuentas dudosas**; cambia a **Todas**
+   para ver el resto.
+2. Cada fila muestra la cuenta del cliente (con su hoja, fila y sección), el monto, la
+   **categoría** asignada, la **confianza** (Alta, Media o Baja) y el **método**. El método puede
+   ser automático, IA, diccionario local, confirmado o sin clasificar.
+3. Cambia la categoría donde haga falta, o pulsa **Confirmar todas** para aceptar las
+   sugerencias visibles.
+4. Pulsa **Guardar y volver a analizar**. El resumen se actualiza y muestra qué cambió (por
+   ejemplo, «Score 64,0 → 67,0» o «Cuentas dudosas 2 → 0»).
+
+![Homologación](img/homologacion.png){width=90%}
+
+Lo que confirmes se recuerda para la empresa: en las cargas siguientes esas cuentas se
+clasifican solas.
+
+### Historial y datos consolidados
+
+- **Historial:** cada carga con su estado (Analizada, Con errores…), un aviso si se recomienda
+  revisión, la fecha, quién la subió, los años, las filas y las advertencias. **Ver reporte**
+  abre el detalle de hojas y advertencias.
+- **Datos consolidados:** las cifras del año elegido en la barra superior, ya clasificadas
+  (estado de resultados, costos de detalle, balance y datos operacionales). Son de solo lectura.
+
+![Datos consolidados](img/carga-datos.png){width=90%}
+
 ### Cómo leer el resultado de una carga
 
 Después de subir el archivo verás:

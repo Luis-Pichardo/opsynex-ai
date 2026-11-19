@@ -158,3 +158,10 @@ Etapa 08 completada (19/11/2026): ya existe la interfaz web base. Incluye el ini
 menú y la barra superior según el rol, el modo claro y oscuro, la versión para teléfono, y la
 administración de empresas y usuarios. Sigue el sistema de diseño de Opsynex. La siguiente etapa
 es la carga de datos y la homologación en la interfaz (Etapa 09).
+
+Etapa 09 completada (19/11/2026): el analista sube el libro contable desde la web. Ve las hojas
+reconocidas, las advertencias de calidad y el resultado del análisis automático (score, KPIs,
+problemas e impacto), y desde ahí va al dashboard. Si alguna cuenta quedó con dudas, el sistema
+lo avisa y permite corregirla y volver a analizar. También muestra el historial de cargas y los
+datos consolidados por año. La siguiente etapa es el dashboard ejecutivo y los problemas
+(Etapa 10).

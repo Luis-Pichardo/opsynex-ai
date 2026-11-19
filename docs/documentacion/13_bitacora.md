@@ -328,3 +328,29 @@ Registro de cada etapa completada (la más reciente al final).
 - **Pendientes:** pantallas de carga y homologación (etapa 09); dashboard, problemas y KPIs
   (etapa 10).
 
+### Etapa 09 — Frontend: carga de datos y homologación (19/11/2026)
+
+- **Resumen:**
+  - **Asistente de carga** de 3 pasos: subir con validación y progreso → hojas detectadas →
+    resultado con errores, advertencias y resumen del análisis automático. Muestra el aviso de
+    revisión cuando hay cuentas dudosas.
+  - **Homologación opcional:** filtro de dudosas, categoría editable, confianza y método,
+    «Confirmar todas» y «Guardar y volver a analizar», con lo que cambió.
+  - **Historial de cargas** con reporte y **datos consolidados** por año.
+  - **API:** `GET /analysis/summary`, `GET /mappings/categories` y `uploadedBy` en el listado de
+    cargas (con pruebas de integración).
+- **Archivos principales:** `frontend/src/components/uploads/`, `components/mappings/`,
+  `pages/UploadsPage.tsx`, `pages/MappingsPage.tsx`, `api/{uploads,mappings,analysis}.ts`,
+  `backend/src/Opsynex.Application/Analysis/AnalysisSummaryService.cs`.
+- **Decisiones técnicas:**
+  - El resumen sale de un endpoint propio en vez de combinar cuatro llamadas en el cliente.
+  - La subida usa `XMLHttpRequest` para mostrar el progreso real del envío. Cuando el envío
+    llega al 100 %, la barra pasa a «Analizando…» mientras el API procesa.
+  - El paso 2 (hojas) se muestra después del análisis y no exige ninguna acción sobre los
+    datos: solo un clic para ver el resultado.
+  - Los mapeos confirmados se recuerdan, así que la misma variante subida de nuevo a la misma
+    empresa ya no pide revisión.
+  - Los cambios de la homologación se guardan juntos (un `PUT` y un `consolidate`) para no
+    analizar varias veces.
+- **Pendientes:** dashboard, problemas y KPIs (etapa 10).
+
