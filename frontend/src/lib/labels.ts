@@ -108,6 +108,7 @@ export const IMPACT_CATEGORY_LABELS: Record<ImpactCategory, string> = {
   ProductivityLoss: 'Pérdida de productividad',
   OperationalWaste: 'Desperdicio operacional',
   FinancialAlert: 'Alertas financieras',
+  Anomaly: 'Anomalías',
 }
 
 export const PROBLEM_CATEGORY_LABELS: Record<ProblemCategory, string> = {
@@ -127,3 +128,15 @@ export const PROBLEM_STATUS: Record<
   Acknowledged: { label: 'Reconocido', variant: 'neutral' },
   Resolved: { label: 'Resuelto', variant: 'good' },
 }
+
+export const EFFORT_LABELS = {
+  low: 'Esfuerzo bajo',
+  medium: 'Esfuerzo medio',
+  high: 'Esfuerzo alto',
+} as const
+
+export const HORIZON_LABELS = {
+  short: 'Corto plazo (menos de 3 meses)',
+  medium: 'Mediano plazo (3 a 12 meses)',
+  long: 'Largo plazo (más de 12 meses)',
+} as const

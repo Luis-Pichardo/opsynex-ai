@@ -25,6 +25,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { AiRecommendationPanel } from '@/components/problems/AiRecommendationPanel'
 import { evidenceRows } from '@/lib/evidence'
 import { formatCurrency, formatDate, formatNumber, formatPp } from '@/lib/format'
 import { formatKpi } from '@/lib/kpi-format'
@@ -235,16 +237,21 @@ export function ProblemDetailPage() {
             <Lightbulb className="size-4 text-primary-text" aria-hidden="true" />
             Recomendación
           </h2>
-          <p className="max-w-prose text-body text-foreground">{p.recommendation}</p>
-          {p.aiRecommendation ? (
-            <div className="space-y-1 rounded bg-primary-soft p-3">
-              <p className="flex items-center gap-1.5 text-small font-medium text-primary-text">
-                <Sparkles className="size-4" aria-hidden="true" />
-                Sugerencia de la IA
-              </p>
-              <p className="text-small text-foreground">{p.aiRecommendation}</p>
-            </div>
-          ) : null}
+          <Tabs defaultValue={p.aiRecommendation ? 'ia' : 'base'}>
+            <TabsList>
+              <TabsTrigger value="base">Recomendación base</TabsTrigger>
+              <TabsTrigger value="ia">
+                <Sparkles aria-hidden="true" />
+                Recomendación IA
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="base" className="mt-4">
+              <p className="max-w-prose text-body text-foreground">{p.recommendation}</p>
+            </TabsContent>
+            <TabsContent value="ia" className="mt-4">
+              <AiRecommendationPanel recommendation={p.aiRecommendation} severity={p.severity} />
+            </TabsContent>
+          </Tabs>
         </Card>
         <Card className="space-y-3 p-4 sm:p-5">
           <h2 className="text-h3 text-foreground">Evidencia</h2>
