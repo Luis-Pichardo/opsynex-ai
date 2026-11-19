@@ -1,10 +1,10 @@
 import { Minus, TrendingDown, TrendingUp } from 'lucide-react'
 
-import { formatPercent, formatPp } from '@/lib/format'
+import { formatNumber, formatPercent, formatPp } from '@/lib/format'
 import { trendKind } from '@/lib/trend'
 import { cn } from '@/lib/utils'
 
-export type TrendUnit = 'percent' | 'pp'
+export type TrendUnit = 'percent' | 'pp' | 'points'
 
 interface TrendIndicatorProps {
   /** Variación: en % (−3,2 = −3,2 %) o en puntos porcentuales. */
@@ -40,7 +40,9 @@ export function TrendIndicator({
   const magnitude =
     unit === 'pp'
       ? formatPp(Math.abs(value)).replace('+', '')
-      : formatPercent(Math.abs(value) / 100)
+      : unit === 'points'
+        ? `${formatNumber(Math.abs(value), 1)} pts`
+        : formatPercent(Math.abs(value) / 100)
   const direction = kind === 'stable' ? 'estable' : value > 0 ? 'sube' : 'baja'
   const meaning = kind === 'favorable' ? 'favorable' : kind === 'unfavorable' ? 'desfavorable' : ''
 

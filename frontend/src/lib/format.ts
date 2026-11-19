@@ -11,19 +11,27 @@ type Maybe<T> = T | null | undefined
 const isMissing = (value: Maybe<number>): value is null | undefined =>
   value === null || value === undefined || Number.isNaN(value)
 
-/** Moneda. `compact` para tarjetas: "1,2 M US$". */
+const CURRENCY_SYMBOLS: Record<string, string> = { DOP: 'RD$', USD: 'US$', EUR: '€' }
+
+/** Símbolo de la moneda (el mismo que usa el informe PDF): DOP → "RD$", USD → "US$". */
+export function currencySymbol(currency: string): string {
+  const code = currency.toUpperCase()
+  return CURRENCY_SYMBOLS[code] ?? code
+}
+
+/** Moneda con el símbolo delante: "RD$ 4.397.941,56". `compact` para tarjetas: "RD$ 4,4 M". */
 export function formatCurrency(
   value: Maybe<number>,
   currency = 'USD',
   options: { compact?: boolean } = {},
 ): string {
   if (isMissing(value)) return EMPTY_VALUE
-  return new Intl.NumberFormat(LOCALE, {
-    style: 'currency',
-    currency,
+  const number = new Intl.NumberFormat(LOCALE, {
     notation: options.compact ? 'compact' : 'standard',
+    minimumFractionDigits: options.compact ? 0 : 2,
     maximumFractionDigits: options.compact ? 1 : 2,
-  }).format(value)
+  }).format(Math.abs(value))
+  return `${value < 0 ? '−' : ''}${currencySymbol(currency)} ${number}`
 }
 
 /** Porcentaje con 1 decimal a partir de un ratio: 0.124 → "12,4 %". */

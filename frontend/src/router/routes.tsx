@@ -7,7 +7,10 @@ import { AppLayout, type RouteHandle } from '@/components/layout/AppLayout'
 import { LoginPage } from '@/pages/LoginPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 import { MappingsPage } from '@/pages/MappingsPage'
-import { DashboardPage, KpisPage, ProblemsPage } from '@/pages/SectionPages'
+import { DashboardPage } from '@/pages/DashboardPage'
+import { KpisPage } from '@/pages/KpisPage'
+import { ProblemDetailPage } from '@/pages/ProblemDetailPage'
+import { ProblemsPage } from '@/pages/ProblemsPage'
 import { UploadsPage } from '@/pages/UploadsPage'
 
 const handle = (title: string): RouteHandle => ({ title })
@@ -34,7 +37,13 @@ export function buildRoutes(options: { includeDesign: boolean }): RouteObject[] 
           element: <AppLayout />,
           children: [
             { index: true, element: <DashboardPage />, handle: handle('Dashboard') },
+            { path: 'dashboard', element: <Navigate to="/" replace /> },
             { path: 'problems', element: <ProblemsPage />, handle: handle('Problemas') },
+            {
+              path: 'problems/:id',
+              element: <ProblemDetailPage />,
+              handle: handle('Detalle del problema'),
+            },
             { path: 'kpis', element: <KpisPage />, handle: handle('KPIs') },
             {
               element: <RoleGuard roles={ROLES.analyze} />,

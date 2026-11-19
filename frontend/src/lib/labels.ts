@@ -1,4 +1,5 @@
 import type { Industry } from '@/types/api'
+import type { ImpactCategory, ProblemCategory, ProblemStatus } from '@/types/analysis'
 import type { MappingMethod, SheetType, UploadFileType, UploadStatus } from '@/types/uploads'
 
 /** Nombres en español de los valores del API. */
@@ -100,3 +101,29 @@ export const FINANCIAL_GROUPS: { title: string; fields: [string, string][] }[] =
     ],
   },
 ]
+
+export const IMPACT_CATEGORY_LABELS: Record<ImpactCategory, string> = {
+  MarginLoss: 'Pérdida de margen',
+  ExcessCost: 'Exceso de costos',
+  ProductivityLoss: 'Pérdida de productividad',
+  OperationalWaste: 'Desperdicio operacional',
+  FinancialAlert: 'Alertas financieras',
+}
+
+export const PROBLEM_CATEGORY_LABELS: Record<ProblemCategory, string> = {
+  Profitability: 'Rentabilidad',
+  CostEfficiency: 'Eficiencia de costos',
+  Productivity: 'Productividad',
+  FinancialStability: 'Estabilidad financiera',
+  Operations: 'Operaciones',
+}
+
+/** Estado de seguimiento de un problema: variante del badge y texto. */
+export const PROBLEM_STATUS: Record<
+  ProblemStatus,
+  { label: string; variant: 'info' | 'neutral' | 'good' }
+> = {
+  Open: { label: 'Abierto', variant: 'info' },
+  Acknowledged: { label: 'Reconocido', variant: 'neutral' },
+  Resolved: { label: 'Resuelto', variant: 'good' },
+}
