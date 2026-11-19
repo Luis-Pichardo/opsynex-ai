@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useLayoutEffect, useMemo, useState, type ReactNode } from 'react'
 
 import { configureApiClient } from '@/api/client'
 import { companiesApi } from '@/api/companies'
@@ -27,8 +27,9 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const companyId = isAdmin ? adminCompany : (user?.companyId ?? null)
   const company = companies.data?.find((c) => c.id === companyId)
 
-  // El Admin envía la empresa elegida en cada petición (cabecera X-Company-Id).
-  useEffect(() => {
+  // El Admin envía la empresa elegida en cada petición (cabecera X-Company-Id). Efecto de layout
+  // para que esté configurada antes de las primeras consultas de las páginas (ver AuthProvider).
+  useLayoutEffect(() => {
     configureApiClient({ getCompanyId: () => (isAdmin ? adminCompany : null) })
   }, [isAdmin, adminCompany])
 
