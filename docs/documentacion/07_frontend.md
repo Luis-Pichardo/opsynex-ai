@@ -165,5 +165,14 @@ Capturas de referencia: `docs/capturas/etapa-08/` y `docs/documentacion/img/`.
     Y y con grilla solo horizontal.
 - **Montos:** `formatCurrency` antepone el símbolo de la moneda («RD$ 4.397.941,56», compacto
   «RD$ 4,4 M»), igual que el PDF.
+- **IA (Etapa 11):**
+  - `ExecutiveSummaryCard` en el dashboard, entre score/impacto y los KPIs. Muestra párrafos,
+    prioridades, «Generado con IA» con la fecha, y «Regenerar», «Generar» o «Reintentar» según
+    el estado.
+  - Consulta `GET /ai/summary` cada 3 s mientras el estado es `pending`. Al terminar, refresca
+    los problemas.
+  - Los estados `not_configured`, `disabled` y `unavailable` se explican con texto e icono.
+  - En el detalle del problema, pestañas «Recomendación base» y «Recomendación IA»
+    (`AiRecommendationPanel`: causas raíz y acciones con esfuerzo y horizonte).
 - **Informe PDF:** `DownloadReportButton` llama a `GET /reports/executive` con el token y guarda
   el archivo con el nombre que envía el API (`Content-Disposition`, expuesto por CORS).

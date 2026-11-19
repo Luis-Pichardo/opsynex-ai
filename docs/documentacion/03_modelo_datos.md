@@ -407,6 +407,26 @@ Ineficiencias detectadas por el motor de diagnóstico. Único por (`CompanyId`, 
 | CreatedAt | datetime2 | No | Fecha de creación (UTC). |
 | UpdatedAt | datetime2 | No | Última modificación (UTC). |
 
+#### ExecutiveSummaries
+
+Resumen ejecutivo generado con IA. Único por (`CompanyId`, `Year`).
+
+| Columna | Tipo | Nulo | Descripción |
+|---|---|---|---|
+| Id | uniqueidentifier | No | Identificador (GUID v7). |
+| CompanyId | uniqueidentifier | No | Empresa dueña del registro (FK a Companies). |
+| Year | int | No | Año del resumen. |
+| Paragraphs | nvarchar(max) | No | JSON: párrafos del resumen (3 a 5). |
+| Priorities | nvarchar(max) | No | JSON: tres prioridades. |
+| Model | varchar(100) | No | Modelo de Claude que lo generó. |
+| InputHash | varchar(64) | No | SHA-256 de la entrada: si no cambia, no se regenera. |
+| GeneratedAt | datetime2 | No | Fecha de generación (UTC). |
+| CreatedAt / UpdatedAt | datetime2 | No | Auditoría (UTC). |
+
+`Problems.AiRecommendation` guarda la recomendación de IA como JSON (diagnóstico, causas raíz,
+acciones, modelo, fecha y hash de la entrada). `ImpactCategory` suma el valor `Anomaly` para los
+problemas `ANOMALY_*` (sin pérdida cuantificada). Migración: `ArtificialIntelligence`.
+
 #### Scores
 
 Score Opsynex por año (0–100). Único por (`CompanyId`, `Year`).

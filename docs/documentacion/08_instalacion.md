@@ -40,8 +40,12 @@ en `backend/src/Opsynex.Api`). Nunca subas secretos al repositorio.
 | `OPSYNEX_AI_PYTHON` / `OPSYNEX_REQUIRE_AI` | Pruebas | Intérprete con el servicio de IA para las pruebas de punta a punta (por defecto `ai-service/.venv`); `true` las exige en vez de omitirlas | (vacío) |
 | `OPSYNEX_TEST_DB` | Pruebas | Vacío = Testcontainers si hay Docker, si no SQLite; `sqlserver` o `sqlite` para forzar | (vacío) |
 | `AI_SERVICE_API_KEY` | IA | Misma clave que `AiService__ApiKey` | valor aleatorio |
-| `ANTHROPIC_API_KEY` | IA | Clave de la API de Claude (opcional hasta la Etapa 04) | `sk-ant-…` |
+| `ANTHROPIC_API_KEY` | IA | Clave de la API de Claude. Sin ella, la plataforma usa las recomendaciones base y la UI lo indica | `sk-ant-…` |
 | `ANTHROPIC_MODEL` | IA | Modelo de Claude | `claude-opus-5-5` |
+| `ANTHROPIC_EFFORT` / `ANTHROPIC_FALLBACKS` | IA | Esfuerzo de razonamiento y respaldo ante rechazos (`default` o `none`) | `medium` / `default` |
+| `LLM_TIMEOUT_SECONDS` / `LLM_MAX_RETRIES` | IA | Timeout y reintentos de cada llamada a Claude | `90` / `2` |
+| `Ai__Enabled` / `Ai__Mode` | API | Paso de IA (anomalías, resumen y recomendaciones) y si corre en segundo plano | `true` / `Background` |
+| `Ai__MaxRecommendations` / `Ai__TimeoutSeconds` | API | Tope de recomendaciones por análisis y timeout de las llamadas al servicio de IA | `10` / `180` |
 | `VITE_API_URL` | Frontend | URL del API vista desde el navegador | `http://localhost:5080` |
 | `MSSQL_SA_PASSWORD` | Docker | Contraseña de `sa` del contenedor de SQL Server | `Opsynex_Dev_2026!` |
 
