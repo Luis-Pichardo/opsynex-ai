@@ -33,6 +33,7 @@ public static class DependencyInjection
         services.Configure<DatabaseOptions>(configuration.GetSection(DatabaseOptions.SectionName));
 
         services.TryAddSingleton(TimeProvider.System);
+        services.AddSingleton<Application.Reports.IExecutiveReportRenderer, Reports.QuestPdfExecutiveReportRenderer>();
         services.TryAddScoped<ICurrentTenant, UnrestrictedTenant>();
         services.AddScoped<AuditableEntityInterceptor>();
 

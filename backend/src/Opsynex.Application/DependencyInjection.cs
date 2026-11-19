@@ -28,6 +28,7 @@ public static class DependencyInjection
         services.AddScoped<Analysis.ProblemService>();
         services.AddScoped<Analysis.ScoreService>();
         services.AddScoped<Analysis.AnalysisSummaryService>();
+        services.AddScoped<Reports.ReportService>();
         services.AddScoped<Analysis.ImpactService>();
 
         // Reglas de diagnóstico: todas las implementaciones de IDiagnosticRule del dominio.
