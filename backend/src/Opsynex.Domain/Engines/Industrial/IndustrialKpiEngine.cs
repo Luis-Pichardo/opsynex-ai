@@ -72,9 +72,9 @@ public static class IndustrialKpiEngine
 
     /// <summary>
     /// Agregados por año y por mes, cada uno para la planta, cada línea y cada máquina.
-    /// El costo por minuto de una máquina es el de su estándar o, si falta, su costo real del
-    /// período / minutos planificados; el costo unitario del scrap es el costo estándar o, si
-    /// falta, el costo real / unidades procesadas.
+    /// El costo por minuto de una máquina es el de su estándar o, si falta, su costo real / minutos
+    /// planificados de los meses con costos; el costo unitario del scrap es el costo estándar o, si
+    /// falta, el costo real / unidades procesadas de esos meses.
     /// </summary>
     public static IReadOnlyList<IndustrialAggregate> Aggregate(
         IReadOnlyCollection<ProductionRecord> production,
@@ -172,20 +172,27 @@ public static class IndustrialKpiEngine
         }
 
         var sums = ProductionSums(rows, standards);
+
+        // Los costos se comparan solo con la producción de los meses que tienen costos (si faltan
+        // los de un mes, el costo por unidad no se diluye entre unidades sin costo).
+        var covered = costs.Select(c => (c.Date.Year, c.Date.Month)).ToHashSet();
+        var rowsWithCost = rows.Where(r => covered.Contains((r.Date.Year, r.Date.Month))).ToList();
         if (costs.Count > 0)
         {
             sums = sums with
             {
                 Costs = costs.Aggregate(CostBreakdown.Zero, (acc, c) => acc.Add(new CostBreakdown(c.LaborCost, c.MaterialCost, c.EnergyCost, c.OverheadCost))),
-                UnitsWithCost = sums.UnitsProduced,
+                UnitsWithCost = rowsWithCost.Sum(r => r.UnitsProduced),
             };
         }
 
         var actualCost = sums.Costs?.Total;
+        var costedPlanned = rowsWithCost.Sum(r => r.PlannedMinutes);
+        var costedTotal = rowsWithCost.Sum(r => r.TotalUnits);
         var costPerMinute = standard?.CostPerMinute
-            ?? (actualCost is { } c1 && sums.PlannedMinutes > 0m ? Money(c1 / sums.PlannedMinutes) : null);
+            ?? (actualCost is { } c1 && costedPlanned > 0m ? Money(c1 / costedPlanned) : null);
         var unitCost = standard?.StandardCost
-            ?? (actualCost is { } c2 && sums.TotalUnits > 0m ? Money(c2 / sums.TotalUnits) : null);
+            ?? (actualCost is { } c2 && costedTotal > 0m ? Money(c2 / costedTotal) : null);
         var losses = new IndustrialLosses(
             DowntimeCost(sums.DowntimeMinutes, costPerMinute),
             ScrapCost(sums.TotalUnits, sums.GoodUnits, unitCost),

@@ -268,7 +268,10 @@ public static class IndustrialDiagnosisEngine
         decimal loss = 0m;
         foreach (var machine in affected)
         {
-            var excess = Math.Max(0m, (machine.Kpis.CostPerUnit!.Value - machine.Kpis.StandardCostPerUnit!.Value) * machine.Sums.UnitsProduced);
+            // Con las sumas exactas (no con los costos por unidad redondeados): costo real − costo estándar de lo producido.
+            var excess = machine.Sums.Costs is { } costs && machine.Sums.StandardCostAmount is { } standard
+                ? Math.Max(0m, costs.Total - standard)
+                : Math.Max(0m, (machine.Kpis.CostPerUnit!.Value - machine.Kpis.StandardCostPerUnit!.Value) * machine.Sums.UnitsProduced);
             var already = attributed.GetValueOrDefault(machine.MachineId!);
             var residual = decimal.Round(Math.Max(0m, excess - already), 2);
             loss += residual;

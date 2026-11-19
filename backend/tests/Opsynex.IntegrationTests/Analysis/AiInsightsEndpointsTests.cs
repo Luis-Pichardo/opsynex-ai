@@ -291,6 +291,49 @@ public sealed class AiInsightsEndpointsTests(FakeAiApiFactory factory) : IClassF
             await (await client.GetAsync("/api/v1/ai/summary?year=1800", Ct)).ShouldBeProblemAsync(HttpStatusCode.BadRequest, "ai.invalid_year");
         }
     }
+
+    [Fact]
+    public async Task IndustrialDailySeries_AreSentToTheDetector_AndBecomeAnomalies()
+    {
+        var (analyst, client, _) = await CompanyWithBookAsync();
+        using (analyst)
+        using (client)
+        {
+            factory.Ai.Anomalies =
+            [
+                new AiAnomaly("DailyDowntime2024", "2024-11-14", 1384m, 340m, 21.5m, "high", "robust_zscore",
+                    "El valor de los minutos de parada diarios de la planta en 2024-11-14 (1.384) está muy por encima de lo habitual."),
+                new AiAnomaly("DailyOee2024", "2024-11-14", 0.41m, 0.76m, -9.2m, "low", "robust_zscore", "OEE bajo."),
+            ];
+            foreach (var file in new[] { "estandares.xlsx", "costos.xlsx", "produccion.xlsx" })
+            {
+                (await analyst.UploadSampleAsync(Path.Combine("industrial", file))).StatusCode.ShouldBe(HttpStatusCode.Created);
+            }
+
+            // Se envían las series diarias de la planta junto con las ventas mensuales.
+            var request = factory.Ai.Requests.OfType<AiAnomalyRequest>().Last();
+            var downtime = request.Series.Single(s => s.Name == "DailyDowntime2024");
+            downtime.Unit.ShouldBe("Number");
+            downtime.Points.Count.ShouldBeGreaterThan(70);
+            downtime.Points[0].Period.ShouldBe("2024-10-01");
+            request.Series.Single(s => s.Name == "DailyOee2024").Unit.ShouldBe("Ratio");
+            request.Series.ShouldContain(s => s.Name.StartsWith("MonthlyRevenue", StringComparison.Ordinal));
+
+            var problems = (await (await client.GetAsync("/api/v1/problems?year=2024&pageSize=100", Ct)).ReadAsync<ProblemPage>()).Items;
+            var stoppage = problems.Single(p => p.Code == "ANOMALY_DOWNTIME_2024_11_14");
+            stoppage.Title.ShouldBe("Paradas diarias atípicas (14 nov 2024)");
+            stoppage.Severity.ShouldBe(Severity.Low);
+            stoppage.ImpactValue.ShouldBeNull();
+            problems.Single(p => p.Code == "ANOMALY_OEE_2024_11_14").Title.ShouldBe("OEE diario atípico (14 nov 2024)");
+
+            // Si el detector ya no las encuentra, se eliminan; las reglas industriales siguen.
+            factory.Ai.Anomalies = [];
+            (await analyst.PostAsync("/api/v1/analysis/run", null, Ct)).StatusCode.ShouldBe(HttpStatusCode.OK);
+            var after = (await (await client.GetAsync("/api/v1/problems?year=2024&pageSize=100", Ct)).ReadAsync<ProblemPage>()).Items;
+            after.ShouldNotContain(p => p.Code.StartsWith("ANOMALY_", StringComparison.Ordinal));
+            after.ShouldContain(p => p.Code == "LOW_OEE");
+        }
+    }
 }
 
 public sealed class AiDisabledTests(OpsynexApiFactory factory) : IClassFixture<OpsynexApiFactory>
