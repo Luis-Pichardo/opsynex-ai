@@ -28,25 +28,42 @@ DialogOverlay.displayName = DialogPrimitive.Overlay.displayName
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, ref) => (
-  <DialogPortal>
-    <DialogOverlay />
-    <DialogPrimitive.Content
-      ref={ref}
-      className={cn(
-        'fixed left-1/2 top-1/2 z-50 grid max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 gap-5 overflow-y-auto rounded-lg border border-border bg-surface p-5 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 sm:p-6',
-        className,
-      )}
-      {...props}
-    >
-      {children}
-      <DialogPrimitive.Close className="absolute right-3 top-3 inline-flex size-10 items-center justify-center rounded text-foreground-secondary transition-colors duration-150 ease-out hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-        <X className="size-4" aria-hidden="true" />
-        <span className="sr-only">Cerrar</span>
-      </DialogPrimitive.Close>
-    </DialogPrimitive.Content>
-  </DialogPortal>
-))
+>(({ className, children, onOpenAutoFocus, onCloseAutoFocus, ...props }, ref) => {
+  // Elemento que tenía el foco al abrir. Si el diálogo se abrió por estado (sin DialogTrigger),
+  // al cerrarlo el foco vuelve ahí (guía §10).
+  const opener = React.useRef<HTMLElement | null>(null)
+  return (
+    <DialogPortal>
+      <DialogOverlay />
+      <DialogPrimitive.Content
+        ref={ref}
+        onOpenAutoFocus={(event) => {
+          opener.current = document.activeElement as HTMLElement | null
+          onOpenAutoFocus?.(event)
+        }}
+        onCloseAutoFocus={(event) => {
+          onCloseAutoFocus?.(event)
+          const target = opener.current
+          if (!event.defaultPrevented && target?.isConnected && target !== document.body) {
+            event.preventDefault()
+            target.focus()
+          }
+        }}
+        className={cn(
+          'fixed left-1/2 top-1/2 z-50 grid max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 gap-5 overflow-y-auto rounded-lg border border-border bg-surface p-5 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 sm:p-6',
+          className,
+        )}
+        {...props}
+      >
+        {children}
+        <DialogPrimitive.Close className="absolute right-3 top-3 inline-flex size-10 items-center justify-center rounded text-foreground-secondary transition-colors duration-150 ease-out hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+          <X className="size-4" aria-hidden="true" />
+          <span className="sr-only">Cerrar</span>
+        </DialogPrimitive.Close>
+      </DialogPrimitive.Content>
+    </DialogPortal>
+  )
+})
 DialogContent.displayName = DialogPrimitive.Content.displayName
 
 function DialogHeader({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {

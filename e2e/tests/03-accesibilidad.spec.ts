@@ -21,7 +21,8 @@ const PAGES = [
 async function audit(page: Page, label: string) {
   await page.waitForLoadState('networkidle')
   await page.waitForTimeout(500)
-  const results = await new AxeBuilder({ page })
+  // AxeBuilder tipa `page` con su propia copia de playwright-core; en ejecución es el mismo objeto.
+  const results = await new AxeBuilder({ page: page as unknown as ConstructorParameters<typeof AxeBuilder>[0]['page'] })
     .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
     .analyze()
   const summary = results.violations.map(
