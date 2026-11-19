@@ -76,4 +76,35 @@ dos veces con los estados.
 Si el servicio de inteligencia artificial no está disponible, el análisis se hace igual con un
 diccionario básico. Es posible que veas más cuentas para revisar.
 
-> Pendiente (Etapas 05 a 11): leer el dashboard, el score y los problemas.
+### Cómo leer el score, los problemas y su impacto
+
+**Score Opsynex (0–100).** Resume la salud financiera y operacional de cada año:
+
+| Score | Qué significa |
+|---|---|
+| 80–100 | Operación saludable |
+| 60–79 | Hay oportunidades de mejora |
+| Menos de 60 | Deterioro operacional significativo |
+
+El score combina cuatro componentes: rentabilidad (30 %), eficiencia de costos (25 %),
+productividad (25 %) y estabilidad financiera (20 %). Cada uno compara tus indicadores con valores
+de referencia de tu industria. Si falta información para un componente (por ejemplo, la cantidad
+de empleados de un año), su peso se reparte entre los demás y el sistema lo indica.
+
+**Problemas.** Cada problema muestra:
+
+- La severidad: alta, media o baja.
+- Qué pasó, con las cifras del año.
+- Una recomendación con esas cifras.
+
+Están ordenados por prioridad: primero los más severos y, dentro de cada severidad, los de mayor
+impacto económico.
+
+**Impacto estimado.** Es la pérdida aproximada del año que causa el problema, en tu moneda, y los
+puntos de margen que representa. Por ejemplo, si el margen EBITDA bajó 3 puntos, el impacto es
+aproximadamente el 3 % de las ventas del año. Las alertas de liquidez y endeudamiento señalan un
+riesgo y no muestran una pérdida. El impacto total suma las estimaciones de todos los problemas.
+Algunos problemas miden parte del mismo efecto, así que el total es una guía para priorizar y no
+una cifra contable.
+
+> Pendiente (Etapas 08 a 11): pantallas del dashboard y recomendaciones con IA.

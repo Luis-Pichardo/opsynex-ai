@@ -344,8 +344,12 @@ arrancar que `0 ≤ Low ≤ Medium ≤ High`. Para desactivar una regla: `"Enabl
 #### Priorización
 
 Los problemas se ordenan por **severidad** (High primero) y luego por **impacto económico**
-(mayor primero; los que no tienen impacto van al final). El impacto se calcula en la etapa 07. En
-la lista, `priority` es la posición (1 = más urgente).
+(mayor primero; los que no tienen impacto van al final). En la lista, `priority` es la posición
+(1 = más urgente).
+
+Cada recomendación base incluye las cifras del problema (por ejemplo: "El gasto general y
+administrativo creció +7,58 % frente a +7,41 % de los ingresos; revisa la estructura
+administrativa…") y termina con el impacto estimado. La IA la enriquece en la etapa 11.
 
 #### Reemplazo idempotente
 
@@ -384,21 +388,87 @@ Hallazgos positivos de 2024: menor endeudamiento, mejor liquidez y crecimiento d
 
 ### Motor de impacto financiero
 
-Categorías: Margin Loss (reducción de rentabilidad), Excess Cost (ineficiencia de la estructura
-de costos), Productivity Loss (reducción de productividad operacional) y Operational Waste
-(ineficiencia de recursos). Estima pérdida económica, margen afectado, magnitud del deterioro y
-nivel de severidad.
+`Opsynex.Domain/Engines/Impact/ImpactEngine.cs` es una clase pura. Para cada problema estima:
 
-> Pendiente (Etapa 07): fórmulas y ejemplo numérico.
+- **Pérdida económica estimada** (`EstimatedLoss`): monto anual en la moneda de la empresa.
+- **Margen afectado** (`AffectedMarginPp`): pérdida / ingresos × 100, en puntos de margen.
+- **Magnitud del deterioro** (`DeteriorationMagnitude`): cuánto empeoró el indicador base, en %.
+- **Nivel de severidad** (`SeverityLevel`): el del diagnóstico.
+
+La pérdida **nunca es negativa**. Si faltan datos, es `null` y `reason` dice por qué. El resultado
+se guarda en `Problems.ImpactValue` y en `Problems.Evidence.impact` (con la fórmula y los insumos).
+
+#### Fórmulas por categoría
+
+| Categoría | Regla | Pérdida estimada |
+|---|---|---|
+| Margin Loss | `EBITDA_DECLINE`, `GROSS_MARGIN_DECLINE` | (margen anterior − margen actual) × ingresos actuales |
+| Margin Loss | `LOW_EBITDA_MARGIN` | (margen de referencia − margen actual) × ingresos actuales |
+| Margin Loss | `REVENUE_DECLINE` | (ingresos anteriores − actuales) × margen bruto anterior (o EBITDA si no hay bruto) |
+| Excess Cost | `OVERHEAD_OUTPACES_REVENUE`, `LABOR_COST_OUTPACES_REVENUE`, `COST_GROWTH_FLAT_REVENUE` | (crecimiento del costo − crecimiento de los ingresos) × costo del año anterior |
+| Excess Cost | `HIGH_OPEX_RATIO` | (gastos operacionales / ingresos − referencia) × ingresos |
+| Productivity Loss | `PRODUCTIVITY_DECLINE` | (ingresos por empleado anteriores − actuales) × empleados actuales |
+| Operational Waste | `HIGH_MATERIAL_LOSS` | (mermas / costo de ventas − umbral) × costo de ventas |
+| Operational Waste | `ENERGY_COST_SPIKE` | (energía / ingresos actual − del año base) × ingresos actuales |
+| Financial Alert | `LOW_LIQUIDITY`, `HIGH_LEVERAGE` | No se cuantifica: es un riesgo, no una pérdida operativa (sí se informa la magnitud) |
+
+En las reglas contra una referencia (mermas, gastos, margen) se valora solo **el exceso sobre la
+referencia**, que es la parte evitable.
+
+**Ejemplo numérico** (libro sintético de 3 años, 2023): el margen EBITDA pasó de 22,8 % a
+19,75 % con ingresos de 169.198.600.
+
+- Pérdida = (0,228 − 0,1975) × 169.198.600 = **5.160.557,30**
+- Margen afectado = 5.160.557,30 / 169.198.600 × 100 = **3,05 pp**
+- Magnitud del deterioro = (0,228 − 0,1975) / 0,228 × 100 = **13,38 %**
+
+Otro ejemplo, 2024: el costo de personal creció 9,66 % y los ingresos 7,41 %. La pérdida es
+(9,66 % − 7,41 %) × costo de personal de 2023 = **641.172,88** (0,35 pp de margen).
+
+#### Resumen y ranking
+
+`GET /impact/summary` suma las pérdidas del año, las desglosa por categoría y lista los 5
+problemas de mayor impacto. En la lista de problemas, el impacto ordena dentro de cada severidad.
+
+> **Superposición:** los problemas de un mismo año pueden medir parte del mismo efecto (por
+> ejemplo, el aumento del costo de personal también reduce el margen EBITDA). La pérdida total es
+> la suma de las estimaciones y debe leerse como un orden de magnitud, no como una cifra contable.
+
+| Año | Problema | Pérdida estimada | Margen afectado |
+|---|---|---|---|
+| 2023 | `GROSS_MARGIN_DECLINE` | 5.262.076,46 | 3,11 pp |
+| 2023 | `EBITDA_DECLINE` | 5.160.557,30 | 3,05 pp |
+| 2023 | `LABOR_COST_OUTPACES_REVENUE` | 56.809,11 | 0,03 pp |
+| 2024 | `EBITDA_DECLINE` | 2.071.847,40 | 1,14 pp |
+| 2024 | `GROSS_MARGIN_DECLINE` | 1.672.017,20 | 0,92 pp |
+| 2024 | `LABOR_COST_OUTPACES_REVENUE` | 641.172,88 | 0,35 pp |
+| 2024 | `OVERHEAD_OUTPACES_REVENUE` | 12.904,08 | 0,01 pp |
 
 ### Score Opsynex
 
-| Componente | Peso |
-|---|---|
-| Rentabilidad | 30 % |
-| Eficiencia de costos | 25 % |
-| Productividad | 25 % |
-| Estabilidad financiera | 20 % |
+`Opsynex.Domain/Engines/Scoring/ScoreEngine.cs` (clase pura) calcula un score de 0 a 100 por año.
+Cada insumo es un KPI normalizado de 0 a 100 con los benchmarks de la industria y la moneda (ver
+*Normalización*), y cada componente es el promedio de sus insumos disponibles.
+
+| Componente | Peso | Insumos (0–100) |
+|---|---|---|
+| Rentabilidad | 30 % | Margen EBITDA, margen bruto |
+| Eficiencia de costos | 25 % | Costo total / ingresos, gastos operacionales / ingresos |
+| Productividad | 25 % | Ingresos por empleado (70 %) y su tendencia (30 %) |
+| Estabilidad financiera | 20 % | Razón corriente, endeudamiento, volatilidad del margen EBITDA |
+
+- **Tendencia de productividad:** variación anual de los ingresos por empleado. −10 % vale 0,
+  0 % vale 50 y +10 % vale 100 (lineal, con límites). Si no hay año anterior, la productividad
+  usa solo el nivel.
+- **Volatilidad del margen:** desviación estándar del margen EBITDA en los últimos 3 años
+  (incluido el actual), en pp. 0 pp vale 100 y 5 pp o más vale 0. Necesita al menos 2 años.
+- **Flujo de caja operativo / ingresos:** no se usa porque el archivo del cliente no trae el
+  estado de flujo de efectivo.
+
+**Score total** = Σ (peso × componente) / Σ pesos de los componentes disponibles. Si a un
+componente le faltan todos sus insumos, su peso se **redistribuye proporcionalmente** entre los
+demás y la respuesta lo indica (`weightsRedistributed`, `missingReason`). Sin ningún componente
+no se guarda score para ese año.
 
 | Score | Interpretación |
 |---|---|
@@ -406,7 +476,22 @@ nivel de severidad.
 | 60–79 | Oportunidades de mejora |
 | Menor a 60 | Deterioro operacional significativo |
 
-> Pendiente (Etapa 07): cálculo detallado.
+Los pesos y parámetros se ajustan en la sección `Score` de `appsettings.json`. El API valida al
+arrancar que los pesos sumen 1.
+
+**Ejemplo numérico** (libro sintético de 3 años, 2024, todos los componentes disponibles):
+
+| Componente | Insumos | Puntaje | Peso | Aporte |
+|---|---|---|---|---|
+| Rentabilidad | EBITDA 93,05 · bruto 60,17 | 76,61 | 0,30 | 22,98 |
+| Eficiencia de costos | costo total 58,68 · gastos operacionales 86,48 | 72,58 | 0,25 | 18,15 |
+| Productividad | ingresos por empleado 100 (sin tendencia) | 100 | 0,25 | 25,00 |
+| Estabilidad financiera | razón corriente 100 · endeudamiento 92,09 · volatilidad 64,62 | 85,57 | 0,20 | 17,11 |
+| **Total** | | | | **83,24 → Operación saludable** |
+
+En 2022 y 2023 la nómina no trae empleados, así que falta la productividad y su 25 % se reparte:
+rentabilidad 40 %, eficiencia de costos 33,33 % y estabilidad 26,67 %. Resultados: 2022 = 84,51 y
+2023 = 80,20.
 
 ### Módulo industrial
 

@@ -1,7 +1,33 @@
 ## Pruebas y calidad
 
-Alcance previsto: pruebas de API, validación de datos y pruebas de KPIs, más pruebas E2E del
-flujo completo.
+### Estrategia
+
+| Nivel | Proyecto / herramienta | Qué cubre |
+|---|---|---|
+| Unitarias | `Opsynex.UnitTests` (xUnit v3 + Shouldly) | Motores puros (KPIs, reglas, impacto, score, consolidación), parsers, validadores, configuración de EF y arquitectura |
+| Integración | `Opsynex.IntegrationTests` (`WebApplicationFactory` + SQL Server con Testcontainers) | Cada endpoint con su base de datos real: permisos, aislamiento por empresa, carga → homologación → análisis |
+| Servicio de IA | `ai-service/tests` (pytest + httpx) | Endpoints, clave interna y motor de homologación |
+| Frontend y E2E | Vitest + Testing Library, Playwright | Desde las etapas 08–10 |
+
+Reglas: cada endpoint y cada motor nuevo lleva pruebas; las pruebas usan solo **libros
+sintéticos** generados por script (nunca datos de clientes). La CI ejecuta `dotnet build -c
+Release` (warnings = errores), `dotnet test`, `pytest`, `ruff`, y lint, tests y build del frontend.
+
+### Cobertura actual (Etapa 07)
+
+519 pruebas .NET (336 unitarias y 183 de integración) y las de Python del servicio de IA.
+Cobertura de líneas del backend, sin código generado ni migraciones:
+
+| Proyecto | Cobertura |
+|---|---|
+| Opsynex.Domain | 96,3 % |
+| Opsynex.Application | 97,1 % |
+| Opsynex.Infrastructure | 91,7 % |
+| Opsynex.Api | 88,0 % |
+| **Total** | **94,2 %** |
+
+Para medirla: `cd backend && dotnet test --collect:"XPlat Code Coverage"` (genera un
+`coverage.cobertura.xml` por proyecto de pruebas en `TestResults/`).
 
 ### Base de datos en las pruebas (Etapa 01)
 
@@ -107,4 +133,38 @@ Sin Python, las pruebas con IA real se omiten con su motivo. En la CI se exigen
   - Filtros, paginado, detalle con evidencia e historial del KPI, permisos y aislamiento por
     empresa.
 
-> Pendiente (Etapas 07, 10 y 12): estrategia completa, cobertura y checklist del MVP.
+### Impacto financiero y score (Etapa 07)
+
+- **Unitarias** (`Diagnosis/ImpactEngineTests`):
+  - Cada fórmula de impacto con un ejemplo numérico: Margin Loss (caída de margen, brecha con la
+    referencia, caída de ventas), Excess Cost (crecimiento frente a ingresos y exceso sobre la
+    referencia), Productivity Loss y Operational Waste (mermas y energía).
+  - Alertas financieras sin pérdida pero con magnitud.
+  - Datos faltantes → `null` con motivo; las fórmulas nunca devuelven negativos.
+  - Frase del impacto con la moneda de la empresa.
+- **Unitarias** (`Diagnosis/ScoreEngineTests`):
+  - Pesos de la sección 13 (30/25/25/20) y redistribución proporcional cuando falta un componente.
+  - Bandas de interpretación (80, 79,99, 60, 59,99), límites 0–100 y sin datos → sin score.
+  - Tendencia de productividad, volatilidad del margen y validación de la configuración.
+- **Integración** (`Analysis/ImpactAndScoreEndpointsTests`), con los libros de 2 y 3 años:
+  - Punta a punta: subir → homologar → consolidar → `GET /kpis`, `/problems`, `/score` e
+    `/impact/summary` coherentes entre sí.
+  - Cada problema tiene un impacto mayor que 0 y el ranking dentro de cada severidad es por impacto.
+  - El score de cada año está entre 0 y 100 y los pesos suman 1, con redistribución en los años
+    sin empleados.
+  - El total del resumen es igual a la suma de los problemas y a la suma por categoría.
+  - El impacto de `EBITDA_DECLINE` coincide con los KPIs y los ingresos.
+  - Errores (`company_required`, `invalid_year`), empresa sin datos y re-análisis sin duplicar scores.
+
+### Checklist de backend del MVP (sección 20)
+
+| Criterio | Cómo se verifica |
+|---|---|
+| Carga archivos financieros correctamente | `Uploads/*` con los libros sintéticos y los inválidos |
+| Calcula KPIs automáticamente | `Kpis/*` y `Analysis/KpisEndpointsTests` (14 KPIs por año al subir) |
+| Genera diagnósticos | `Diagnosis/DiagnosisRuleTests` y `Analysis/ProblemsEndpointsTests` |
+| Estima impacto financiero | `Diagnosis/ImpactEngineTests` y `Analysis/ImpactAndScoreEndpointsTests` |
+| Genera score operacional-financiero | `Diagnosis/ScoreEngineTests` y `Analysis/ImpactAndScoreEndpointsTests` |
+| Muestra dashboards | Pendiente: frontend (etapas 08–10) |
+
+> Pendiente (Etapas 10 y 12): pruebas del frontend, E2E con Playwright y módulo industrial.
