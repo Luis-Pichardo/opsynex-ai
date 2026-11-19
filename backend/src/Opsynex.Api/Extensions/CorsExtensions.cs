@@ -16,7 +16,9 @@ public static class CorsExtensions
         {
             if (origins.Length > 0)
             {
-                policy.WithOrigins(origins).AllowAnyHeader().AllowAnyMethod();
+                policy.WithOrigins(origins).AllowAnyHeader().AllowAnyMethod()
+                    // El frontend lee el nombre del PDF y el Retry-After del bloqueo.
+                    .WithExposedHeaders("Content-Disposition", "Retry-After");
             }
         }));
 

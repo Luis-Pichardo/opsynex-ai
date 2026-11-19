@@ -23,8 +23,11 @@ describe('format', () => {
   })
 
   it('formatea moneda', () => {
-    expect(n(formatCurrency(1234.5, 'USD'))).toContain('1234,50')
-    expect(n(formatCurrency(1_200_000, 'USD', { compact: true }))).toMatch(/1,2\sM/)
+    expect(n(formatCurrency(1234.5, 'USD'))).toBe('US$ 1234,50')
+    expect(n(formatCurrency(4_397_941.56, 'DOP'))).toBe('RD$ 4.397.941,56')
+    expect(n(formatCurrency(1_200_000, 'USD', { compact: true }))).toMatch(/^US\$ 1,2\sM$/)
+    expect(n(formatCurrency(-350_000, 'DOP', { compact: true }))).toMatch(/^−RD\$ 350\smil$/)
+    expect(n(formatCurrency(10, 'EUR'))).toBe('€ 10,00')
   })
 
   it('formatea números', () => {

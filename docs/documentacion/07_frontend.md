@@ -136,4 +136,34 @@ Capturas de referencia: `docs/capturas/etapa-08/` y `docs/documentacion/img/`.
     hace `PUT /mappings` (confirma) y `POST /mappings/consolidate`, y muestra el resumen antes y
     después («Score 64,0 → 67,0», «Cuentas dudosas 2 → 0»).
 
-> Pendiente (Etapas 10 y 11): dashboard, problemas y KPIs.
+### Dashboard, problemas y KPIs (Etapa 10)
+
+- **`/` (Dashboard)** sigue el orden de la guía (§5):
+  - `ScoreCard`: medidor, variación en puntos y componentes con su peso.
+  - `ImpactCard`: total y barras horizontales por categoría.
+  - `KpiCards`: 5 `StatCard` con `TrendIndicator`. Las proporciones varían en pp y el resto en %.
+  - `TrendCharts`: una línea por KPI con selector, y barras de ingresos frente al costo total.
+  - `TopProblems` y `Recommendations`, con los hallazgos positivos.
+
+  Hace una consulta por bloque (`/kpis`, `/score`, `/impact/summary`, `/problems?pageSize=5`,
+  `/data?type=Financial`), cada una con su skeleton. Si no hay datos, muestra un `EmptyState`.
+- **`/problems`:**
+  - Filtros en la URL (año, severidad, categoría y estado); el año por defecto es el de la topbar.
+  - Tabla con orden por prioridad, columnas ordenables (incluido el impacto) y paginación.
+- **`/problems/:id`:**
+  - Descripción, severidad, estado (editable por Admin y Analyst) e impacto con «Cómo se
+    calculó» (`evidence.impact`).
+  - Histórico del KPI relacionado y evidencia legible (`lib/evidence.ts`).
+  - Recomendación, más la de la IA cuando exista.
+- **`/kpis`:** tabla histórica de todos los KPIs con la variación del último año, y un gráfico
+  por KPI.
+- **Gráficos** (`components/charts/`) sobre Recharts 3:
+  - `ChartCard` aporta título, subtítulo con unidad y período, `aria-label` y «Ver tabla».
+  - `TrendLineChart`, `GroupedBarChart` y `HorizontalBarChart`.
+  - `ChartTooltip` y `ChartLegend` usan tokens; la leyenda aparece con 2 series o más.
+  - Colores `var(--chart-N)` en orden fijo por entidad (ingresos = 1, costo = 2), sin doble eje
+    Y y con grilla solo horizontal.
+- **Montos:** `formatCurrency` antepone el símbolo de la moneda («RD$ 4.397.941,56», compacto
+  «RD$ 4,4 M»), igual que el PDF.
+- **Informe PDF:** `DownloadReportButton` llama a `GET /reports/executive` con el token y guarda
+  el archivo con el nombre que envía el API (`Content-Disposition`, expuesto por CORS).

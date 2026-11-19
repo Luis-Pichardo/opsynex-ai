@@ -218,4 +218,64 @@ riesgo y no muestran una pérdida. El impacto total suma las estimaciones de tod
 Algunos problemas miden parte del mismo efecto, así que el total es una guía para priorizar y no
 una cifra contable.
 
-> Pendiente (Etapas 08 a 11): pantallas del dashboard y recomendaciones con IA.
+### El dashboard
+
+El **Dashboard** muestra la empresa y el año elegidos en la barra superior. Los bloques van en
+este orden:
+
+1. **Score Opsynex.** El número de 0 a 100 con su banda (Saludable, Mejorable o Deterioro),
+   la variación frente al año anterior y los cuatro componentes con su peso. Si a un componente
+   le faltan datos, aparece «Sin datos» y un icono **?** explica por qué.
+2. **Impacto financiero estimado.** El total del año, el porcentaje de los ingresos que
+   representa y las barras por categoría (pérdida de margen, exceso de costos…).
+3. **KPIs principales.** Margen EBITDA, margen bruto, eficiencia de costos, ingresos por
+   empleado y gastos operacionales. La flecha indica si el valor subió o bajó; el **verde**
+   significa que el cambio es bueno y el **rojo**, que es malo. Por ejemplo, si la eficiencia de
+   costos sube, se muestra en rojo, porque significa que los costos pesan más. El icono **?**
+   muestra la fórmula.
+4. **Tendencias.** Un KPI por año (elígelo en el selector) y las barras de ingresos frente al
+   costo total.
+5. **Principales problemas y recomendaciones.** Los cinco problemas más prioritarios con su
+   severidad e impacto, las recomendaciones de los tres primeros y «Lo que mejoró».
+
+Cada gráfico tiene **Ver tabla** para ver los mismos datos en números.
+
+![Dashboard](img/dashboard.png){width=95%}
+
+### Problemas y su detalle
+
+En **Problemas**, filtra por año, severidad, categoría o estado. La tabla se ordena por
+prioridad, y puedes ordenarla por impacto pulsando la columna. Al abrir un problema verás:
+
+- **Descripción y severidad**, con su estado (Abierto, Reconocido o Resuelto).
+- **Impacto económico**, con el margen afectado, la magnitud del deterioro y **cómo se calculó**
+  (la fórmula y los valores usados).
+- **Histórico** del indicador relacionado, año por año.
+- **Recomendación** y la **evidencia** (los valores que dispararon la regla).
+
+El analista o el administrador puede cambiar el **estado**. Se conserva aunque se vuelva a
+analizar.
+
+![Detalle de un problema](img/problema-detalle.png){width=95%}
+
+### KPIs
+
+La página **KPIs** muestra todos los indicadores por año en una tabla, con la variación del
+último año, y debajo un gráfico por indicador.
+
+### Informe PDF
+
+El botón **Descargar informe PDF** aparece en el dashboard y en el detalle de cada problema, y
+está disponible para todos los roles. Descarga un informe en tamaño Carta con:
+- la portada (empresa, año y fecha);
+- el score y sus componentes;
+- el impacto total y por categoría;
+- la tabla de KPIs con la variación anual;
+- el gráfico de ingresos y costos;
+- los problemas con su recomendación;
+- las advertencias de calidad de los datos;
+- una nota metodológica.
+
+![Primera página del informe](img/informe-pdf.png){width=60%}
+
+> Pendiente (Etapa 11): recomendaciones y resumen ejecutivo con IA.

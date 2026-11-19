@@ -86,6 +86,10 @@ log "5/5 SQL Server"
 if [ "$WITH_SQL" = true ]; then
   if ! docker info >/dev/null 2>&1; then
     command -v dockerd >/dev/null 2>&1 || { echo "dockerd no está instalado" >&2; exit 1; }
+    # Si el contenedor se reinició, dockerd pudo dejar un pid huérfano que impide arrancarlo.
+    if [ -f /var/run/docker.pid ] && ! pgrep -x dockerd >/dev/null 2>&1; then
+      $SUDO rm -f /var/run/docker.pid /var/run/docker/containerd/containerd.pid
+    fi
     echo "Arrancando dockerd en segundo plano (log en /tmp/dockerd.log)"
     $SUDO sh -c 'nohup dockerd > /tmp/dockerd.log 2>&1 &'
     for _ in $(seq 1 30); do docker info >/dev/null 2>&1 && break; sleep 1; done
