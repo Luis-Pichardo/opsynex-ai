@@ -51,6 +51,10 @@ erDiagram
     Uploads |o--o{ OperationalData : origina
     Companies ||--o{ MonthlyFinancialData : "tiene (1 por mes)"
     Uploads |o--o{ MonthlyFinancialData : origina
+    Companies ||--o{ ProductionData : "tiene (1 por día y máquina)"
+    Companies ||--o{ CostData : "tiene (1 por fecha y máquina)"
+    Companies ||--o{ StandardData : "tiene (1 por máquina)"
+    Companies ||--o{ IndustrialKpiResults : "tiene (por período y alcance)"
 
     Companies {
         uniqueidentifier Id PK
@@ -446,6 +450,50 @@ Score Opsynex por año (0–100). Único por (`CompanyId`, `Year`).
 | Interpretation | nvarchar(50) | No | `Healthy` (80–100), `Improvable` (60–79) o `Deteriorated` (0–59). |
 | CreatedAt | datetime2 | No | Fecha de creación (UTC). |
 | UpdatedAt | datetime2 | No | Última modificación (UTC). |
+
+#### Módulo industrial (etapa 12)
+
+Cuatro tablas, todas con `CompanyId` y el filtro global por empresa. Los códigos de máquina y
+línea se guardan en mayúsculas. **No guardan datos personales:** solo se leen las columnas de la
+plantilla (una columna «Operador» se ignora). Migración: `IndustrialModule`.
+
+**ProductionData** — producción de una máquina en un día. Único por (`CompanyId`, `Date`, `MachineId`).
+
+| Columna | Tipo | Nulo | Descripción |
+|---|---|---|---|
+| Date | date | No | Día del registro. |
+| MachineId | nvarchar(50) | No | Código de la máquina (p. ej. `MAQ-01`). |
+| LineId | nvarchar(50) | Sí | Línea de producción. |
+| PlannedMinutes | decimal(18,2) | No | Minutos planificados (> 0). |
+| DowntimeMinutes | decimal(18,2) | No | Minutos de parada (0 ≤ paradas ≤ planificado). |
+| TotalUnits | decimal(18,2) | No | Unidades procesadas (buenas + scrap). |
+| GoodUnits | decimal(18,2) | No | Unidades buenas (≤ totales). |
+| UnitsProduced | decimal(18,2) | No | Unidades entregadas (si no viene, las buenas). |
+| CycleTime | decimal(18,2) | Sí | Ciclo real promedio (segundos por unidad), informativo. |
+| UploadId | uniqueidentifier | Sí | Carga de origen. |
+
+**CostData** — costos de una máquina en una fecha (diaria o de cierre de mes). Único por
+(`CompanyId`, `Date`, `MachineId`). Columnas `LaborCost`, `MaterialCost`, `EnergyCost` y
+`OverheadCost` (decimal(18,2), no negativas) y `UploadId`.
+
+**StandardData** — estándar de cada máquina. Único por (`CompanyId`, `MachineId`).
+`StandardCycleTime` (segundos por unidad, > 0), `StandardCost` (costo estándar por unidad),
+`CostPerMinute` (costo de un minuto de máquina, para valorar las paradas), `ProcessName` y `UploadId`.
+
+**IndustrialKpiResults** — KPIs agregados que recalcula el análisis industrial (se reemplazan
+completos en cada análisis). Una fila por período (`Year` y `Month`; `Month` nulo = año completo)
+y alcance (`Level`: `Total`, `Line` o `Machine`, con `LineId`/`MachineId`). Guarda:
+
+- **Sumas:** minutos planificados y de parada, unidades totales, buenas y producidas, días y
+  costos por tipo (`LaborCost`, `MaterialCost`, `EnergyCost`, `OverheadCost`, `TotalCost`).
+- **KPIs** (decimal(9,4)): `Oee`, `Availability`, `Performance`, `Quality`, `ScrapRate`,
+  `DowntimeRatio`, `CapacityUtilization`; montos `CostPerUnit` y `StandardCostPerUnit`.
+- **Pérdidas valoradas:** `DowntimeCost`, `ScrapCost` y `SpeedLossCost`.
+
+Los problemas industriales (`LOW_OEE`, `HIGH_SCRAP`, `HIGH_DOWNTIME`,
+`COST_PER_UNIT_ABOVE_STANDARD`) y las anomalías diarias (`ANOMALY_OEE_*`, `ANOMALY_DOWNTIME_*`)
+se guardan en `Problems`, con el año de los datos. El score industrial no se guarda: se calcula
+al consultarlo porque combina estos KPIs con el Score Opsynex del año.
 
 ### Catálogo de categorías estándar (`OpsynexCategory`)
 

@@ -40,7 +40,7 @@ export function GroupedBarChart({
             tick={AXIS_TICK}
             tickLine={false}
             axisLine={false}
-            width={72}
+            width={84}
             tickFormatter={(v: number) => (formatAxis ?? formatValue)(v)}
           />
           <Tooltip

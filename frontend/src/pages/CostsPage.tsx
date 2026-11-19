@@ -47,16 +47,24 @@ function deviation(row: IndustrialRow | null | undefined): number | null {
 function DeviationBadge({ value, tolerance }: { value: number | null; tolerance: number }) {
   if (value === null) return <span className="text-foreground-muted">—</span>
   if (value > tolerance) {
-    return <Badge variant="critical">+{formatPercent(value)} sobre el estándar</Badge>
+    return (
+      <Badge variant="critical" className="self-start">
+        +{formatPercent(value)} sobre el estándar
+      </Badge>
+    )
   }
   if (value > 0) {
     return (
-      <Badge variant="neutral">
+      <Badge variant="neutral" className="self-start">
         +{formatPercent(value)} (tolerancia {formatPercent(tolerance, 0)})
       </Badge>
     )
   }
-  return <Badge variant="good">{formatPercent(value)} vs. estándar</Badge>
+  return (
+    <Badge variant="good" className="self-start">
+      {formatPercent(value)} vs. estándar
+    </Badge>
+  )
 }
 
 function Costs({ data }: { data: IndustrialKpisResponse }) {

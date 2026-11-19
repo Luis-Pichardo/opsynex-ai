@@ -495,4 +495,93 @@ rentabilidad 40 %, eficiencia de costos 33,33 % y estabilidad 26,67 %. Resultado
 
 ### Módulo industrial
 
-> Pendiente (Etapa 11): OEE, scrap rate, downtime, cost per unit e impacto industrial.
+Implementado en la etapa 12 (`Opsynex.Domain/Engines/Industrial/`), con las fórmulas de
+PLATAFORMA_DE_ANALISIS §5–8 y la sección 10 de las especificaciones. Son clases puras (sin EF ni
+HTTP) y toda división se protege: un KPI sin datos es `null`.
+
+#### Entradas
+
+- **Producción diaria** por máquina: minutos planificados y de parada, unidades totales, buenas y
+  producidas, línea y ciclo real.
+- **Costos** por máquina y fecha: mano de obra, materiales, energía y gastos generales.
+- **Estándares** por máquina: ciclo estándar (segundos por unidad), costo estándar por unidad y
+  costo por minuto.
+
+#### KPIs (`IndustrialKpiEngine`)
+
+| KPI | Fórmula |
+|---|---|
+| Availability | (planificado − paradas) / planificado |
+| Performance | (ciclo estándar × unidades totales) / tiempo en marcha (planificado − paradas) |
+| Quality | unidades buenas / unidades totales |
+| OEE | Availability × Performance × Quality |
+| Scrap rate | (unidades totales − buenas) / unidades totales |
+| Cost per unit | costo total / unidades producidas |
+| Downtime ratio | paradas / planificado |
+| Capacity utilization | (ciclo estándar × unidades totales) / tiempo planificado |
+
+- Se agregan por **mes y año**, para la **planta, cada línea y cada máquina**. Los agregados se
+  calculan con las **sumas** (no promediando ratios). El rendimiento de una línea o de la planta
+  solo usa las máquinas con estándar.
+- Sin estándar, una máquina no tiene rendimiento ni OEE (se avisa al cargar).
+- El costo por unidad solo usa la producción de los **meses que tienen costos**: si falta un mes,
+  el costo no se diluye entre unidades sin costo.
+- La **serie diaria** de la planta (o del filtro) alimenta los gráficos y la detección de anomalías.
+
+#### Pérdidas valoradas (impacto, §7)
+
+- `downtime_cost = minutos de parada × costo por minuto`.
+- `scrap_cost = (unidades totales − buenas) × costo unitario`.
+- `total_impact = downtime_cost + scrap_cost`.
+- Pérdida por velocidad (aparte): `(tiempo en marcha − tiempo al ciclo estándar) × costo por minuto`.
+
+El costo por minuto es el del estándar o, si falta, el costo real / minutos planificados de los
+meses con costos. El costo unitario es el estándar o, si falta, el costo real / unidades procesadas.
+
+#### Reglas (`IndustrialDiagnosisEngine`, configurables en `Industrial`)
+
+Se evalúan por año con los agregados anuales de **cada máquina**. Cada regla genera como mucho un
+problema por año que lista las máquinas afectadas.
+
+| Código | Condición (por defecto) | Severidad | Impacto |
+|---|---|---|---|
+| `HIGH_DOWNTIME` | paradas / planificado > 15 % (`HighDowntimeThreshold`) | Alta | Σ paradas × costo por minuto |
+| `HIGH_SCRAP` | scrap > 5 % (`HighScrapThreshold`) | Media | Σ scrap × costo unitario |
+| `LOW_OEE` | OEE < 60 % (`LowOeeThreshold`) | Alta | velocidad + paradas y scrap no contados en las reglas anteriores |
+| `COST_PER_UNIT_ABOVE_STANDARD` | costo por unidad > estándar × (1 + 10 %) (`CostAboveStandardTolerance`) | Media | (costo real − costo estándar de lo producido) − pérdidas ya atribuidas a la máquina |
+
+- **Sin doble conteo:** las reglas se evalúan en ese orden y cada pérdida de una máquina se
+  cuenta una sola vez, así que la suma de los problemas es el impacto total sin repetir.
+- Las severidades también se configuran (`Industrial:Severities`).
+- Si faltan costos, el problema se detecta igual, pero sin impacto y con el motivo.
+- La recomendación termina con «Impacto estimado: RD$ … en el período analizado (oct–dic 2024)».
+
+#### Score industrial (`IndustrialScoreEngine`, §8)
+
+`industrial_score = production × 0,30 + cost × 0,25 + financial × 0,25 + standard × 0,20`
+
+| Componente | Cálculo (0–100) |
+|---|---|
+| Producción | OEE normalizado: 40 % → 0, 85 % (clase mundial) → 100 |
+| Costo | costo por unidad / estándar: 1,30 → 0, 1,00 o menos → 100 |
+| Financiero | el Score Opsynex del mismo año |
+| Estándar | promedio del rendimiento (60 % → 0, 100 % → 100) y del scrap (10 % → 0, 2 % → 100) |
+
+- Si falta un componente (por ejemplo, no hay estados financieros), su peso se reparte entre los
+  demás, como en el Score Opsynex. Usa las mismas bandas: 80–100 saludable, 60–79 mejorable y
+  0–59 deterioro.
+- Los pesos y rangos están en `Industrial:ScoreWeights`, `OeeRange`, `CostRatioRange`,
+  `PerformanceRange` y `ScrapRange`, y se validan al arrancar.
+
+#### Datos de ejemplo
+
+`backend/sample-data/industrial/` es una planta ficticia con 3 máquinas, 2 líneas y producción
+diaria de oct–dic 2024. La genera `backend/tests/TestData/generate_industrial_samples.py`, que
+también calcula los valores esperados por su cuenta.
+
+| Problema | Máquina | Impacto |
+|---|---|---|
+| Paradas elevadas (`HIGH_DOWNTIME`) | MAQ-03 (24,9 % del tiempo) | RD$ 783.552 |
+| OEE bajo (`LOW_OEE`) | MAQ-03 (56,7 %) | RD$ 618.425 |
+| Costo sobre el estándar | MAQ-02 (+17,8 %) | RD$ 376.591 |
+| Scrap elevado (`HIGH_SCRAP`) | MAQ-02 (8,1 %) | RD$ 365.070 |

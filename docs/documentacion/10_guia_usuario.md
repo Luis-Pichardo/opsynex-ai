@@ -304,3 +304,50 @@ está disponible para todos los roles. Descarga un informe en tamaño Carta con:
   con las recomendaciones base.
 
 ![Resumen ejecutivo cuando la IA no está configurada](img/ia-resumen-no-configurada.png){width=80%}
+
+### Producción y costos (módulo industrial)
+
+El módulo industrial analiza la producción diaria de cada máquina. Se activa al subir sus datos:
+mientras la empresa no los tenga, los menús **Producción** y **Costos** aparecen deshabilitados.
+
+**Qué subir (Analyst o Admin).** En **Carga de datos → ¿No tienes estados financieros? Descarga la
+plantilla → Módulo industrial** hay tres plantillas `.xlsx`. Cada una trae una hoja de
+instrucciones:
+
+| Plantilla | Una fila por… | Columnas obligatorias |
+|---|---|---|
+| Producción por máquina | día y máquina | Fecha, Máquina, Minutos planificados, Minutos de parada, Unidades totales, Unidades buenas |
+| Costos por máquina | fecha (o cierre de mes) y máquina | Fecha, Máquina y al menos un costo (mano de obra, materiales, energía o gastos generales) |
+| Estándares por máquina | máquina | Máquina y Ciclo estándar (segundos por unidad) |
+
+- Los archivos se reconocen solos por sus encabezados, en español o con los nombres de la
+  especificación (`machine_id`, `downtime_minutes`…). Un libro puede traer las tres hojas.
+- Las filas con errores (unidades buenas mayores que las totales, parada mayor que el tiempo
+  planificado, fecha inválida) se omiten con un aviso que indica la hoja, la fila y la columna.
+- Volver a subir un período reemplaza sus registros (misma fecha y máquina); lo demás se conserva.
+- **No incluyas datos personales** (nombres de operadores, cédulas): esas columnas no se leen.
+- Sube primero los estándares y los costos: sin estándar no hay rendimiento ni OEE, y sin costos
+  no hay costo por unidad ni pérdidas en dinero.
+
+**La página Producción.** Arriba se filtra por período (año o mes), línea y máquina.
+
+- **Score industrial (0–100):** producción (OEE) 30 %, costo frente al estándar 25 %, Score
+  Opsynex del año 25 % y cumplimiento de estándares 20 %. Usa los mismos colores que el Score
+  Opsynex.
+- **Pérdidas operativas:** paradas × costo por minuto + scrap × costo unitario. La pérdida por ir
+  más lento que el estándar se muestra aparte.
+- **OEE** = disponibilidad × rendimiento × calidad. Un OEE menor al 60 % se marca «Bajo el 60 %».
+  El scrap y las paradas se marcan cuando superan el 5 % y el 15 %.
+- Gráficos: el OEE y sus componentes por mes, las paradas por máquina y las series diarias, donde
+  se ve un día con una avería. Cada gráfico tiene «Ver tabla».
+- **Ranking de máquinas:** de la menos a la más eficiente, con sus pérdidas.
+
+**La página Costos.** Compara el costo por unidad con el estándar de cada máquina, muestra la
+composición del costo por mes y marca las máquinas que superan el estándar en más de un 10 %.
+
+**Problemas industriales.** Aparecen en **Problemas** junto con los financieros y se ordenan por
+impacto: OEE bajo, scrap elevado, paradas de máquina elevadas y costo por unidad sobre el
+estándar. Cada uno nombra las máquinas afectadas y su impacto en el período analizado. Si la IA
+está activa, también se marcan los días atípicos de OEE o de paradas.
+
+![Producción en el móvil, modo oscuro](img/produccion-movil-oscuro.png)

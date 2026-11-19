@@ -364,6 +364,36 @@ Sin `year`, el informe es del último año analizado. Contenido:
 Está en tamaño Carta, con el nombre de la empresa y el número de página en el pie. Desde la
 etapa 11 incluye el resumen ejecutivo de la IA.
 
+### Módulo industrial — `/api/v1/industrial` (etapa 12)
+
+| Método | Ruta | Rol | Response |
+|---|---|---|---|
+| GET | `/industrial/kpis?year=&month=&machineId=&lineId=` | Todos | 200 `IndustrialKpisDto` · 400 (ver abajo) |
+| GET | `/industrial/score?year=&month=&machineId=&lineId=` | Todos | 200 `IndustrialScoreDto` · 400 |
+
+- Sin `year`, se usa el último año con producción; sin `month`, el año completo. Con `machineId`
+  el resumen es de la máquina; con `lineId`, de la línea; sin ninguno, de la planta.
+- `IndustrialKpisDto`: `hasData` (sin datos industriales es `false` y el menú Producción queda
+  deshabilitado), `currency`, `years`, `months`, `machines[{ machineId, lineId, processName,
+  hasStandard, hasCosts }]`, `lines`, `summary`, `byMachine`, `byLine`, `monthly` (tendencia del
+  alcance), `daily[{ date, oee, downtimeMinutes, availability, performance, quality }]`,
+  `thresholds` y `warnings` (máquinas sin estándar o sin costos).
+- Cada fila (`IndustrialRowDto`): período, nivel, máquina/línea, sumas, `kpis` (OEE,
+  disponibilidad, rendimiento, calidad, scrap, paradas, capacidad, costo por unidad y estándar),
+  `costs` por tipo y `losses { downtimeCost, scrapCost, speedLossCost, total }`
+  (`total` = paradas + scrap).
+- `IndustrialScoreDto`: `totalScore`, `interpretation` y su etiqueta, `components` (producción,
+  costo, financiero y estándar con peso base, peso usado y motivo si falta), `weightsRedistributed`
+  y `opsynexScore` del año.
+- Errores 400: `industrial.company_required`, `industrial.invalid_year`, `industrial.invalid_month`,
+  `industrial.no_data_for_year`, `industrial.no_data_for_month`, `industrial.unknown_machine`,
+  `industrial.unknown_line`.
+
+Los archivos industriales se suben con `POST /uploads` (se reconocen por sus encabezados o con
+`fileType` = `Production`, `Costs` o `Standards`) y sus plantillas se descargan en
+`GET /uploads/templates/{Production|Costs|Standards}`. `POST /analysis/run` recalcula también el
+análisis industrial.
+
 ### Datos — `/api/v1/data`
 
 | Método | Ruta | Rol | Response |

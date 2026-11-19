@@ -16,10 +16,12 @@ export function ThresholdStatus({ value, threshold, higherIsBetter }: ThresholdS
   if (value === null || value === undefined) return null
   const breached = higherIsBetter ? value < threshold : value > threshold
   return breached ? (
-    <Badge variant="critical">
+    <Badge variant="critical" className="self-start">
       {higherIsBetter ? 'Bajo' : 'Sobre'} el {formatPercent(threshold, 0)}
     </Badge>
   ) : (
-    <Badge variant="good">En rango</Badge>
+    <Badge variant="good" className="self-start">
+      En rango
+    </Badge>
   )
 }

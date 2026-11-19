@@ -424,3 +424,51 @@ Registro de cada etapa completada (la más reciente al final).
   - Si se despliega más de una instancia del API, mover la cola y el estado de la IA a un
     almacenamiento compartido.
 
+
+### Etapa 12 — Módulo industrial: producción, OEE, scrap y paradas (19/11/2026)
+
+- **Resumen:**
+  - **Modelo:** tablas `ProductionData`, `CostData`, `StandardData` e `IndustrialKpiResults`
+    (migración `IndustrialModule`).
+  - **Carga:** tipos `Production`, `Costs` y `Standards`. Se reconocen por sus encabezados, se
+    validan fila por fila y tienen plantillas `.xlsx` con instrucciones.
+  - **Motores puros** en `Domain/Engines/Industrial`:
+    - KPIs (disponibilidad, rendimiento, calidad, OEE, scrap, costo por unidad, paradas y
+      capacidad) por mes y año, para la planta, cada línea y cada máquina.
+    - Reglas `LOW_OEE`, `HIGH_SCRAP`, `HIGH_DOWNTIME` y `COST_PER_UNIT_ABOVE_STANDARD`, con su impacto.
+    - Score industrial (30/25/25/20).
+  - **API:** `/industrial/kpis` y `/industrial/score`. La IA detecta anomalías en las series
+    diarias de OEE y paradas.
+  - **Frontend:** páginas Producción y Costos, menú habilitado con datos y score industrial en
+    el dashboard.
+  - **Datos de ejemplo** sintéticos en `backend/sample-data/industrial/`.
+- **Archivos principales:**
+  - `backend/src/Opsynex.Domain/Engines/Industrial/`
+  - `backend/src/Opsynex.Application/Industrial/`
+  - `backend/src/Opsynex.Application/Uploads/IndustrialTemplates.cs`
+  - `backend/src/Opsynex.Infrastructure/Parsing/IndustrialTableExtractor.cs`
+  - `Controllers/IndustrialController.cs`
+  - `backend/tests/TestData/generate_industrial_samples.py`
+  - `frontend/src/pages/{ProductionPage,CostsPage}.tsx` y `frontend/src/components/industrial/`
+- **Decisiones técnicas:**
+  - **Reglas por máquina:** se evalúan con los agregados anuales de cada máquina (es lo
+    accionable). Cada regla da un problema por año que lista las máquinas afectadas, en la misma
+    tabla `Problems`. El pipeline financiero ya no borra los códigos industriales.
+  - **Sin doble conteo:** `LOW_OEE` suma la pérdida por velocidad más las paradas y el scrap que
+    no estén en `HIGH_DOWNTIME` o `HIGH_SCRAP`. El costo sobre el estándar descuenta lo ya
+    atribuido a la máquina. Así la suma de problemas en el dashboard no repite pérdidas.
+  - **Umbral de paradas como proporción:** `HIGH_DOWNTIME` usa paradas / tiempo planificado
+    > 15 %, configurable, y no minutos absolutos, que dependen del tamaño de la planta.
+  - **Score industrial al consultar:** no se guarda, porque depende del Score Opsynex del año,
+    que cambia con cada carga financiera.
+  - **Costos por meses cubiertos:** el costo por unidad solo divide entre la producción de los
+    meses que tienen costos.
+  - **Valores esperados independientes:** el generador de datos calcula KPIs e impacto en Python.
+    Las pruebas de integración comparan el motor .NET contra ellos.
+  - **Privacidad:** solo se leen las columnas de la plantilla; nombres de operadores u otras
+    columnas no se guardan.
+- **Pendientes:**
+  - **Pendiente de confirmar con el cliente:** el alcance del módulo industrial
+    (FLUJO_DE_USUARIO.md, decisión 5).
+  - Validar con datos reales de una planta los umbrales y rangos del score (son configurables).
+  - El informe PDF todavía no incluye la sección industrial.
