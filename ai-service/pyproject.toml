@@ -16,7 +16,7 @@ dependencies = [
   "pandas>=2.2",
   "rapidfuzz>=3.10",
   "scikit-learn>=1.5",
-  "anthropic>=0.40",
+  "anthropic>=2.8,<3",
 ]
 
 [project.optional-dependencies]

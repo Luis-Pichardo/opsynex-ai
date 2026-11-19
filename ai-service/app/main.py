@@ -2,11 +2,13 @@
 
 import logging
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 
 from app import __version__
 from app.config import get_settings
-from app.routers import health, homologation, system
+from app.llm.client import LlmError
+from app.routers import health, homologation, insights, system
 from app.security import InternalApiKeyMiddleware
 
 
@@ -27,6 +29,23 @@ def create_app() -> FastAPI:
     app.include_router(health.router)
     app.include_router(system.router)
     app.include_router(homologation.router)
+    app.include_router(insights.router)
+
+    @app.exception_handler(LlmError)
+    async def llm_error(_: Request, error: LlmError) -> JSONResponse:
+        # Mismo formato ProblemDetails que el API .NET, con un `code` propio.
+        return JSONResponse(
+            status_code=error.status,
+            media_type="application/problem+json",
+            content={
+                "type": "about:blank",
+                "title": "Error de la IA generativa",
+                "status": error.status,
+                "detail": error.message,
+                "code": error.code,
+            },
+        )
+
     return app
 
 

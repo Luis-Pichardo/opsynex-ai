@@ -19,3 +19,14 @@ def client(monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]:
     with TestClient(create_app()) as test_client:
         yield test_client
     get_settings.cache_clear()
+
+
+@pytest.fixture
+def auth_headers() -> dict[str, str]:
+    return {"X-Internal-Api-Key": TEST_API_KEY}
+
+
+@pytest.fixture
+def anyio_backend() -> str:
+    """Las pruebas asíncronas corren con asyncio (plugin de pytest de anyio)."""
+    return "asyncio"
