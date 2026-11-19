@@ -1,5 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowRight, CircleAlert, LayoutDashboard, RotateCcw, UploadCloud } from 'lucide-react'
+import {
+  ArrowRight,
+  CircleAlert,
+  Factory,
+  LayoutDashboard,
+  RotateCcw,
+  UploadCloud,
+} from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router'
 
@@ -18,11 +25,12 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { formatNumber } from '@/lib/format'
-import { FILE_TYPE_LABELS } from '@/lib/labels'
+import { FILE_TYPE_LABELS, INDUSTRIAL_FILE_TYPES } from '@/lib/labels'
 import { useWorkspace } from '@/workspace/useWorkspace'
 import type { UploadFileType, UploadReport } from '@/types/uploads'
 import { AnalysisSummaryCard } from './AnalysisSummaryCard'
 import { FileDropzone } from './FileDropzone'
+import { IndustrialUploadSummary } from './IndustrialUploadSummary'
 import { IssueList } from './IssueList'
 import { ReviewNotice } from './ReviewNotice'
 import { SheetList } from './SheetList'
@@ -37,6 +45,7 @@ const CSV_TYPES: UploadFileType[] = [
   'CashFlow',
   'CostStructure',
   'Operational',
+  ...INDUSTRIAL_FILE_TYPES,
 ]
 
 /**
@@ -55,6 +64,7 @@ export function UploadWizard() {
 
   const isCsv = file?.name.toLowerCase().endsWith('.csv') ?? false
   const failed = report?.status === 'Failed'
+  const industrial = report !== null && INDUSTRIAL_FILE_TYPES.includes(report.fileType)
 
   const upload = useMutation({
     mutationFn: (selected: File) =>
@@ -75,7 +85,7 @@ export function UploadWizard() {
   const summary = useQuery({
     queryKey: ['analysis', 'summary', companyId],
     queryFn: ({ signal }) => analysisApi.summary(signal),
-    enabled: report !== null && !failed,
+    enabled: report !== null && !failed && !industrial,
   })
 
   const reset = () => {
@@ -96,10 +106,11 @@ export function UploadWizard() {
       {step === 1 ? (
         <Card className="space-y-5 p-4 sm:p-5">
           <div className="space-y-1">
-            <h2 className="text-h2 text-foreground">Sube el libro contable</h2>
+            <h2 className="text-h2 text-foreground">Sube el libro contable o la producción</h2>
             <p className="text-body text-foreground-secondary">
-              Sube tu libro de estados financieros tal como lo prepara tu contador. El análisis se
-              hace solo: no hace falta borrar hojas ni confirmar nada.
+              Sube tu libro de estados financieros tal como lo prepara tu contador, o las tablas de
+              producción, costos y estándares por máquina. El análisis se hace solo: no hace falta
+              borrar hojas ni confirmar nada.
             </p>
           </div>
           <FileDropzone file={file} onFileChange={setFile} disabled={uploading} />
@@ -111,7 +122,7 @@ export function UploadWizard() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={AUTO}>Detectar por el título</SelectItem>
+                  <SelectItem value={AUTO}>Detectar automáticamente</SelectItem>
                   {CSV_TYPES.map((type) => (
                     <SelectItem key={type} value={type}>
                       {FILE_TYPE_LABELS[type]}
@@ -120,7 +131,7 @@ export function UploadWizard() {
                 </SelectContent>
               </Select>
               <p className="text-small text-foreground-secondary">
-                Indícalo si el CSV no tiene en la primera fila el título de la plantilla.
+                Indícalo si el CSV no tiene el título ni los encabezados de la plantilla.
               </p>
             </div>
           ) : null}
@@ -215,12 +226,21 @@ export function UploadWizard() {
                       <RotateCcw />
                       Subir otro archivo
                     </Button>
-                    <Button asChild>
-                      <Link to="/">
-                        <LayoutDashboard />
-                        Ir al dashboard
-                      </Link>
-                    </Button>
+                    {industrial ? (
+                      <Button asChild>
+                        <Link to="/production">
+                          <Factory />
+                          Ir a producción
+                        </Link>
+                      </Button>
+                    ) : (
+                      <Button asChild>
+                        <Link to="/">
+                          <LayoutDashboard />
+                          Ir al dashboard
+                        </Link>
+                      </Button>
+                    )}
                   </div>
                 </div>
                 {report.analysisStatus === 'Failed' ? (
@@ -228,14 +248,19 @@ export function UploadWizard() {
                     role="alert"
                     className="rounded border border-critical bg-critical-soft p-3 text-small text-critical-text"
                   >
-                    Los datos se cargaron, pero el análisis no terminó. Vuelve a analizar desde la
-                    homologación.
+                    {industrial
+                      ? 'Los datos se cargaron, pero el análisis industrial no terminó. Vuelve a subir el archivo más tarde.'
+                      : 'Los datos se cargaron, pero el análisis no terminó. Vuelve a analizar desde la homologación.'}
                   </p>
                 ) : null}
                 {report.needsReview ? (
                   <ReviewNotice uploadId={report.uploadId} count={report.doubtfulAccounts} />
                 ) : null}
-                <AnalysisSummaryCard summary={summary.data} loading={summary.isLoading} />
+                {industrial ? (
+                  <IndustrialUploadSummary report={report} />
+                ) : (
+                  <AnalysisSummaryCard summary={summary.data} loading={summary.isLoading} />
+                )}
               </section>
               <IssueList kind="warning" issues={report.warnings} />
             </>

@@ -16,6 +16,24 @@ export const SERIES = {
 
 export const PRIMARY_SERIES = 'var(--chart-1)'
 
+/**
+ * Módulo industrial (GUIA_DE_DISENO.md §2.4, asignación industrial): el color sigue a la entidad
+ * en las páginas de Producción y Costos.
+ */
+export const INDUSTRIAL_SERIES = {
+  oee: 'var(--chart-1)',
+  availability: 'var(--chart-3)',
+  performance: 'var(--chart-7)',
+  quality: 'var(--chart-8)',
+  downtime: 'var(--chart-2)',
+  actualCost: 'var(--chart-2)',
+  standardCost: 'var(--chart-1)',
+  labor: 'var(--chart-7)',
+  material: 'var(--chart-4)',
+  energy: 'var(--chart-6)',
+  overhead: 'var(--chart-5)',
+} as const
+
 export const AXIS_TICK = { className: 'fill-foreground-muted text-caption' }
 
 export const GRID_PROPS = {

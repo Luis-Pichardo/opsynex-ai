@@ -3,6 +3,7 @@ import { NavLink } from 'react-router'
 
 import { useAuth } from '@/auth/useAuth'
 import { SimpleTooltip } from '@/components/ui/tooltip'
+import { useHasIndustrialData } from '@/industrial/useIndustrial'
 import { cn } from '@/lib/utils'
 import { Logo } from './Logo'
 import { navItemsFor, type NavItem } from './navigation'
@@ -29,7 +30,8 @@ export function Sidebar({
   className,
 }: SidebarProps) {
   const { user } = useAuth()
-  const items = navItemsFor(user?.role)
+  const { hasData } = useHasIndustrialData()
+  const items = navItemsFor(user?.role, hasData)
 
   return (
     <nav

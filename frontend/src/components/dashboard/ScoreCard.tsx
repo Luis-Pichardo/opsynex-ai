@@ -1,11 +1,8 @@
-import { CircleHelp } from 'lucide-react'
-
+import { ScoreComponents } from '@/components/common/ScoreComponents'
 import { ScoreGauge } from '@/components/common/ScoreGauge'
 import { TrendIndicator } from '@/components/common/TrendIndicator'
 import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { SimpleTooltip } from '@/components/ui/tooltip'
-import { formatNumber, formatPercent } from '@/lib/format'
 import type { ScoreYear } from '@/types/analysis'
 
 /** Score Opsynex: medidor, interpretación, variación anual y componentes con su peso. */
@@ -38,45 +35,15 @@ export function ScoreCard({ score, loading }: { score: ScoreYear | undefined; lo
           ) : null}
         </div>
         {score ? (
-          <ul className="space-y-3" aria-label="Componentes del score">
-            {score.components.map((component) => (
-              <li key={component.dimension} className="space-y-1">
-                <div className="flex items-baseline justify-between gap-2 text-small">
-                  <span className="flex min-w-0 items-center gap-1 text-foreground">
-                    <span className="truncate">{component.name}</span>
-                    {component.missingReason ? (
-                      <SimpleTooltip
-                        content={`${component.missingReason} Su peso se repartió entre los demás.`}
-                      >
-                        <button
-                          type="button"
-                          className="text-foreground-muted"
-                          aria-label={`Por qué falta ${component.name}`}
-                        >
-                          <CircleHelp className="size-3.5" aria-hidden="true" />
-                        </button>
-                      </SimpleTooltip>
-                    ) : null}
-                  </span>
-                  <span className="font-medium tabular-nums text-foreground">
-                    {component.score === null ? 'Sin datos' : formatNumber(component.score)}
-                  </span>
-                </div>
-                <div
-                  className="h-2 overflow-hidden rounded-full bg-surface-muted"
-                  aria-hidden="true"
-                >
-                  <div
-                    className="h-full rounded-full bg-chart-1"
-                    style={{ width: `${component.score ?? 0}%` }}
-                  />
-                </div>
-                <p className="text-caption text-foreground-muted">
-                  Peso {formatPercent(component.weight, 0)}
-                </p>
-              </li>
-            ))}
-          </ul>
+          <ScoreComponents
+            items={score.components.map((c) => ({
+              key: c.dimension,
+              name: c.name,
+              score: c.score,
+              weight: c.weight,
+              missingReason: c.missingReason,
+            }))}
+          />
         ) : null}
       </div>
     </Card>

@@ -17,6 +17,8 @@ const ARC_CLASS = {
 
 interface ScoreGaugeProps {
   score: number | null | undefined
+  /** Nombre del score para lectores de pantalla ("Score Opsynex", "Score industrial"). */
+  name?: string
   className?: string
 }
 
@@ -24,13 +26,13 @@ interface ScoreGaugeProps {
  * ScoreGauge (GUIA_DE_DISENO.md §6): arco de 240° y 12 px; pista `--surface-muted`, progreso en
  * el color del rango. El número va en `--foreground` (`display`) y la etiqueta del rango debajo.
  */
-export function ScoreGauge({ score, className }: ScoreGaugeProps) {
+export function ScoreGauge({ score, name = 'Score Opsynex', className }: ScoreGaugeProps) {
   const hasScore = score !== null && score !== undefined && !Number.isNaN(score)
   const value = hasScore ? Math.min(Math.max(score, 0), 100) : 0
   const info = hasScore ? scoreBand(value) : null
   const label = info
-    ? `Score Opsynex ${formatNumber(value)} de 100: ${info.interpretation}`
-    : 'Score Opsynex sin calcular'
+    ? `${name} ${formatNumber(value)} de 100: ${info.interpretation}`
+    : `${name} sin calcular`
 
   return (
     <div className={cn('relative mx-auto w-48', className)} role="img" aria-label={label}>

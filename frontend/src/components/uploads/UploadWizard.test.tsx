@@ -116,6 +116,51 @@ describe('UploadWizard', () => {
     expect(screen.queryByRole('link', { name: 'Ir al dashboard' })).not.toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('button', { name: 'Subir otro archivo' }))
-    expect(screen.getByRole('heading', { name: 'Sube el libro contable' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: 'Sube el libro contable o la producción' }),
+    ).toBeInTheDocument()
+  })
+  it('un archivo de producción muestra su resumen y lleva a la página de Producción', async () => {
+    mockedUpload.mockResolvedValue(
+      makeReport({
+        fileName: 'produccion.xlsx',
+        fileType: 'Production',
+        years: [2024],
+        rowsCount: 234,
+        warnings: [],
+        sheets: [
+          {
+            name: 'Produccion',
+            detectedType: 'Production',
+            rowsExtracted: 234,
+            ignored: false,
+            reason: null,
+          },
+        ],
+        summary: {
+          employeeCount: null,
+          annualPayroll: null,
+          monthlyRecords: 0,
+          trialBalanceReliable: null,
+          trialBalanceDifference: null,
+          industrialRecords: 234,
+          machines: 3,
+          periodFrom: '2024-10-01',
+          periodTo: '2024-12-31',
+        },
+      }),
+    )
+    renderWizard()
+    await uploadValidFile()
+
+    expect(await screen.findByText('Producción por máquina')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Ver el resultado del análisis' }))
+    expect(await screen.findByText('234')).toBeInTheDocument()
+    expect(screen.getByText('1 oct 2024 – 31 dic 2024')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Ir a producción' })).toHaveAttribute(
+      'href',
+      '/production',
+    )
+    expect(screen.queryByRole('link', { name: 'Ir al dashboard' })).not.toBeInTheDocument()
   })
 })

@@ -8,7 +8,9 @@ import { LoginPage } from '@/pages/LoginPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 import { MappingsPage } from '@/pages/MappingsPage'
 import { DashboardPage } from '@/pages/DashboardPage'
+import { CostsPage } from '@/pages/CostsPage'
 import { KpisPage } from '@/pages/KpisPage'
+import { ProductionPage } from '@/pages/ProductionPage'
 import { ProblemDetailPage } from '@/pages/ProblemDetailPage'
 import { ProblemsPage } from '@/pages/ProblemsPage'
 import { UploadsPage } from '@/pages/UploadsPage'
@@ -45,6 +47,8 @@ export function buildRoutes(options: { includeDesign: boolean }): RouteObject[] 
               handle: handle('Detalle del problema'),
             },
             { path: 'kpis', element: <KpisPage />, handle: handle('KPIs') },
+            { path: 'production', element: <ProductionPage />, handle: handle('Producción') },
+            { path: 'costs', element: <CostsPage />, handle: handle('Costos') },
             {
               element: <RoleGuard roles={ROLES.analyze} />,
               children: [

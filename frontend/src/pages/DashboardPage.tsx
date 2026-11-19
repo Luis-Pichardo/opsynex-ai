@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { FileUp, LayoutDashboard } from 'lucide-react'
+import { Factory, FileUp, LayoutDashboard } from 'lucide-react'
 import { Link } from 'react-router'
 
 import { dataApi } from '@/api/analysis'
@@ -17,9 +17,11 @@ import { KpiCards } from '@/components/dashboard/KpiCards'
 import { ScoreCard } from '@/components/dashboard/ScoreCard'
 import { Recommendations, TopProblems } from '@/components/dashboard/TopProblems'
 import { TrendCharts } from '@/components/dashboard/TrendCharts'
+import { IndustrialScoreCard } from '@/components/industrial/IndustrialScoreCard'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useHasIndustrialData, useIndustrialScore } from '@/industrial/useIndustrial'
 import { useWorkspace } from '@/workspace/useWorkspace'
 
 /** Dashboard ejecutivo (GUIA_DE_DISENO.md §5): score e impacto → KPIs → tendencias → problemas y recomendaciones. */
@@ -68,6 +70,12 @@ function Dashboard() {
     queryFn: ({ signal }) => problemsApi.list({ year: year ?? undefined, pageSize: 5 }, signal),
     enabled,
   })
+  // Módulo industrial: el score industrial va junto al Score Opsynex (mismo año si tiene datos).
+  const industrial = useHasIndustrialData()
+  const industrialScore = useIndustrialScore(
+    year !== null && industrial.years.includes(year) ? { year } : {},
+    industrial.hasData,
+  )
   const financial = useQuery({
     queryKey: ['data', 'Financial', companyId, 'all'],
     queryFn: ({ signal }) => dataApi.get('Financial', null, signal),
@@ -98,14 +106,24 @@ function Dashboard() {
               : 'Cuando el analista cargue la información de tu empresa verás aquí el score, los KPIs y los principales problemas.'
           }
           action={
-            hasRole(user, ROLES.analyze) ? (
-              <Button asChild>
-                <Link to="/uploads">
-                  <FileUp />
-                  Subir archivo
-                </Link>
-              </Button>
-            ) : null
+            <div className="flex flex-wrap justify-center gap-2">
+              {hasRole(user, ROLES.analyze) ? (
+                <Button asChild>
+                  <Link to="/uploads">
+                    <FileUp />
+                    Subir archivo
+                  </Link>
+                </Button>
+              ) : null}
+              {industrial.hasData ? (
+                <Button asChild variant="outline">
+                  <Link to="/production">
+                    <Factory />
+                    Ver producción
+                  </Link>
+                </Button>
+              ) : null}
+            </div>
           }
         />
       </Card>
@@ -119,10 +137,19 @@ function Dashboard() {
   return (
     <div className="space-y-4 lg:space-y-6">
       <section className="grid gap-3 sm:gap-4 lg:grid-cols-12" aria-label="Score e impacto">
-        <div className="lg:col-span-5">
+        <div className={industrial.hasData ? 'lg:col-span-6 xl:col-span-4' : 'lg:col-span-5'}>
           <ScoreCard score={scoreYear} loading={score.isLoading} />
         </div>
-        <div className="lg:col-span-7">
+        {industrial.hasData ? (
+          <div className="lg:col-span-6 xl:col-span-4">
+            <IndustrialScoreCard
+              score={industrialScore.data}
+              loading={industrialScore.isLoading}
+              showLink
+            />
+          </div>
+        ) : null}
+        <div className={industrial.hasData ? 'lg:col-span-12 xl:col-span-4' : 'lg:col-span-7'}>
           <ImpactCard impact={impact.data} loading={impact.isLoading} />
         </div>
       </section>
