@@ -45,7 +45,7 @@ public sealed class AiInsightsClientTests
         handler.Path.ShouldBe("/executive-summary");
         var body = handler.RequestBody.ShouldNotBeNull();
         body.ShouldContain("\"total_estimated_loss\":0");
-        System.Text.Json.JsonDocument.Parse(body).RootElement.GetProperty("company").GetProperty("country").GetString()
+        System.Text.Json.JsonElement.Parse(body).GetProperty("company").GetProperty("country").GetString()
             .ShouldBe("República Dominicana");
         result.Paragraphs.ShouldBe(["Uno."]);
         result.Model.ShouldBe("claude-opus-5-5");
