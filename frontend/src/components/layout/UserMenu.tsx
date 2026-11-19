@@ -22,9 +22,10 @@ export function UserMenu() {
         <button
           type="button"
           className="inline-flex size-10 items-center justify-center rounded-full bg-primary-soft text-small font-semibold text-primary-text transition-colors duration-150 ease-out hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-          aria-label={`Menú de ${user.fullName}`}
         >
-          {initials(user.fullName)}
+          {/* Nombre en texto (no aria-label): el nombre accesible incluye lo que se ve. */}
+          <span aria-hidden="true">{initials(user.fullName)}</span>
+          <span className="sr-only">Menú de {user.fullName}</span>
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-64">

@@ -24,7 +24,7 @@
   --popover-foreground: #0b0b0b;
   --foreground-secondary: #52514e;
   --muted-foreground: #52514e;
-  --foreground-muted: #898781;
+  --foreground-muted: #6e6c66;
 
   /* Marca */
   --primary: #3b4fb8;
@@ -110,7 +110,7 @@
     --popover-foreground: #f0efec;
     --foreground-secondary: #c3c2b7;
     --muted-foreground: #c3c2b7;
-    --foreground-muted: #898781;
+    --foreground-muted: #9a9891;
     --primary-hover: #5366cf;
     --primary-soft: #1e2547;
     --primary-text: #8b9bf0;
@@ -160,7 +160,7 @@
   --popover-foreground: #f0efec;
   --foreground-secondary: #c3c2b7;
   --muted-foreground: #c3c2b7;
-  --foreground-muted: #898781;
+  --foreground-muted: #9a9891;
   --primary-hover: #5366cf;
   --primary-soft: #1e2547;
   --primary-text: #8b9bf0;

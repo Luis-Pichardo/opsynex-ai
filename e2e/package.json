@@ -1,0 +1,16 @@
+{
+  "name": "opsynex-e2e",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Pruebas end-to-end de Opsynex AI con Playwright (flujo completo, permisos y accesibilidad).",
+  "type": "module",
+  "scripts": {
+    "test": "playwright test --trace off",
+    "test:headed": "playwright test --headed"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
+    "@playwright/test": "1.63.0",
+    "@types/node": "22.10.2"
+  }
+}
