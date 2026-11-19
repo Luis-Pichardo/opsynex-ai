@@ -378,6 +378,7 @@ KPIs calculados por año (14 KPIs, etapa 05). Único por (`CompanyId`, `Year`). 
 | NetMargin | decimal(9,4) | Sí | Net income / Revenue. |
 | Normalized | nvarchar(max) | No | JSON: KPI → puntos 0–100 según los benchmarks de la industria y la moneda. |
 | OverheadRatio | decimal(9,4) | Sí | Overhead cost / Revenue. |
+| Highlights | nvarchar(max) | No | JSON: hallazgos positivos del diagnóstico del año `[{ code, title, detail }]`. |
 | Trends | nvarchar(max) | No | JSON: tendencias frente al año anterior (variación, dirección, si es favorable) y crecimiento de ingresos, costo total y gastos generales. Vacío en el primer año. |
 | CreatedAt | datetime2 | No | Fecha de creación (UTC). |
 | UpdatedAt | datetime2 | No | Última modificación (UTC). |
@@ -396,11 +397,11 @@ Ineficiencias detectadas por el motor de diagnóstico. Único por (`CompanyId`, 
 | Description | nvarchar(4000) | No | Descripción con los datos que lo explican. |
 | Category | nvarchar(50) | No | `Profitability`, `CostEfficiency`, `Productivity`, `FinancialStability` u `Operations`. |
 | Severity | nvarchar(50) | No | `High`, `Medium` o `Low`. |
-| ImpactCategory | nvarchar(50) | No | `MarginLoss`, `ExcessCost`, `ProductivityLoss` u `OperationalWaste`. |
+| ImpactCategory | nvarchar(50) | No | `MarginLoss`, `ExcessCost`, `ProductivityLoss`, `OperationalWaste` o `FinancialAlert` (liquidez y endeudamiento: sin pérdida cuantificable). |
 | ImpactValue | decimal(18,2) | Sí | Pérdida económica estimada (etapa 07). |
 | Recommendation | nvarchar(4000) | No | Recomendación base del motor de reglas. |
 | AiRecommendation | nvarchar(max) | Sí | Recomendación generada por IA (etapa 11). |
-| Evidence | nvarchar(max) | No | JSON libre con la evidencia del diagnóstico y del cálculo de impacto. |
+| Evidence | nvarchar(max) | No | JSON con la evidencia de la regla (`kpi`, `year`, `previousYear`, valores y variación) y, desde la etapa 07, el cálculo de impacto. |
 | Status | nvarchar(50) | No | `Open`, `Acknowledged` o `Resolved`. |
 | CreatedAt | datetime2 | No | Fecha de creación (UTC). |
 | UpdatedAt | datetime2 | No | Última modificación (UTC). |

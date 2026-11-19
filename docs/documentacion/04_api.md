@@ -226,6 +226,27 @@ ejecuta solo al consolidar una carga; `POST /analysis/run` lo repite bajo demand
 
 `trends` es `null` en el primer año. `monthly` es `null` si la empresa no tiene serie mensual.
 
+### Problemas — `/api/v1/problems`
+
+| Método | Ruta | Rol | Request | Response | Errores |
+|---|---|---|---|---|---|
+| GET | `/problems?year=&severity=&category=&status=&page=1&pageSize=20` | Todos | — | 200 `ProblemPage` | 400 `problems.company_required` / `problems.invalid_page` |
+| GET | `/problems/{id}` | Todos (otra empresa → 404) | — | 200 `ProblemDetailDto` | 404 |
+| PATCH | `/problems/{id}` | Admin, Analyst | `{ "status": "Open" \| "Acknowledged" \| "Resolved" }` | 200 `ProblemDetailDto` | 400, 403, 404 |
+
+- Filtros: `severity` (`High`, `Medium`, `Low`), `category` (`Profitability`, `CostEfficiency`,
+  `Productivity`, `FinancialStability`, `Operations`) y `status`. `pageSize` va de 1 a 100.
+- Orden de prioridad: severidad y luego impacto económico; `priority` es la posición (1 = más
+  urgente).
+- `ProblemPage`: `{ items: ProblemListItemDto[], page, pageSize, totalCount, highlights }`.
+  `highlights` son los hallazgos positivos del año filtrado o, sin `year`, del último año.
+- `ProblemListItemDto`: `{ id, year, code, title, description, category, severity,
+  impactCategory, impactValue, status, recommendation, priority }`.
+- `ProblemDetailDto`: lo anterior más `aiRecommendation`, `evidence` (JSON con las cifras de la
+  regla), `relatedKpi` y `kpiHistory: [{ year, value, normalized }]` (todos los años del KPI
+  relacionado).
+- El estado que pone el usuario se conserva cuando el análisis se vuelve a ejecutar.
+
 ### Datos — `/api/v1/data`
 
 | Método | Ruta | Rol | Response |
@@ -250,7 +271,6 @@ rowKind, values: { "2023": …, "2024": … } }`.
 
 | Grupo | Endpoints | Etapa |
 |---|---|---|
-| Problemas | `GET /problems`, `GET /problems/{id}`, `PATCH /problems/{id}` | 06 |
 | Score | `GET /score` | 07 |
 
-> Pendiente (Etapas 05 a 07): especificación detallada de esos endpoints.
+> Pendiente (Etapa 07): especificación detallada de esos endpoints.

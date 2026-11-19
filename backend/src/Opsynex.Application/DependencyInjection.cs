@@ -25,6 +25,22 @@ public static class DependencyInjection
         services.AddScoped<Analysis.CompanyScope>();
         services.AddScoped<Analysis.AnalysisPipeline>();
         services.AddScoped<Analysis.KpiService>();
+        services.AddScoped<Analysis.ProblemService>();
+
+        // Reglas de diagnóstico: todas las implementaciones de IDiagnosticRule del dominio.
+        foreach (var rule in typeof(Domain.Engines.Diagnosis.IDiagnosticRule).Assembly.GetTypes()
+            .Where(t => t is { IsClass: true, IsAbstract: false } && typeof(Domain.Engines.Diagnosis.IDiagnosticRule).IsAssignableFrom(t)))
+        {
+            services.AddSingleton(typeof(Domain.Engines.Diagnosis.IDiagnosticRule), rule);
+        }
+
+        services.AddSingleton<Domain.Engines.Diagnosis.DiagnosisEngine>();
+        services.AddOptions<Domain.Engines.Diagnosis.DiagnosisSettings>()
+            .BindConfiguration(Domain.Engines.Diagnosis.DiagnosisSettings.SectionName)
+            .Validate(
+                o => o.Rules.Values.All(r => r.Low >= 0 && r.Low <= r.Medium && r.Medium <= r.High),
+                "DiagnosisRules: cada regla necesita 0 <= Low <= Medium <= High.")
+            .ValidateOnStart();
         services.AddOptions<Analysis.BenchmarkOptions>()
             .BindConfiguration(Analysis.BenchmarkOptions.SectionName)
             .Validate(o => !o.InvalidKeys().Any(), "Benchmarks: hay KPIs desconocidos en la configuración.")

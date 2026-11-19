@@ -224,3 +224,35 @@ Registro de cada etapa completada (la más reciente al final).
   - `CompanyScope` centraliza la empresa de la petición (la del usuario o la que eligió el Admin).
 - **Pendientes:** diagnóstico, impacto y score se agregan al `AnalysisPipeline` en las etapas 06 y
   07. Calibrar los benchmarks con el cliente.
+
+### Etapa 06 — Motor de diagnóstico (19/11/2026)
+
+- **Resumen:**
+  - **Motor de reglas** en `Domain/Engines/Diagnosis`: `IDiagnosticRule`, `DiagnosisEngine` y
+    13 reglas (las 5 de la sección 11 y 8 adicionales). Severidad por magnitud con umbrales en
+    `appsettings.json` (`DiagnosisRules`).
+  - **Integración:** priorización por severidad y luego impacto, y hallazgos positivos. En el
+    `AnalysisPipeline`, reemplazo idempotente que conserva el estado de cada problema.
+  - **API:** `GET /problems` (filtros y paginado), `GET /problems/{id}` (evidencia e historial del
+    KPI) y `PATCH /problems/{id}`.
+  - **Migración `Diagnosis`:** columna `KpiResults.Highlights`.
+- **Archivos principales:** `backend/src/Opsynex.Domain/Engines/Diagnosis/`,
+  `backend/src/Opsynex.Application/Analysis/ProblemService.cs`, `AnalysisPipeline.cs`,
+  `Controllers/ProblemsController.cs`, `backend/tests/*/Diagnosis|Analysis/`.
+- **Decisiones técnicas:**
+  - Un solo esquema de umbrales para todas las reglas: una **magnitud** positiva comparada con
+    `Low`/`Medium`/`High`, más una `Reference` opcional por industria. Así cualquier regla se
+    ajusta igual desde la configuración.
+  - Nueva `ImpactCategory.FinancialAlert` para liquidez y endeudamiento (sin pérdida
+    cuantificable).
+  - Los problemas que dejan de detectarse se **eliminan** al volver a analizar; los que
+    siguen conservan el estado que puso el usuario.
+  - Hallazgos positivos guardados por año en `KpiResults.Highlights` y devueltos con
+    `/problems`.
+  - Las reglas se registran por reflexión (todas las `IDiagnosticRule` del dominio). Una regla
+    nueva solo necesita su clase, sus umbrales por defecto y sus tests.
+  - Textos en español con cifras ("−3,05 pp", "22,8 %") generados por el motor.
+  - Con el libro de 3 años los márgenes de diferencia son pequeños (por ejemplo, overhead 7,58 %
+    frente a ingresos 7,41 %). Se detectan como Low, coherente con "recomendación de monitoreo".
+- **Pendientes:** el impacto económico (etapa 07) completará `ImpactValue` y el segundo criterio
+  de la priorización.
