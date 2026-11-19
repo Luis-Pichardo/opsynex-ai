@@ -58,6 +58,9 @@ public sealed class KpiResult : Entity, ICompanyYearScoped
     /// <summary>KPIs normalizados a 0–100 con los benchmarks de la industria y la moneda (columna JSON).</summary>
     public IDictionary<string, decimal?> Normalized { get; set; } = new Dictionary<string, decimal?>();
 
+    /// <summary>Hallazgos positivos del diagnóstico del año (columna JSON).</summary>
+    public IList<Engines.Diagnosis.Highlight> Highlights { get; set; } = [];
+
     public DateTime CalculatedAt { get; set; }
 
     /// <summary>Valor de un KPI por su código.</summary>

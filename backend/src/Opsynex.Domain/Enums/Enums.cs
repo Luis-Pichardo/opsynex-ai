@@ -148,6 +148,9 @@ public enum ImpactCategory
     ExcessCost,
     ProductivityLoss,
     OperationalWaste,
+
+    /// <summary>Alerta financiera (liquidez, endeudamiento): no se cuantifica como pérdida.</summary>
+    FinancialAlert,
 }
 
 /// <summary>Área del negocio afectada por un problema (alineada con las dimensiones del score).</summary>
