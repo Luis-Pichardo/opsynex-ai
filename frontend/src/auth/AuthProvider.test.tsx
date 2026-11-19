@@ -1,7 +1,8 @@
 import { act, renderHook, waitFor } from '@testing-library/react'
+import { useEffect } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { apiRequest } from '@/api/client'
+import { apiRequest, configureApiClient } from '@/api/client'
 import { json, makeUser, mockApi, Providers, storeSession } from '@/test/utils'
 import { SESSION_STORAGE_KEY } from './auth-context'
 import { useAuth } from './useAuth'
@@ -105,5 +106,32 @@ describe('AuthContext', () => {
       code: 'auth.invalid_credentials',
     })
     expect(result.current.isAuthenticated).toBe(false)
+  })
+
+  it('con una sesión guardada, las peticiones de los hijos al montar ya llevan el token', async () => {
+    // Regresión: al recargar la página, las consultas de las páginas salían sin token (401)
+    // porque el cliente se configuraba después de los efectos de los hijos.
+    configureApiClient({ getToken: () => null })
+    const fetchMock = mockApi({
+      'GET /api/v1/auth/me': analyst,
+      'GET /api/v1/companies': [],
+      'GET /api/v1/kpis': { companyId: analyst.companyId, currency: 'DOP', years: [] },
+    })
+    storeSession(analyst)
+
+    renderHook(
+      () => {
+        useEffect(() => {
+          void apiRequest('/kpis')
+        }, [])
+        return useAuth()
+      },
+      { wrapper: Providers },
+    )
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled())
+    for (const [, init] of fetchMock.mock.calls) {
+      expect((init!.headers as Record<string, string>).Authorization).toBe('Bearer token-Analyst')
+    }
   })
 })
