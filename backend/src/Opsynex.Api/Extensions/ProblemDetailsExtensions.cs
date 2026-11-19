@@ -7,7 +7,8 @@ public static class ProblemDetailsExtensions
     public const string CodeKey = "code";
 
     /// <summary>
-    /// Errores en formato ProblemDetails (RFC 7807) con un <c>code</c> propio y el <c>traceId</c>.
+    /// Errores en formato ProblemDetails (RFC 7807) con un <c>code</c> propio, el <c>traceId</c> y el
+    /// <c>correlationId</c> (el mismo de los logs y de la cabecera <c>X-Correlation-Id</c>).
     /// </summary>
     public static IServiceCollection AddOpsynexProblemDetails(this IServiceCollection services)
     {
@@ -19,6 +20,10 @@ public static class ProblemDetailsExtensions
                 : CodeForStatus(ctx.ProblemDetails.Status ?? ctx.HttpContext.Response.StatusCode);
             extensions.TryAdd(CodeKey, code);
             extensions.TryAdd("traceId", Activity.Current?.Id ?? ctx.HttpContext.TraceIdentifier);
+            if (ctx.HttpContext.Items[Application.Abstractions.Diagnostics.CorrelationContext.LogProperty] is string correlationId)
+            {
+                extensions.TryAdd("correlationId", correlationId);
+            }
         });
 
         return services;

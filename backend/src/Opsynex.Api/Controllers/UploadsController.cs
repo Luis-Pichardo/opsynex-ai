@@ -31,6 +31,8 @@ public sealed class UploadsController(UploadService uploads, IUploadTemplateGene
     /// <param name="cancellationToken">Cancelación.</param>
     [HttpPost]
     [Authorize(Policy = Policies.CanAnalyze)]
+    [Microsoft.AspNetCore.RateLimiting.EnableRateLimiting(Extensions.SecurityExtensions.UploadPolicy)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status429TooManyRequests)]
     [Consumes("multipart/form-data")]
     [ProducesResponseType<UploadReportDto>(StatusCodes.Status201Created)]
     [ProducesResponseType<UploadReportDto>(StatusCodes.Status422UnprocessableEntity)]

@@ -99,7 +99,9 @@ public static class DependencyInjection
             }
         }
 
+        services.AddTransient<CorrelationIdHandler>();
         services.AddHttpClient<IAiServiceClient, AiServiceClient>(Configure)
+            .AddHttpMessageHandler<CorrelationIdHandler>()
             .AddStandardResilienceHandler(resilience =>
             {
                 var total = TimeSpan.FromSeconds(Math.Clamp(timing.TimeoutSeconds, 1, 120));
@@ -118,7 +120,7 @@ public static class DependencyInjection
         {
             Configure(sp, http);
             http.Timeout = TimeSpan.FromSeconds(Math.Clamp(aiTimeout, 10, 600));
-        });
+        }).AddHttpMessageHandler<CorrelationIdHandler>();
         services.AddSingleton<AiEnrichmentQueue>();
         services.AddHostedService<AiEnrichmentWorker>();
         services.AddScoped<Application.Insights.IAiEnrichmentScheduler>(sp =>

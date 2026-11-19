@@ -60,6 +60,14 @@ public sealed class WorkbookReader(UploadOptions options)
                     $"La extensión {extension} no coincide con el formato real del archivo; se leyó igualmente."));
             }
 
+            if (HasMacros(content, isZip))
+            {
+                errors.Add(new UploadIssue(
+                    "upload.macros_not_allowed",
+                    "El libro contiene macros (VBA). Por seguridad no se aceptan: guárdalo como .xlsx sin macros y vuelve a subirlo."));
+                return new Result(sheets, errors, warnings);
+            }
+
             ReadExcel(content, sheets, errors, warnings);
         }
         else if (extension == ".csv")
@@ -80,6 +88,32 @@ public sealed class WorkbookReader(UploadOptions options)
         }
 
         return new Result(sheets, errors, warnings);
+    }
+
+    private static readonly byte[] OleVbaMarker = Encoding.Unicode.GetBytes("_VBA_PROJECT");
+
+    /// <summary>
+    /// Detecta un proyecto VBA: en .xlsx/.xlsm la parte <c>xl/vbaProject.bin</c>; en .xls el
+    /// almacenamiento <c>_VBA_PROJECT</c> del contenedor OLE2. Las macros nunca se ejecutan
+    /// (ExcelDataReader solo lee valores), pero un libro con macros se rechaza igualmente.
+    /// </summary>
+    public static bool HasMacros(byte[] content, bool isZip)
+    {
+        ArgumentNullException.ThrowIfNull(content);
+        if (isZip)
+        {
+            try
+            {
+                using var zip = new System.IO.Compression.ZipArchive(new MemoryStream(content, writable: false), System.IO.Compression.ZipArchiveMode.Read);
+                return zip.Entries.Any(e => e.FullName.EndsWith("vbaProject.bin", StringComparison.OrdinalIgnoreCase));
+            }
+            catch (InvalidDataException)
+            {
+                return false; // archivo dañado: lo reporta ReadExcel
+            }
+        }
+
+        return content.AsSpan().IndexOf(OleVbaMarker) >= 0;
     }
 
     private void ReadExcel(byte[] content, List<SheetGrid> sheets, List<UploadIssue> errors, List<UploadIssue> warnings)

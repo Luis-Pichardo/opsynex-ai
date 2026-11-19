@@ -27,6 +27,8 @@ public class OpsynexApiFactory(DatabaseFixture database) : WebApplicationFactory
         builder.UseSetting("AiService:Enabled", "false");
         // Sin IA generativa salvo en las pruebas de IA (que usan un cliente simulado y modo Inline).
         builder.UseSetting("Ai:Enabled", "false");
+        // Las pruebas inician muchas sesiones seguidas; los límites se prueban en RateLimitingTests.
+        builder.UseSetting("RateLimiting:Enabled", "false");
         ConfigureSettings(builder);
 
         builder.ConfigureTestServices(services =>
@@ -49,6 +51,17 @@ public class OpsynexApiFactory(DatabaseFixture database) : WebApplicationFactory
 public sealed class SmallUploadLimitApiFactory(DatabaseFixture database) : OpsynexApiFactory(database)
 {
     protected override void ConfigureSettings(IWebHostBuilder builder) => builder.UseSetting("Upload:MaxMb", "1");
+}
+
+/// <summary>API con límites de peticiones bajos (3 logins y 2 cargas por minuto).</summary>
+public sealed class RateLimitedApiFactory(DatabaseFixture database) : OpsynexApiFactory(database)
+{
+    protected override void ConfigureSettings(IWebHostBuilder builder)
+    {
+        builder.UseSetting("RateLimiting:Enabled", "true");
+        builder.UseSetting("RateLimiting:LoginPermitLimit", "3");
+        builder.UseSetting("RateLimiting:UploadPermitLimit", "2");
+    }
 }
 
 /// <summary>API con un reloj controlable (bloqueos y expiración de tokens).</summary>

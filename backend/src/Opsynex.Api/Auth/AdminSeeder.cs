@@ -57,7 +57,7 @@ public static partial class AdminSeeder
         var existing = await users.GetByEmailAsync(options.AdminEmail!, cancellationToken);
         if (existing is not null)
         {
-            LogAlreadyExists(logger, existing.Email, existing.Role);
+            LogAlreadyExists(logger, Application.Abstractions.Diagnostics.LogMask.Email(existing.Email), existing.Role);
             return SeedResult.AlreadyExists;
         }
 
@@ -72,7 +72,7 @@ public static partial class AdminSeeder
         await users.AddAsync(admin, cancellationToken);
         await provider.GetRequiredService<IUnitOfWork>().SaveChangesAsync(cancellationToken);
 
-        LogCreated(logger, admin.Email);
+        LogCreated(logger, Application.Abstractions.Diagnostics.LogMask.Email(admin.Email));
         return SeedResult.Created;
     }
 

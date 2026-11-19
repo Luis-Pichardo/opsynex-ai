@@ -42,6 +42,7 @@ try
     builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(o => o.MultipartBodyLengthLimit = maxUploadBytes);
     builder.Services.AddExceptionHandler<AppExceptionHandler>();
     builder.Services.AddFrontendCors(builder.Configuration);
+    builder.Services.AddOpsynexSecurity(builder.Configuration);
 
     builder.Services.AddControllers()
         .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
@@ -105,12 +106,29 @@ try
     // Primer Admin desde configuración (no hace nada si no está configurado o ya existe).
     await app.Services.SeedAdminAsync();
 
+    app.UseForwardedHeaders();
+    app.UseCorrelationId();
+    app.UseSecurityHeaders();
+    if (!app.Environment.IsDevelopment())
+    {
+        // HSTS solo se envía en HTTPS (el balanceador termina TLS y avisa con X-Forwarded-Proto).
+        app.UseHsts();
+    }
+
+    app.UseResponseCompression();
     app.UseExceptionHandler();
     app.UseStatusCodePages();
-    app.UseSerilogRequestLogging();
+    app.UseSerilogRequestLogging(options =>
+    {
+        // Solo método, ruta, estado y duración: nunca el cuerpo ni la query (pueden traer datos).
+        options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} respondió {StatusCode} en {Elapsed:0.0} ms";
+        options.EnrichDiagnosticContext = (diagnostic, http) =>
+            diagnostic.Set("UserId", http.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? http.User.FindFirst("sub")?.Value);
+    });
 
     app.UseCors(CorsExtensions.PolicyName);
     app.UseAuthentication();
+    app.UseRateLimiter();
 
     // Valida pronto la empresa elegida por un Admin (X-Company-Id / companyId) para responder 400
     // si no es un Guid, antes de que la use una consulta.

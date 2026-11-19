@@ -17,6 +17,8 @@ public sealed class AuthController(AuthService auth, UserService users) : Contro
     /// <summary>Inicia sesión con correo y contraseña y devuelve un JWT.</summary>
     /// <remarks>Tras 5 intentos fallidos la cuenta se bloquea 15 minutos (423).</remarks>
     [HttpPost("login")]
+    [Microsoft.AspNetCore.RateLimiting.EnableRateLimiting(Extensions.SecurityExtensions.LoginPolicy)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status429TooManyRequests)]
     [AllowAnonymous]
     [ProducesResponseType<LoginResponse>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
