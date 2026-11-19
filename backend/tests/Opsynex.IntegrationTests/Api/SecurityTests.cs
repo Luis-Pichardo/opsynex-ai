@@ -44,7 +44,7 @@ public sealed class SecurityTests(OpsynexApiFactory factory) : IClassFixture<Ops
         using var created = await client.GetAsync("/api/v1/auth/me", Ct);
         var generated = created.Headers.GetValues(CorrelationContext.HeaderName).Single();
         generated.Length.ShouldBe(32);
-        var body = JsonDocument.Parse(await created.Content.ReadAsStringAsync(Ct)).RootElement;
+        var body = JsonElement.Parse(await created.Content.ReadAsStringAsync(Ct));
         body.GetProperty("correlationId").GetString().ShouldBe(generated);
 
         using var request = new HttpRequestMessage(HttpMethod.Get, "/api/v1/auth/me");
