@@ -472,3 +472,54 @@ Registro de cada etapa completada (la más reciente al final).
     (FLUJO_DE_USUARIO.md, decisión 5).
   - Validar con datos reales de una planta los umbrales y rangos del score (son configurables).
   - El informe PDF todavía no incluye la sección industrial.
+
+### Etapa 13 — Seguridad, calidad y datos de demostración (19/11/2026)
+
+- **Resumen:**
+  - **Seguridad:**
+    - Límites de peticiones en el login y en las cargas.
+    - Cabeceras de seguridad y CSP en el API y en el frontend (nginx), HSTS, cabeceras de proxy,
+      `Cache-Control: no-store`.
+    - Libros con macros rechazados; logs sin cuerpos ni correos.
+    - Prueba que recorre **todos** los endpoints (roles y aislamiento por empresa).
+    - Auditorías de dependencias limpias.
+  - **Calidad:**
+    - Correlation id de punta a punta (API → logs → servicio de IA).
+    - Cobertura combinada de 97 % en Domain y Application, y 98 % en el servicio de IA, con
+      mínimos en la CI.
+  - **E2E:** Playwright + axe en la CI (flujo del Analyst, permisos del Client, accesibilidad,
+    teclado y 375 px).
+  - **Demo:** comando `seed-demo` (2 empresas ficticias, 5 usuarios y análisis completo en unos
+    10 s).
+  - **Rendimiento:** lecturas sin seguimiento de cambios, paginación de los listados y
+    compresión.
+  - **Accesibilidad:** contraste, nombres accesibles, tablas desplazables con teclado, foco al
+    cerrar diálogos y `aria-describedby` válido.
+- **Archivos principales:**
+  - `backend/src/Opsynex.Api/Extensions/{SecurityExtensions,Paging,ReadOnlyRequestTrackingPolicy}.cs`
+  - `backend/src/Opsynex.Api/Demo/DemoSeeder.cs`
+  - `Application/Abstractions/Diagnostics/CorrelationContext.cs`
+  - `Infrastructure/AiService/CorrelationIdHandler.cs`
+  - `ai-service/app/correlation.py`
+  - `tests/…/Auth/EndpointSecurityTests.cs`
+  - `scripts/coverage_report.py`
+  - `e2e/`
+  - `frontend/nginx.conf.template`
+  - `.github/workflows/ci.yml`
+- **Decisiones técnicas:**
+  - **Matriz de endpoints descubierta del host:** la prueba lee los endpoints registrados en
+    vez de una lista manual, así un endpoint nuevo sin acceso definido hace fallar la CI.
+  - **`AsNoTracking` por tipo de petición:** se aplica a GET/HEAD con una política inyectable,
+    no en el repositorio, porque los mismos repositorios cargan y modifican entidades en las
+    escrituras.
+  - **Paginación con cabeceras en los listados que eran arreglos:** el frontend y los clientes
+    existentes no cambian de contrato. El frontend pide `pageSize=500` y pagina en el cliente.
+  - **`seed-demo` reutiliza `UploadService`** actuando como el Analyst de cada empresa (contexto
+    HTTP simulado). Así la demo es exactamente lo que vería un usuario real. Es idempotente.
+  - **Token `--foreground-muted`:** se oscureció en claro y se aclaró en oscuro para cumplir AA
+    (4,5:1); la guía y `tokens.css` quedan alineados.
+  - **E2E con empresa propia por ejecución:** `global-setup` la crea por el API, sin depender de
+    la demo ni de datos previos.
+- **Pendientes:**
+  - Rotación de secretos y gestor de secretos de la nube (etapa 14).
+  - La validación con una clave real de Claude (etapa 11) sigue pendiente.
