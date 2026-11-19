@@ -1,3 +1,4 @@
+using Opsynex.Api.Extensions;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,8 +23,9 @@ public sealed class MappingsController(HomologationService homologation) : Contr
     [HttpGet]
     [ProducesResponseType<IReadOnlyList<MappingDto>>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<IReadOnlyList<MappingDto>>> List(CancellationToken cancellationToken) =>
-        Ok(await homologation.ListAsync(cancellationToken));
+    public async Task<ActionResult<IReadOnlyList<MappingDto>>> List(
+        [FromQuery] int? page, [FromQuery] int? pageSize, CancellationToken cancellationToken) =>
+        Ok(Response.Page(await homologation.ListAsync(cancellationToken), page, pageSize));
 
     /// <summary>Catálogo de categorías estándar con nombre y descripción en español.</summary>
     [HttpGet("categories")]

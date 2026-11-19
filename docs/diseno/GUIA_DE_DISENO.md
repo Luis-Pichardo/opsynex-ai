@@ -39,7 +39,7 @@ Vista previa visual: abre `docs/diseno/guia_visual.html` en el navegador.
 | `--input` | Borde de inputs | `#C3C2B7` | `#383835` |
 | `--foreground` | Texto principal | `#0B0B0B` | `#F0EFEC` |
 | `--foreground-secondary` | Texto secundario, descripciones | `#52514E` | `#C3C2B7` |
-| `--foreground-muted` | Placeholders, metadatos, ejes (solo texto ≥ 12px no esencial) | `#898781` | `#898781` |
+| `--foreground-muted` | Placeholders, metadatos, ejes (texto ≥ 12px no esencial) | `#6E6C66` | `#9A9891` |
 | `--primary` | Botón principal, enlaces, foco, ítem activo | `#3B4FB8` | `#3B4FB8` |
 | `--primary-hover` | Hover del botón principal | `#2F3F95` | `#5366CF` |
 | `--primary-foreground` | Texto sobre `--primary` | `#FFFFFF` | `#FFFFFF` |
@@ -275,7 +275,8 @@ solo mediante tokens; no se crean variantes ad hoc.
 
 ## 10. Accesibilidad (checklist por pantalla)
 
-- [ ] Contraste AA en todo el texto (`--foreground-muted` solo en texto no esencial ≥ 12 px).
+- [ ] Contraste AA (4,5:1) en todo el texto, también `--foreground-muted` sobre `--surface-muted`
+  (desde la etapa 13 el token se oscureció en claro y se aclaró en oscuro para cumplirlo).
 - [ ] La severidad, las tendencias y el score llevan texto o icono además del color.
 - [ ] Navegación completa con teclado; orden lógico; `Esc` cierra modales.
 - [ ] Inputs con `<label>`; errores asociados con `aria-describedby`.

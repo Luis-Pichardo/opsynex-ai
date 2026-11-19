@@ -57,6 +57,12 @@ public static class DependencyInjection
             }
 
             options.AddInterceptors(sp.GetRequiredService<AuditableEntityInterceptor>());
+
+            // Lecturas (GET/HEAD) sin seguimiento de cambios: menos memoria y CPU por petición.
+            if (sp.GetService<IQueryTrackingPolicy>()?.PreferNoTracking == true)
+            {
+                options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTrackingWithIdentityResolution);
+            }
         });
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -99,7 +105,9 @@ public static class DependencyInjection
             }
         }
 
+        services.AddTransient<CorrelationIdHandler>();
         services.AddHttpClient<IAiServiceClient, AiServiceClient>(Configure)
+            .AddHttpMessageHandler<CorrelationIdHandler>()
             .AddStandardResilienceHandler(resilience =>
             {
                 var total = TimeSpan.FromSeconds(Math.Clamp(timing.TimeoutSeconds, 1, 120));
@@ -118,7 +126,7 @@ public static class DependencyInjection
         {
             Configure(sp, http);
             http.Timeout = TimeSpan.FromSeconds(Math.Clamp(aiTimeout, 10, 600));
-        });
+        }).AddHttpMessageHandler<CorrelationIdHandler>();
         services.AddSingleton<AiEnrichmentQueue>();
         services.AddHostedService<AiEnrichmentWorker>();
         services.AddScoped<Application.Insights.IAiEnrichmentScheduler>(sp =>

@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 
 from app import __version__
 from app.config import get_settings
+from app.correlation import CorrelationIdFilter, CorrelationIdMiddleware
 from app.llm.client import LlmError
 from app.routers import health, homologation, insights, system
 from app.security import InternalApiKeyMiddleware
@@ -17,8 +18,11 @@ def create_app() -> FastAPI:
     settings = get_settings()
     logging.basicConfig(
         level=settings.log_level.upper(),
-        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+        format="%(asctime)s %(levelname)s [%(correlation_id)s] %(name)s: %(message)s",
     )
+    for handler in logging.getLogger().handlers:
+        if not any(isinstance(f, CorrelationIdFilter) for f in handler.filters):
+            handler.addFilter(CorrelationIdFilter())
 
     app = FastAPI(
         title="Opsynex AI — Servicio de IA",
@@ -26,6 +30,8 @@ def create_app() -> FastAPI:
         description="Servicio interno y stateless. Solo lo llama el API .NET.",
     )
     app.add_middleware(InternalApiKeyMiddleware)
+    # Se agrega al final para ejecutarse primero: también las respuestas 401 llevan el id.
+    app.add_middleware(CorrelationIdMiddleware)
     app.include_router(health.router)
     app.include_router(system.router)
     app.include_router(homologation.router)

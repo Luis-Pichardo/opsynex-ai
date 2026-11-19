@@ -1,5 +1,13 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react'
 import { toast } from 'sonner'
 
 import { authApi } from '@/api/auth'
@@ -33,7 +41,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [queryClient],
   )
 
-  useEffect(() => {
+  // En un efecto de layout: todos corren antes que los efectos normales de los hijos, donde
+  // TanStack Query lanza sus peticiones. Con useEffect, al recargar la página las primeras
+  // consultas salían sin token (los efectos de los hijos corren antes que los del padre).
+  useLayoutEffect(() => {
     configureApiClient({
       getToken: () => tokenRef.current,
       onUnauthorized: () => logout('expired'),

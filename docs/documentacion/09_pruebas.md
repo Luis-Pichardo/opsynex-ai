@@ -7,11 +7,13 @@
 | Unitarias | `Opsynex.UnitTests` (xUnit v3 + Shouldly) | Motores puros (KPIs, reglas, impacto, score, consolidación), parsers, validadores, configuración de EF y arquitectura |
 | Integración | `Opsynex.IntegrationTests` (`WebApplicationFactory` + SQL Server con Testcontainers) | Cada endpoint con su base de datos real: permisos, aislamiento por empresa, carga → homologación → análisis |
 | Servicio de IA | `ai-service/tests` (pytest + httpx) | Endpoints, clave interna y motor de homologación |
-| Frontend y E2E | Vitest + Testing Library, Playwright | Desde las etapas 08–10 |
+| Frontend | Vitest + Testing Library | Páginas, componentes, formatos y reglas (etapas 08–12) |
+| E2E | Playwright + axe-core (`e2e/`) | Flujo completo, permisos del Client, accesibilidad, teclado y móvil (etapa 13) |
 
 Reglas: cada endpoint y cada motor nuevo lleva pruebas; las pruebas usan solo **libros
 sintéticos** generados por script (nunca datos de clientes). La CI ejecuta `dotnet build -c
-Release` (warnings = errores), `dotnet test`, `pytest`, `ruff`, y lint, tests y build del frontend.
+Release` (warnings = errores), `dotnet test` con cobertura mínima, `pytest` con cobertura mínima,
+`ruff`, lint, tests y build del frontend, las tres auditorías de dependencias y los E2E.
 
 ### Cobertura actual (Etapa 07)
 
@@ -299,7 +301,7 @@ sintético `libro_sintetico_3a.xls`.
 Comandos de verificación: `cd backend && dotnet test` (SQL Server con Testcontainers) y
 `cd frontend && npm test && npm run lint && npm run build`.
 
-> Pendiente (Etapa 13): E2E automatizados con Playwright en la CI.
+Los E2E automatizados con Playwright se ejecutan en la CI desde la etapa 13 (ver más abajo).
 
 ### Módulo industrial (etapa 12)
 
@@ -312,3 +314,71 @@ Comandos de verificación: `cd backend && dotnet test` (SQL Server con Testconta
 | API | `IndustrialEndpointsTests`: con `sample-data/industrial/` se detectan los 3 problemas de la especificación (y el de costo), con impactos iguales a los del generador (±0,1 %). También KPIs, filtros, score, permisos y estado de los problemas. `AiInsightsEndpointsTests`: series diarias y anomalías. |
 | Servicio de IA | `test_anomalies.py`: series diarias de OEE y paradas. |
 | Frontend | `ProductionPage`, `CostsPage`, `Sidebar` (menú habilitado con datos), `DashboardPage` (score industrial), `UploadWizard` (archivo industrial) y `format` (`formatDay`, `formatMonth`, `formatMinutes`). |
+
+### Calidad, cobertura y E2E (etapa 13)
+
+#### Cobertura
+
+Medida combinando las pruebas unitarias y las de integración (`scripts/coverage_report.py` une
+los reportes Cobertura de los dos proyectos). La CI falla por debajo del 80 % en Domain y
+Application (.NET) y en el servicio de IA.
+
+| Componente | Cobertura de líneas | Mínimo |
+|---|---|---|
+| Opsynex.Domain | 97,4 % | 80 % |
+| Opsynex.Application | 96,8 % | 80 % |
+| Opsynex.Infrastructure | 91,9 % | — |
+| Servicio de IA (`app/`) | 98 % | 80 % |
+
+`Opsynex.Api` sale más bajo en la medición combinada (33 %) porque incluye el código que generan
+los source generators (logging, regex, OpenAPI) y el arranque. Sus endpoints están cubiertos por
+las pruebas de integración y la matriz de seguridad.
+
+```bash
+cd backend && dotnet test --collect:"XPlat Code Coverage" --results-directory TestResults/cov
+python3 ../scripts/coverage_report.py TestResults/cov --min Opsynex.Domain=80 --min Opsynex.Application=80
+cd ai-service && pytest --cov=app --cov-fail-under=80
+```
+
+#### Totales al cierre de la etapa 13
+
+- **.NET:** 647 pruebas (418 unitarias y 229 de integración).
+- **Servicio de IA:** 144 pruebas (pytest).
+- **Frontend:** 88 pruebas (Vitest).
+- **E2E:** 10 escenarios (Playwright).
+
+#### E2E con Playwright (`e2e/`)
+
+Se ejecutan contra la plataforma levantada (API, servicio de IA y frontend). `global-setup.ts`
+crea por el API una empresa nueva con un Analyst y un Client, así las pruebas no dependen de
+datos previos.
+
+| Archivo | Escenario |
+|---|---|
+| `01-flujo-analista.spec.ts` | Login → carga de `libro_sintetico_3a.xls` → hojas detectadas → análisis → homologación → dashboard (score) → problemas → detalle (impacto, recomendación, cambio de estado). Luego los datos industriales habilitan Producción y Costos (MAQ-03 bajo el 60 %). |
+| `02-permisos-client.spec.ts` | El Client no ve Carga, Homologación ni Administración, tampoco por URL directa; no puede cambiar el estado de un problema; sí descarga el PDF. |
+| `03-accesibilidad.spec.ts` | axe-core (WCAG 2.1 A y AA) en login, dashboard, problemas, detalle, KPIs, carga, homologación, producción, costos y administración, en modo claro y oscuro y a 1440 y 375 px. |
+| `04-teclado-y-movil.spec.ts` | Orden de tabulación y foco visible en el login, errores asociados con `aria-describedby`, «Saltar al contenido», `Esc` cierra los diálogos y devuelve el foco, y 375 px sin scroll horizontal. |
+
+```bash
+# Con la plataforma levantada (ver Instalación) y un Admin existente:
+cd e2e && npm ci && npx playwright install chromium
+E2E_ADMIN_EMAIL=admin@demo.opsynex.local E2E_ADMIN_PASSWORD='Demo2026!' npx playwright test
+```
+
+Variables: `E2E_BASE_URL` (frontend, `http://localhost:5173`), `E2E_API_URL`
+(`http://localhost:5080`), `E2E_ADMIN_EMAIL` / `E2E_ADMIN_PASSWORD` y `PW_CHROMIUM_PATH` (un
+Chromium ya instalado). En la CI, el job **E2E** levanta SQL Server como servicio, el servicio de
+IA, el API en modo Production (migra y crea el Admin al arrancar) y el frontend compilado
+(`vite preview`), y guarda el reporte si algo falla.
+
+#### Accesibilidad: lo que se corrigió en la auditoría
+
+- `--foreground-muted` no llegaba a 4,5:1. Pasó a `#6E6C66` en claro y `#9A9891` en oscuro.
+- El menú de usuario y los selectores de empresa y año tenían un `aria-label` que no incluía el
+  texto visible (WCAG 2.5.3). Ahora usan etiquetas reales.
+- Las tablas que se desplazan a 375 px no se podían mover con el teclado. Ahora su contenedor es
+  una región enfocable cuando desborda.
+- `aria-describedby` apuntaba a una descripción inexistente en los formularios.
+- Al cerrar con `Esc` un diálogo abierto por estado, el foco se perdía. Ahora vuelve al botón
+  que lo abrió.

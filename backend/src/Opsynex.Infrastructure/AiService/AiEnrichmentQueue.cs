@@ -7,7 +7,8 @@ using Opsynex.Application.Insights;
 namespace Opsynex.Infrastructure.AiService;
 
 /// <summary>Trabajo de enriquecimiento con IA de una empresa.</summary>
-internal sealed record AiEnrichmentJob(Guid CompanyId, int? Year, bool Force);
+/// <summary>Trabajo de IA; conserva el id de correlación de la petición que lo originó.</summary>
+internal sealed record AiEnrichmentJob(Guid CompanyId, int? Year, bool Force, string? CorrelationId);
 
 /// <summary>Cola en memoria de trabajos de IA (modo <see cref="AiMode.Background"/>).</summary>
 internal sealed class AiEnrichmentQueue(AiJobTracker tracker) : IAiEnrichmentScheduler
@@ -20,7 +21,7 @@ internal sealed class AiEnrichmentQueue(AiJobTracker tracker) : IAiEnrichmentSch
     public Task ScheduleAsync(Guid companyId, int? year, bool force, CancellationToken cancellationToken)
     {
         tracker.Set(companyId, AiJobState.Pending);
-        return _channel.Writer.WriteAsync(new AiEnrichmentJob(companyId, year, force), cancellationToken).AsTask();
+        return _channel.Writer.WriteAsync(new AiEnrichmentJob(companyId, year, force, Application.Abstractions.Diagnostics.CorrelationContext.Current), cancellationToken).AsTask();
     }
 }
 
@@ -37,6 +38,11 @@ internal sealed partial class AiEnrichmentWorker(
             try
             {
                 // Sin HttpContext el filtro por empresa está desactivado: el servicio filtra por CompanyId.
+                Application.Abstractions.Diagnostics.CorrelationContext.Current = job.CorrelationId;
+                using var logScope = logger.BeginScope(new Dictionary<string, object?>
+                {
+                    [Application.Abstractions.Diagnostics.CorrelationContext.LogProperty] = job.CorrelationId,
+                });
                 await using var scope = scopes.CreateAsyncScope();
                 var service = scope.ServiceProvider.GetRequiredService<AiEnrichmentService>();
                 await service.EnrichAsync(job.CompanyId, job.Year, job.Force, stoppingToken);

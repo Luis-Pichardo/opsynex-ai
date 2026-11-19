@@ -122,7 +122,7 @@ opsynex-ai/
 │   ├── app/ (main.py, config.py, security.py, routers/, engines/, schemas/)
 │   └── tests/
 ├── frontend/
-│   ├── package.json · vite.config.ts · tailwind.config.ts · components.json · Dockerfile · nginx.conf
+│   ├── package.json · vite.config.ts · tailwind.config.ts · components.json · Dockerfile · nginx.conf.template
 │   └── src/ (styles/tokens.css, lib/, components/ui/, components/<feature>/, pages/, test/)
 ├── docs/ (especificaciones, diseno, documentacion, Documentacion_Opsynex_AI.docx)
 └── scripts/ (generar_documentacion.py, setup_cloud.sh)
@@ -174,7 +174,40 @@ roles. Implementado en la Etapa 02:
 - **Errores uniformes:** ProblemDetails con `code` (`auth.invalid_credentials`,
   `auth.forbidden`, `auth.token_expired`, etc.).
 
-> Pendiente (Etapas 03 y 13): validación de archivos, límites de tasa y revisión de seguridad.
+#### Endurecimiento (Etapa 13)
+
+| Control | Implementación |
+|---|---|
+| **Validación de entradas** | Todos los cuerpos se validan con FluentValidation (login, usuarios, contraseñas, empresas, mapeos) o en el servicio (estado de problemas, filtros de año/mes/página). Los errores salen como `ValidationProblemDetails` con `code`. |
+| **Archivos** | Extensión permitida (`.xls`, `.xlsx`, `.csv`), **firma real** (magic bytes OLE2/ZIP), tamaño (`Upload:MaxMb`, también en Kestrel), límites de hojas y filas, y **libros con macros VBA rechazados** (`upload.macros_not_allowed`). Las fórmulas nunca se ejecutan: se lee el valor calculado. El archivo original no se guarda. |
+| **Límites de peticiones** | `Microsoft.AspNetCore.RateLimiting`: login 10/min por IP y cargas 20/min por usuario (`RateLimiting:*`). Responde 429 `rate_limited` con `Retry-After`. Se suma al bloqueo por cuenta. |
+| **Cabeceras del API** | `Content-Security-Policy: default-src 'none'; frame-ancestors 'none'`, `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`, `Permissions-Policy`, `Cross-Origin-*-Policy` y `Cache-Control: no-store` en `/api` (datos financieros). HSTS fuera de Development. |
+| **Cabeceras del frontend** | nginx (`frontend/nginx.conf.template`): CSP con scripts solo propios y `connect-src` limitado al API (`API_ORIGIN`), HSTS, `nosniff`, `X-Frame-Options`, `Permissions-Policy`. |
+| **CORS** | Solo los orígenes de `Cors:Origins` (sin comodines). Expone únicamente `Content-Disposition`, `Retry-After`, `X-Total-Count` y `X-Correlation-Id`. |
+| **Proxy** | `ForwardedHeaders` (IP real y esquema) con `ReverseProxy:ForwardLimit`; `ReverseProxy:TrustAll` solo si el API está en una red privada detrás del balanceador. |
+| **Secretos** | Solo por variables de entorno, User Secrets o el gestor de secretos de la nube (Key Vault / Secrets Manager / Secret Manager, etapa 14). Nada en `appsettings.json` ni en el repositorio. |
+| **Logs** | Serilog estructurado con `CorrelationId`; el log de peticiones guarda método, ruta, estado, duración y usuario (nunca cuerpo ni query); los correos se enmascaran (`a***@dominio`). Los datos de la nómina nunca llegan a la BD ni a los logs. |
+| **Pruebas** | `EndpointSecurityTests` descubre **todos** los endpoints del host y exige que estén en la tabla de acceso esperado (público, ver, analizar, gestionar): verifica 401 sin sesión y 403 por rol. También comprueba que el Client y el Analyst de una empresa no vean datos de otra aunque la pidan con `X-Company-Id` o `?companyId=`. |
+| **Dependencias** | La CI falla si `dotnet list package --vulnerable`, `pip-audit` o `npm audit --audit-level=high` encuentran problemas. Al cierre de la etapa: 0 vulnerabilidades en .NET, Python y npm. |
+
+#### Id de correlación
+
+Cada petición lleva un `X-Correlation-Id`: el recibido (si es seguro: hasta 64 caracteres
+alfanuméricos, `-`, `_` o `.`) o uno nuevo. Se devuelve en la respuesta, aparece en todos los
+logs de la petición y en los ProblemDetails (`correlationId`). También viaja al servicio de IA
+(que lo usa en sus logs y lo devuelve), incluso en los trabajos de IA en segundo plano.
+
+#### Rendimiento
+
+- **Lecturas sin seguimiento:** en las peticiones GET/HEAD, EF Core consulta con
+  `NoTrackingWithIdentityResolution` (`IQueryTrackingPolicy`); las escrituras y los trabajos en
+  segundo plano siguen igual.
+- **Paginación:** `problems` devuelve una página con su total. Los listados que devuelven un
+  arreglo (`users`, `companies`, `uploads`, `mappings`) aceptan `page` y `pageSize` (100 por
+  defecto, máximo 500) y devuelven el total en `X-Total-Count`.
+- **Compresión:** Brotli y gzip para JSON (también en HTTPS).
+- **Índices:** revisados en la etapa 13. Todas las consultas frecuentes filtran por índices
+  (empresa y año, empresa y fecha y máquina, carga y tipo de hoja, empresa y fecha de carga).
 
 #### Flujo de autenticación
 

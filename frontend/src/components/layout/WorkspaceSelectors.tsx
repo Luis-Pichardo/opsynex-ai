@@ -1,6 +1,8 @@
 import { Building2 } from 'lucide-react'
+import { useId } from 'react'
 
 import { useAuth } from '@/auth/useAuth'
+import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
@@ -16,12 +18,19 @@ export function WorkspaceSelectors({ className }: { className?: string }) {
   const { user } = useAuth()
   const { companies, companyId, companyName, setCompanyId, years, year, setYear } = useWorkspace()
   const isAdmin = user?.role === 'Admin'
+  // Se renderiza dos veces (escritorio y móvil): ids únicos para cada etiqueta.
+  const id = useId()
 
   return (
     <div className={cn('flex items-center gap-2', className)}>
       {isAdmin ? (
         <Select value={companyId ?? undefined} onValueChange={(id) => setCompanyId(id)}>
-          <SelectTrigger className="min-w-0 flex-1 md:w-56 md:flex-none" aria-label="Empresa">
+          {/* Etiqueta visible solo para lectores de pantalla: el nombre accesible no reemplaza
+              el texto visible del selector (WCAG 2.5.3). */}
+          <Label htmlFor={`${id}-company`} className="sr-only">
+            Empresa
+          </Label>
+          <SelectTrigger id={`${id}-company`} className="min-w-0 flex-1 md:w-56 md:flex-none">
             <SelectValue placeholder="Elige una empresa" />
           </SelectTrigger>
           <SelectContent>
@@ -49,9 +58,12 @@ export function WorkspaceSelectors({ className }: { className?: string }) {
         onValueChange={(value) => setYear(Number(value))}
         disabled={years.length === 0}
       >
+        <Label htmlFor={`${id}-year`} className="sr-only">
+          Año
+        </Label>
         <SelectTrigger
+          id={`${id}-year`}
           className="w-28 shrink-0"
-          aria-label="Año"
           title={years.length === 0 ? 'Aún no hay años analizados' : undefined}
         >
           <SelectValue placeholder="Año" />

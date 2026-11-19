@@ -46,7 +46,11 @@ en `backend/src/Opsynex.Api`). Nunca subas secretos al repositorio.
 | `LLM_TIMEOUT_SECONDS` / `LLM_MAX_RETRIES` | IA | Timeout y reintentos de cada llamada a Claude | `90` / `2` |
 | `Ai__Enabled` / `Ai__Mode` | API | Paso de IA (anomalías, resumen y recomendaciones) y si corre en segundo plano | `true` / `Background` |
 | `Ai__MaxRecommendations` / `Ai__TimeoutSeconds` | API | Tope de recomendaciones por análisis y timeout de las llamadas al servicio de IA | `10` / `180` |
+| `RateLimiting__Enabled` / `__LoginPermitLimit` / `__UploadPermitLimit` | API | Límites por minuto del login (por IP) y de las cargas (por usuario) | `true` / `10` / `20` |
+| `ReverseProxy__ForwardLimit` / `ReverseProxy__TrustAll` | API | Cabeceras `X-Forwarded-*` del balanceador | `1` / `false` |
+| `Demo__Password` / `Demo__SampleDataPath` | API | Contraseña de los usuarios de `seed-demo` y carpeta de los libros sintéticos | `Demo2026!` / `sample-data` junto al API |
 | `VITE_API_URL` | Frontend | URL del API vista desde el navegador | `http://localhost:5080` |
+| `API_ORIGIN` | Frontend (nginx) | Origen del API permitido por la CSP (`connect-src`) | `https://api.tuempresa.com` |
 | `MSSQL_SA_PASSWORD` | Docker | Contraseña de `sa` del contenedor de SQL Server | `Opsynex_Dev_2026!` |
 
 ### Levantar el proyecto en local
@@ -116,7 +120,19 @@ cd backend && dotnet build -c Release && dotnet test         # Release: warnings
 OPSYNEX_TEST_DB=sqlite dotnet test                            # sin Docker: SQLite in-memory
 cd ai-service && pytest && ruff check . && ruff format --check .
 cd frontend && npm run lint && npm test && npm run build
+cd e2e && npx playwright test                                 # con la plataforma levantada (ver Pruebas)
 ```
+
+### Datos de demostración (`seed-demo`)
+
+```bash
+cd backend && dotnet run --project src/Opsynex.Api -- seed-demo
+```
+
+Crea en menos de 1 minuto (unos 10 s) dos empresas ficticias con datos **sintéticos**, sus usuarios y el
+análisis ya hecho (KPIs, problemas, impacto, score y módulo industrial). Se puede ejecutar otra
+vez: no duplica datos y restablece las contraseñas demo. Las cargas pasan por el mismo flujo que
+la interfaz. Los usuarios están en la *Guía de usuario → Usuarios de demostración*.
 
 ### Con Docker (plataforma completa)
 

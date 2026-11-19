@@ -15,8 +15,18 @@ protegidos, pega en Scalar el `accessToken` obtenido en `POST /api/v1/auth/login
   otra empresa responde **404**. Un Admin ve todas las empresas, o solo una si envía la
   cabecera `X-Company-Id: <id>` o el parámetro `?companyId=<id>` (valor no válido → 400
   `tenant.invalid_company_id`).
-- **Errores:** formato ProblemDetails (RFC 7807) con `code` estable y `traceId`. Los errores de
-  validación incluyen `errors` por campo:
+- **Correlación:** cada respuesta trae `X-Correlation-Id`. El cliente puede enviar el suyo (hasta
+  64 caracteres `A-Z a-z 0-9 - _ .`). El mismo id aparece en los logs del API y del servicio de
+  IA.
+- **Paginación:** `/problems` devuelve `{ items, page, pageSize, totalCount }`. `users`,
+  `companies`, `uploads` y `mappings` devuelven un arreglo y aceptan `?page=1&pageSize=100`
+  (máximo 500), con el total en `X-Total-Count` (y `X-Page`, `X-Page-Size`).
+- **Límites:** `POST /auth/login` admite 10 peticiones por minuto por IP y `POST /uploads` 20 por
+  minuto por usuario. Al superarlos responden 429 `rate_limited` con `Retry-After`.
+- **Seguridad de las respuestas:** CSP estricta, `nosniff`, `X-Frame-Options: DENY`,
+  `Cache-Control: no-store` en `/api` y compresión Brotli o gzip si el cliente la acepta.
+- **Errores:** formato ProblemDetails (RFC 7807) con `code` estable, `traceId` y `correlationId`.
+  Los errores de validación incluyen `errors` por campo:
 
 ```json
 {
@@ -50,6 +60,8 @@ protegidos, pega en Scalar el `accessToken` obtenido en `POST /api/v1/auth/login
 | 409 | `company.in_use` | La empresa tiene usuarios o datos y no se puede eliminar |
 | 409 | `conflict` | Registro duplicado (restricción única) |
 | 423 | `auth.locked_out` | Cuenta bloqueada tras 5 intentos fallidos (cabecera `Retry-After` en segundos) |
+| 429 | `rate_limited` | Demasiadas peticiones de login (por IP) o de carga (por usuario); `Retry-After` en segundos |
+| 400 | `paging.invalid_page` / `paging.invalid_page_size` | `page` < 1 o `pageSize` fuera de 1–500 |
 | 400 | `upload.file_required` | Falta el archivo en el campo `file` |
 | 400 | `upload.unsupported_extension` | El archivo no es `.xls`, `.xlsx` ni `.csv` |
 | 400 | `upload.company_required` / `upload.company_not_found` | El Admin no indicó la empresa o no existe |
@@ -59,7 +71,7 @@ protegidos, pega en Scalar el `accessToken` obtenido en `POST /api/v1/auth/login
 | 413 | `upload.too_large` | El archivo supera `Upload:MaxMb` (20 MB) |
 | 400 | `mapping.company_required` | El Admin consulta `/mappings` sin elegir empresa |
 | 409 | `upload.failed` | Se intenta analizar una carga con errores bloqueantes |
-| 422 | `upload.*` (en `errors[]` del reporte) | Error bloqueante del archivo: `empty_file`, `invalid_signature`, `unreadable`, `no_financial_statements`, `years_not_found`, `file_type_required` |
+| 422 | `upload.*` (en `errors[]` del reporte) | Error bloqueante del archivo: `empty_file`, `invalid_signature`, `unreadable`, `macros_not_allowed`, `no_financial_statements`, `years_not_found`, `file_type_required`, `industrial_columns_missing`, `industrial_no_rows` |
 | 500 | `internal_error` | Error inesperado (se registra en el log con su `traceId`) |
 
 ### Roles y permisos

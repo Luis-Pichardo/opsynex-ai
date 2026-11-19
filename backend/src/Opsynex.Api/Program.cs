@@ -4,6 +4,7 @@ using Asp.Versioning;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Opsynex.Api.Auth;
+using Opsynex.Api.Demo;
 using Opsynex.Api.Extensions;
 using Opsynex.Api.OpenApi;
 using Opsynex.Api.Health;
@@ -23,10 +24,13 @@ Log.Logger = new LoggerConfiguration()
 try
 {
     // Comando "seed-admin": crea el primer Admin desde Seed:AdminEmail/Seed:AdminPassword y termina.
+    // Comando "seed-demo": empresas, usuarios y datos sintéticos de demostración, y termina.
     const string SeedAdminCommand = "seed-admin";
     var runSeedCommand = args.Contains(SeedAdminCommand, StringComparer.OrdinalIgnoreCase);
+    var runDemoCommand = args.Contains(Opsynex.Api.Demo.DemoSeeder.Command, StringComparer.OrdinalIgnoreCase);
     var builder = WebApplication.CreateBuilder(
-        args.Where(a => !a.Equals(SeedAdminCommand, StringComparison.OrdinalIgnoreCase)).ToArray());
+        args.Where(a => !a.Equals(SeedAdminCommand, StringComparison.OrdinalIgnoreCase)
+            && !a.Equals(Opsynex.Api.Demo.DemoSeeder.Command, StringComparison.OrdinalIgnoreCase)).ToArray());
 
     // Logging estructurado con Serilog (configurable desde la sección "Serilog").
     builder.Services.AddSerilog((services, lc) => lc
@@ -42,6 +46,9 @@ try
     builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(o => o.MultipartBodyLengthLimit = maxUploadBytes);
     builder.Services.AddExceptionHandler<AppExceptionHandler>();
     builder.Services.AddFrontendCors(builder.Configuration);
+    builder.Services.AddOpsynexSecurity(builder.Configuration);
+    builder.Services.AddHttpContextAccessor();
+    builder.Services.AddScoped<Opsynex.Application.Abstractions.Persistence.IQueryTrackingPolicy, ReadOnlyRequestTrackingPolicy>();
 
     builder.Services.AddControllers()
         .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
@@ -102,15 +109,47 @@ try
         return;
     }
 
+    if (runDemoCommand)
+    {
+        var demo = await app.Services.SeedDemoAsync();
+        foreach (var step in demo.Steps)
+        {
+            Log.Information("seed-demo: {Step}", step);
+        }
+
+        Log.Information(
+            "seed-demo listo en {Seconds:0.0} s. Usuarios: {Users}. Contraseña: la de Demo:Password o la predeterminada documentada.",
+            demo.Elapsed.TotalSeconds,
+            string.Join(", ", demo.Users.Select(u => $"{u.Email} ({u.Role})")));
+        return;
+    }
+
     // Primer Admin desde configuración (no hace nada si no está configurado o ya existe).
     await app.Services.SeedAdminAsync();
 
+    app.UseForwardedHeaders();
+    app.UseCorrelationId();
+    app.UseSecurityHeaders();
+    if (!app.Environment.IsDevelopment())
+    {
+        // HSTS solo se envía en HTTPS (el balanceador termina TLS y avisa con X-Forwarded-Proto).
+        app.UseHsts();
+    }
+
+    app.UseResponseCompression();
     app.UseExceptionHandler();
     app.UseStatusCodePages();
-    app.UseSerilogRequestLogging();
+    app.UseSerilogRequestLogging(options =>
+    {
+        // Solo método, ruta, estado y duración: nunca el cuerpo ni la query (pueden traer datos).
+        options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} respondió {StatusCode} en {Elapsed:0.0} ms";
+        options.EnrichDiagnosticContext = (diagnostic, http) =>
+            diagnostic.Set("UserId", http.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? http.User.FindFirst("sub")?.Value);
+    });
 
     app.UseCors(CorsExtensions.PolicyName);
     app.UseAuthentication();
+    app.UseRateLimiter();
 
     // Valida pronto la empresa elegida por un Admin (X-Company-Id / companyId) para responder 400
     // si no es un Guid, antes de que la use una consulta.

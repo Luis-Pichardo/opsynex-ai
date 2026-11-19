@@ -351,3 +351,37 @@ estándar. Cada uno nombra las máquinas afectadas y su impacto en el período a
 está activa, también se marcan los días atípicos de OEE o de paradas.
 
 ![Producción en el móvil, modo oscuro](img/produccion-movil-oscuro.png)
+
+### Usuarios de demostración
+
+El comando `seed-demo` (ver *Instalación*) prepara la plataforma para presentarla. Todos los datos
+son **ficticios y sintéticos**.
+
+| Usuario | Rol | Empresa | Qué muestra |
+|---|---|---|---|
+| `admin@demo.opsynex.local` | Admin | Todas | Administración de empresas y usuarios; elige la empresa arriba |
+| `analista.manufactura@demo.opsynex.local` | Analyst | Manufacturas Demo del Caribe, S.R.L. | Libro de 3 años (2022–2024) con márgenes en deterioro y módulo industrial (3 máquinas) |
+| `cliente.manufactura@demo.opsynex.local` | Client | Manufacturas Demo del Caribe, S.R.L. | La misma empresa en modo consulta |
+| `analista.servicios@demo.opsynex.local` | Analyst | Servicios Demo Consultores, S.R.L. | Empresa de servicios con 2 años (2023–2024) |
+| `cliente.servicios@demo.opsynex.local` | Client | Servicios Demo Consultores, S.R.L. | La misma empresa en modo consulta |
+
+**Contraseña de todos los usuarios demo:** `Demo2026!`. Se puede cambiar con la variable
+`Demo__Password`. No uses estos usuarios en un ambiente con datos reales.
+
+**Guion sugerido (5 minutos):**
+
+1. Entra como `cliente.manufactura`. Muestra el dashboard: el score, el impacto y el score industrial.
+2. Abre **Problemas**, luego el detalle de «OEE bajo»: el impacto y su cálculo.
+3. Abre **Producción** y luego **Costos**, filtrando por máquina o por mes.
+4. Descarga el informe PDF.
+5. Entra como `analista.manufactura` para mostrar la carga y la homologación.
+
+### Límites y mensajes de seguridad
+
+- **Login:** más de 10 intentos por minuto desde el mismo equipo muestran «Hiciste demasiadas
+  solicitudes seguidas. Espera N segundos…». Esto se suma al bloqueo de la cuenta tras 5
+  contraseñas erróneas.
+- **Cargas:** más de 20 cargas por minuto de un mismo usuario reciben el mismo aviso.
+- **Libros con macros:** no se aceptan. Guárdalos como `.xlsx` sin macros.
+- Cada error trae un **id de correlación** (`correlationId`). Compártelo con soporte para
+  encontrar el caso en los registros.

@@ -1,3 +1,4 @@
+using Opsynex.Api.Extensions;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -25,8 +26,10 @@ public sealed class UsersController(UserService users) : ControllerBase
         [FromQuery] Guid? companyId,
         [FromQuery] UserRole? role,
         [FromQuery] string? search,
+        [FromQuery] int? page,
+        [FromQuery] int? pageSize,
         CancellationToken cancellationToken) =>
-        Ok(await users.ListAsync(new UserQuery(companyId, role, search), cancellationToken));
+        Ok(Response.Page(await users.ListAsync(new UserQuery(companyId, role, search), cancellationToken), page, pageSize));
 
     [HttpGet("{id:guid}")]
     [ProducesResponseType<UserDto>(StatusCodes.Status200OK)]

@@ -1,3 +1,4 @@
+using Opsynex.Api.Extensions;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -21,8 +22,9 @@ public sealed class CompaniesController(CompanyService companies) : ControllerBa
     [HttpGet]
     [Authorize(Policy = Policies.CanView)]
     [ProducesResponseType<IReadOnlyList<CompanyDto>>(StatusCodes.Status200OK)]
-    public async Task<ActionResult<IReadOnlyList<CompanyDto>>> List([FromQuery] string? search, CancellationToken cancellationToken) =>
-        Ok(await companies.ListAsync(search, cancellationToken));
+    public async Task<ActionResult<IReadOnlyList<CompanyDto>>> List(
+        [FromQuery] string? search, [FromQuery] int? page, [FromQuery] int? pageSize, CancellationToken cancellationToken) =>
+        Ok(Response.Page(await companies.ListAsync(search, cancellationToken), page, pageSize));
 
     [HttpGet("{id:guid}")]
     [Authorize(Policy = Policies.CanView)]

@@ -67,6 +67,9 @@ services:
       context: ./frontend
       args:
         VITE_API_URL: ${VITE_API_URL_DOCKER:-http://localhost:8080}
+    environment:
+      # Origen del API permitido por la CSP del frontend (connect-src).
+      API_ORIGIN: ${VITE_API_URL_DOCKER:-http://localhost:8080}
     ports:
       - "8081:80"
     depends_on:

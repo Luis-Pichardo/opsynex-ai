@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Opsynex.Application.Auth;
@@ -61,6 +62,23 @@ public static class TestUsers
         var token = await LoginAsync(client, user.Email, user.Password);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         return (client, user);
+    }
+
+    /// <summary>Token firmado por el API para un usuario de prueba (sin pasar por el login).</summary>
+    public static string IssueToken(OpsynexApiFactory factory, TestUser user)
+    {
+        using var scope = factory.Services.CreateScope();
+        var tokens = scope.ServiceProvider.GetRequiredService<Opsynex.Application.Abstractions.Security.ITokenService>();
+        var entity = new Opsynex.Domain.Entities.User
+        {
+            Email = user.Email,
+            FullName = "Usuario de prueba",
+            PasswordHash = "x",
+            Role = user.Role,
+            CompanyId = user.CompanyId,
+        };
+        entity.Id = user.Id;
+        return tokens.CreateAccessToken(entity).Token;
     }
 
     public static async Task<string> LoginAsync(HttpClient client, string email, string password)

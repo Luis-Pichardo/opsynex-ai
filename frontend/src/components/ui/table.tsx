@@ -7,13 +7,47 @@ import { cn } from '@/lib/utils'
  * hover `--surface-muted`; números a la derecha con `tabular-nums` (clase `numeric`).
  */
 const Table = React.forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement>>(
-  ({ className, ...props }, ref) => (
-    <div className="relative w-full overflow-x-auto">
-      <table ref={ref} className={cn('w-full caption-bottom text-body', className)} {...props} />
-    </div>
-  ),
+  ({ className, ...props }, ref) => {
+    const wrapper = React.useRef<HTMLDivElement>(null)
+    const overflowing = useHorizontalOverflow(wrapper)
+    const label = props['aria-label']
+    return (
+      // Si la tabla no cabe (p. ej. a 375 px), el contenedor se desplaza y se puede enfocar
+      // para moverlo con el teclado (WCAG 2.1.1).
+      <div
+        ref={wrapper}
+        className="relative w-full overflow-x-auto rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        {...(overflowing
+          ? {
+              tabIndex: 0,
+              role: 'region',
+              'aria-label': label ? `${label} (desplazable)` : 'Tabla desplazable',
+            }
+          : {})}
+      >
+        <table ref={ref} className={cn('w-full caption-bottom text-body', className)} {...props} />
+      </div>
+    )
+  },
 )
 Table.displayName = 'Table'
+
+/** `true` si el contenido del elemento es más ancho que el elemento (hay desplazamiento horizontal). */
+function useHorizontalOverflow(ref: React.RefObject<HTMLDivElement | null>) {
+  const [overflowing, setOverflowing] = React.useState(false)
+  React.useEffect(() => {
+    const element = ref.current
+    if (!element) return
+    const update = () => setOverflowing(element.scrollWidth > element.clientWidth + 1)
+    update()
+    if (typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(update)
+    observer.observe(element)
+    if (element.firstElementChild) observer.observe(element.firstElementChild)
+    return () => observer.disconnect()
+  }, [ref])
+  return overflowing
+}
 
 const TableHeader = React.forwardRef<
   HTMLTableSectionElement,
