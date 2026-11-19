@@ -13,6 +13,7 @@ internal sealed class KpiResultConfiguration : IEntityTypeConfiguration<KpiResul
         {
             t.HasCheckConstraint("CK_KpiResults_Trends_Json", "ISJSON([Trends]) = 1");
             t.HasCheckConstraint("CK_KpiResults_Normalized_Json", "ISJSON([Normalized]) = 1");
+            t.HasCheckConstraint("CK_KpiResults_Highlights_Json", "ISJSON([Highlights]) = 1");
         });
         builder.ConfigureCompanyYear();
 
@@ -33,5 +34,6 @@ internal sealed class KpiResultConfiguration : IEntityTypeConfiguration<KpiResul
 
         builder.Property(k => k.Trends).HasJsonValueConversion();
         builder.Property(k => k.Normalized).HasJsonDictionaryConversion();
+        builder.Property(k => k.Highlights).HasJsonListConversion();
     }
 }

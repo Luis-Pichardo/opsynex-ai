@@ -322,6 +322,10 @@ namespace Opsynex.Infrastructure.Persistence.Migrations
                         .HasPrecision(9, 4)
                         .HasColumnType("decimal(9,4)");
 
+                    b.Property<string>("Highlights")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<decimal?>("InventoryDays")
                         .HasPrecision(9, 2)
                         .HasColumnType("decimal(9,2)");
@@ -368,6 +372,8 @@ namespace Opsynex.Infrastructure.Persistence.Migrations
                     b.ToTable("KpiResults", null, t =>
                         {
                             t.HasCheckConstraint("CK_KpiResult_Year", "[Year] BETWEEN 1900 AND 2200");
+
+                            t.HasCheckConstraint("CK_KpiResults_Highlights_Json", "ISJSON([Highlights]) = 1");
 
                             t.HasCheckConstraint("CK_KpiResults_Normalized_Json", "ISJSON([Normalized]) = 1");
 
