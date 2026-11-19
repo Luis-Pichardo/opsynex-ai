@@ -67,8 +67,10 @@ try
 
     builder.Services.AddHealthChecks()
         .AddCheck("self", () => HealthCheckResult.Healthy("El API está en ejecución."), tags: ["live"])
-        .AddDbContextCheck<OpsynexDbContext>("database", tags: ["ready"]);
-    // Etapa 04: check del servicio de IA.
+        .AddDbContextCheck<OpsynexDbContext>("database", tags: ["ready"])
+        // Sin IA la plataforma funciona (fallback local): si no responde, el estado es Degraded.
+        .AddCheck<Opsynex.Infrastructure.AiService.AiServiceHealthCheck>(
+            "ai-service", failureStatus: HealthStatus.Degraded, tags: ["ready"]);
 
     // Autenticación JWT, políticas y tenant HTTP (antes de AddInfrastructure, que registra
     // un tenant sin filtro solo si no hay otro).

@@ -30,7 +30,7 @@ public sealed class UploadsEndpointsTests(OpsynexApiFactory factory) : IClassFix
             using var response = await client.UploadSampleAsync(file);
             var report = await response.ReadAsync<UploadReportDto>(HttpStatusCode.Created);
 
-            report.Status.ShouldBe(UploadStatus.Validated);
+            report.Status.ShouldBe(UploadStatus.Processed);
             report.FileType.ShouldBe(UploadFileType.AccountingWorkbook);
             report.CompanyId.ShouldBe(analyst.CompanyId!.Value);
             report.Years.ShouldBe([2023, 2024]);
@@ -111,7 +111,7 @@ public sealed class UploadsEndpointsTests(OpsynexApiFactory factory) : IClassFix
         {
             var report = await (await client.UploadSampleAsync(file)).ReadAsync<UploadReportDto>(HttpStatusCode.Created);
 
-            report.Status.ShouldBe(UploadStatus.Validated);
+            report.Status.ShouldBe(UploadStatus.Processed);
             var warning = report.Warnings.First(w => w.Code == code);
             warning.Sheet.ShouldBe(sheet);
             warning.Message.ShouldNotBeNullOrWhiteSpace();

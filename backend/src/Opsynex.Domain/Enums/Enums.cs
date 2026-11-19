@@ -85,6 +85,47 @@ public enum MappingMethod
 
     /// <summary>Sugerencia del servicio de IA.</summary>
     Ai,
+
+    /// <summary>Palabra clave del diccionario (servicio de IA).</summary>
+    Keyword,
+
+    /// <summary>Regla de contexto (p. ej. "Total corriente" según la sección).</summary>
+    Rule,
+
+    /// <summary>Mapeo ya confirmado de la empresa, reutilizado.</summary>
+    Known,
+
+    /// <summary>Diccionario mínimo local del API (el servicio de IA no respondió).</summary>
+    Fallback,
+
+    /// <summary>Sin coincidencia: quedó en <c>Other</c> y se recomienda revisarla.</summary>
+    Unmatched,
+}
+
+/// <summary>Alcance de un mapeo: líneas de los estados financieros o detalles de las notas.</summary>
+public enum MappingScope
+{
+    Statement,
+    Notes,
+}
+
+/// <summary>
+/// Rol del mapeo en la consolidación (evita el doble conteo): <c>Primary</c> alimenta los totales
+/// (ingresos, costos, activos…); <c>Breakdown</c> solo las categorías analíticas (energía,
+/// mantenimiento, personal, materias primas…).
+/// </summary>
+public enum MappingRole
+{
+    Primary,
+    Breakdown,
+}
+
+/// <summary>Estado del análisis automático de una carga.</summary>
+public enum AnalysisStatus
+{
+    NotStarted,
+    Completed,
+    Failed,
 }
 
 /// <summary>Severidad de un problema (sección 11 de las especificaciones).</summary>

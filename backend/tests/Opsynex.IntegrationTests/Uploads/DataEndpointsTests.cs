@@ -36,7 +36,9 @@ public sealed class DataEndpointsTests(OpsynexApiFactory factory) : IClassFixtur
             operational.Operational!.Single().EmployeeCount.ShouldBe(15);
 
             var financial = await (await viewer.GetAsync("/api/v1/data?type=Financial", Ct)).ReadAsync<DataResponse>();
-            financial.Financial!.ShouldBeEmpty(); // se llena con la homologación (etapa 04)
+            // Consolidado por la homologación automática (aquí con el fallback local, sin IA).
+            financial.Financial!.Select(f => f.Year).ShouldBe([2023, 2024]);
+            financial.Financial![1].Revenue.ShouldNotBeNull();
         }
     }
 

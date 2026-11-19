@@ -20,7 +20,10 @@ public sealed record UploadReportDto(
     UploadSummary Summary,
     int RowsCount,
     UploadPreview Preview,
-    DateTime CreatedAt);
+    DateTime CreatedAt,
+    AnalysisStatus AnalysisStatus,
+    bool NeedsReview,
+    int DoubtfulAccounts);
 
 /// <summary>Primeras líneas del estado de resultados y del balance (o de la plantilla).</summary>
 public sealed record UploadPreview(IReadOnlyList<PreviewLine> Lines);
@@ -45,4 +48,6 @@ public sealed record UploadListItemDto(
     int RowsCount,
     int WarningsCount,
     int ErrorsCount,
-    DateTime CreatedAt);
+    DateTime CreatedAt,
+    AnalysisStatus AnalysisStatus,
+    bool NeedsReview);

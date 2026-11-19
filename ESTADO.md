@@ -8,7 +8,7 @@ Leyenda: ⬜ pendiente · 🟡 en progreso · ✅ completada
 | 01 | Base de datos y modelos (EF Core + SQL Server) | `etapas/ETAPA_01_base_de_datos.md` | ✅ | 15/11/2026 | Rama `etapa-01-base-de-datos` (PR apilado sobre el de la etapa 00). 10 tablas, migración `InitialCreate`, filtro por empresa, repositorios; pruebas con SQL Server real (Testcontainers). |
 | 02 | Autenticación y roles | `etapas/ETAPA_02_autenticacion.md` | ✅ | 18/11/2026 | Rama `etapa-02-autenticacion`. JWT, bloqueo, roles y aislamiento por empresa, CRUD de empresas/usuarios (solo Admin), seed del Admin; 163 pruebas .NET. |
 | 03 | Carga y validación de datos | `etapas/ETAPA_03_carga_de_datos.md` | ✅ | 18/11/2026 | Rama `etapa-03-carga-de-datos` (PR apilado sobre el de la etapa 02). Parser del libro contable real, 9 validaciones de calidad, `/uploads`, `/data`, plantillas; 19 libros sintéticos; 322 pruebas .NET. |
-| 04 | Homologación contable + servicio de IA | `etapas/ETAPA_04_homologacion.md` | ⬜ | | |
+| 04 | Homologación contable + servicio de IA | `etapas/ETAPA_04_homologacion.md` | ✅ | 18/11/2026 | Rama `etapa-04-homologacion` (PR apilado sobre el de la etapa 03). Homologación automática con IA y fallback, consolidación sin doble conteo, revisión opcional; 355 pruebas .NET y 98 de Python. |
 | 05 | Motor de KPIs | `etapas/ETAPA_05_motor_kpis.md` | ⬜ | | |
 | 06 | Motor de diagnóstico | `etapas/ETAPA_06_motor_diagnostico.md` | ⬜ | | |
 | 07 | Impacto financiero y score | `etapas/ETAPA_07_impacto_y_score.md` | ⬜ | | |
@@ -57,6 +57,10 @@ Revisado el 15/11/2026 (contenedor de Claude Code en la nube, Ubuntu 24.04, usua
   regenera `backend/sample-data/` (usa openpyxl y LibreOffice `soffice`, ambos presentes en el
   contenedor; tarda ~20 s). Las pruebas .NET copian esa carpeta a su salida: después de
   regenerar, haz `dotnet build` antes de `dotnet test --no-build`.
+- **Servicio de IA en las pruebas (etapa 04):** las pruebas de homologación de punta a punta
+  arrancan el servicio real con `ai-service/.venv/bin/python -m uvicorn` (lo crea
+  `setup_cloud.sh`). Sin ese venv se omiten; con `OPSYNEX_REQUIRE_AI=true` fallan en lugar de
+  omitirse (así está en la CI).
 - **Python:** usar `python3.12` (el `python3` del sistema es 3.13). El venv vive en
   `ai-service/.venv`; ejecutar `ai-service/.venv/bin/pytest` y `.venv/bin/ruff`.
 - **Node:** v22 y npm 10 instalados. Frontend con `npm ci`.

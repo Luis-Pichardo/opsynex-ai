@@ -80,6 +80,8 @@ erDiagram
         nvarchar Sheets "JSON"
         nvarchar Summary "JSON"
         int RowsCount
+        nvarchar AnalysisStatus
+        bit NeedsReview
     }
     RawAccountValues {
         uniqueidentifier Id PK
@@ -96,8 +98,11 @@ erDiagram
     }
     AccountMappings {
         uniqueidentifier Id PK
-        uniqueidentifier CompanyId FK "UK con ClientAccount"
+        uniqueidentifier CompanyId FK "UK con Scope, Section y ClientAccount"
+        nvarchar Scope
+        nvarchar Section
         nvarchar ClientAccount
+        nvarchar Role
         nvarchar OpsynexCategory
         decimal Confidence
         nvarchar Method
@@ -217,6 +222,10 @@ Archivos cargados. **El archivo original no se guarda**: solo su reporte y los v
 | FileSizeBytes | bigint | No | Tamaño del archivo. |
 | Sheets | nvarchar(max) | No | JSON: hojas con su tipo detectado `{ name, detectedType, rowsExtracted, ignored, reason }`. |
 | Summary | nvarchar(max) | No | JSON: resumen agregado (conteo de empleados y por departamento, nómina anual, meses con ventas, confiabilidad del balance de comprobación). Sin datos personales. |
+| AnalysisStatus | nvarchar(50) | No | `NotStarted`, `Completed` o `Failed` (análisis automático). |
+| NeedsReview | bit | No | Revisión recomendada: hay cuentas de los estados dudosas. |
+| DoubtfulAccounts | int | No | Cantidad de cuentas dudosas. |
+| ProcessedAt | datetime2 | Sí | Fecha del último análisis (UTC). |
 | Warnings | nvarchar(max) | No | JSON: advertencias de calidad `{ code, message, sheet, row, column }`. |
 | Years | nvarchar(max) | No | JSON: años detectados, p. ej. `[2023, 2024]`. |
 
@@ -245,18 +254,21 @@ Valores por fila y año tal como vinieron en el archivo (antes de homologar). In
 
 #### AccountMappings
 
-Homologación de cuentas del cliente a categorías Opsynex. Único por (`CompanyId`, `ClientAccount`).
+Homologación de cuentas del cliente a categorías Opsynex. Único por (`CompanyId`, `Scope`, `Section`, `ClientAccount`); se reutiliza en las cargas siguientes de la empresa.
 
 | Columna | Tipo | Nulo | Descripción |
 |---|---|---|---|
 | Id | uniqueidentifier | No | Identificador (GUID v7). |
 | CompanyId | uniqueidentifier | No | Empresa dueña del registro (FK a Companies). |
-| ClientAccount | nvarchar(300) | No | Cuenta del cliente. |
+| ClientAccount | nvarchar(300) | No | Cuenta del cliente (etiqueta normalizada). |
 | OpsynexCategory | nvarchar(50) | No | Categoría estándar (ver catálogo). |
 | Confidence | decimal(5,4) | No | Confianza de la sugerencia, de 0 a 1. |
-| Method | nvarchar(50) | No | `Manual`, `Exact`, `Fuzzy` o `Ai`. |
+| Method | nvarchar(50) | No | `Manual` (confirmado por el usuario), `Exact`, `Keyword`, `Fuzzy`, `Rule`, `Known`, `Ai`, `Fallback` o `Unmatched`. |
 | ConfirmedBy | uniqueidentifier | Sí | Usuario que confirmó el mapeo (FK a Users); nulo si es solo una sugerencia. |
-| ConfirmedAt | datetime2 | Sí | Fecha de confirmación (UTC). |
+| ConfirmedAt | datetime2 | Sí | Fecha de confirmación (UTC); nulo = sugerencia aplicada automáticamente. |
+| Role | nvarchar(50) | No | `Primary` (líneas de los estados: alimentan los totales) o `Breakdown` (detalle de las notas: solo categorías analíticas). |
+| Scope | nvarchar(50) | No | `Statement` (balance, resultados, plantillas) o `Notes`. |
+| Section | nvarchar(300) | No | Sección normalizada; solo para subtotales de los estados ("Total corriente" de activos o de pasivos). Vacía en los demás casos. |
 | CreatedAt | datetime2 | No | Fecha de creación (UTC). |
 | UpdatedAt | datetime2 | No | Última modificación (UTC). |
 
@@ -433,6 +445,7 @@ y descripciones está en `Opsynex.Domain/Catalogs/OpsynexCategoryCatalog.cs`.
 | `CurrentLiabilities` | Pasivos corrientes | Total de pasivos corrientes. | Balance general |
 | `AccountsPayable` | Cuentas por pagar | Cuentas por pagar a proveedores. | Balance general |
 | `FinancialDebt` | Deuda financiera | Préstamos bancarios de corto y largo plazo. | Balance general |
+| `TotalLiabilitiesAndEquity` | Total pasivos y capital | Total de pasivos más patrimonio; sirve para derivar los pasivos totales. | Balance general |
 
 `Interest` y `Taxes` se mantienen por compatibilidad; en el libro dominicano se usan
 `FinancialExpenses` e `IncomeTax`.

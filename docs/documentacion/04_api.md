@@ -55,6 +55,8 @@ protegidos, pega en Scalar el `accessToken` obtenido en `POST /api/v1/auth/login
 | 400 | `upload.company_required` / `upload.company_not_found` | El Admin no indicó la empresa o no existe |
 | 400 | `data.company_required` | El Admin consulta `/data` sin elegir empresa |
 | 413 | `upload.too_large` | El archivo supera `Upload:MaxMb` (20 MB) |
+| 400 | `mapping.company_required` | El Admin consulta `/mappings` sin elegir empresa |
+| 409 | `upload.failed` | Se intenta analizar una carga con errores bloqueantes |
 | 422 | `upload.*` (en `errors[]` del reporte) | Error bloqueante del archivo: `empty_file`, `invalid_signature`, `unreadable`, `no_financial_statements`, `years_not_found`, `file_type_required` |
 | 500 | `internal_error` | Error inesperado (se registra en el log con su `traceId`) |
 
@@ -66,7 +68,7 @@ Políticas de autorización: `CanManage` (Admin), `CanAnalyze` (Admin y Analyst)
 | Acción | Admin | Analyst | Client |
 |---|---|---|---|
 | Gestionar empresas y usuarios | ✅ | ❌ | ❌ |
-| Subir archivos y descargar plantillas (etapa 03); homologar y recalcular (etapas 04–07) | ✅ | ✅ | ❌ |
+| Subir archivos, descargar plantillas, revisar la homologación y volver a analizar | ✅ | ✅ | ❌ |
 | Ver KPIs, problemas, score y dashboard | ✅ | ✅ | ✅ |
 
 No existe auto-registro: **solo un Admin crea usuarios** (de cualquier rol).
@@ -167,6 +169,30 @@ si el usuario tiene empresa), `iat`, `nbf`, `exp`, `iss` (`opsynex-api`) y `aud`
 Las inconsistencias de calidad nunca bloquean la carga (ver el capítulo *Motores analíticos →
 Ingesta y validación*). El archivo original no se guarda.
 
+Desde la etapa 04, el reporte incluye además `analysisStatus` (`NotStarted`, `Completed` o
+`Failed`), `needsReview` (revisión recomendada) y `doubtfulAccounts`. El análisis (homologación y
+consolidación) se ejecuta automáticamente al subir un archivo válido y la carga queda
+`Processed`.
+
+### Homologación — `/api/v1/mappings` (Admin y Analyst)
+
+| Método | Ruta | Request | Response | Errores |
+|---|---|---|---|---|
+| GET | `/mappings` | — (el Admin elige la empresa con `X-Company-Id`) | 200 `MappingDto[]` | 400 `mapping.company_required` |
+| GET | `/mappings/pending?uploadId=` | — | 200 `PendingAccountDto[]` (dudosas primero, luego por monto) | 404 |
+| PUT | `/mappings` | `{ items: [{ id, category }] }` | 200 `MappingDto[]` (confirmados, `method: "Manual"`, confianza 1) | 400 `validation_failed`, 404 |
+| POST | `/mappings/consolidate?uploadId=` | — | 200 `ProcessingResult` | 404, 409 `upload.failed` |
+
+- `MappingDto`: `{ id, clientAccount, scope: "Statement" | "Notes", section, role: "Primary" |
+  "Breakdown", category, confidence, method, isConfirmed, confirmedAt, confirmedBy }`.
+- `PendingAccountDto`: `{ mappingId, clientAccount, originalLabel, sheetName, sheetType,
+  rowNumber, section, scope, role, category, confidence, method, isConfirmed, isDoubtful, year,
+  amount }`. Una cuenta es dudosa si es `Primary`, no está confirmada y tiene confianza < 0,8.
+- `ProcessingResult`: `{ uploadId, status, analysisStatus, needsReview, doubtfulAccounts,
+  usedFallback, years }`.
+- `consolidate` vuelve a analizar la carga con los mapeos actuales (los confirmados no se tocan;
+  los no confirmados se vuelven a sugerir) y actualiza `FinancialData` de todos sus años.
+
 ### Datos — `/api/v1/data`
 
 | Método | Ruta | Rol | Response |
@@ -175,7 +201,7 @@ Ingesta y validación*). El archivo original no se guarda.
 
 `type`: `Raw` (por defecto: filas en bruto de la carga más reciente que tenga el año, filtrables
 por `sheetType` o `uploadId`), `Financial` (datos consolidados; se llenan con la homologación de
-la etapa 04), `Operational` o `Monthly`. La respuesta trae `{ companyId, type, year, uploadId,
+la etapa 04: se llenan al subir), `Operational` o `Monthly`. La respuesta trae `{ companyId, type, year, uploadId,
 availableYears, raw | financial | operational | monthly }`; solo se llena la lista del tipo pedido.
 Cada fila `raw`: `{ sheet, sheetType, row, section, originalLabel, normalizedLabel, accountCode,
 rowKind, values: { "2023": …, "2024": … } }`.
@@ -191,9 +217,8 @@ rowKind, values: { "2023": …, "2024": … } }`.
 
 | Grupo | Endpoints | Etapa |
 |---|---|---|
-| Homologación | mapeo de cuentas | 04 |
 | KPIs | `GET /kpis` | 05 |
 | Problemas | `GET /problems`, `GET /problems/{id}`, `PATCH /problems/{id}` | 06 |
 | Score | `GET /score` | 07 |
 
-> Pendiente (Etapas 04 a 07): especificación detallada de esos endpoints.
+> Pendiente (Etapas 05 a 07): especificación detallada de esos endpoints.

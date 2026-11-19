@@ -22,6 +22,7 @@ public sealed class UploadService(
     IUnitOfWork unitOfWork,
     ICurrentUser currentUser,
     ICurrentTenant tenant,
+    Homologation.UploadProcessingService processing,
     IOptions<UploadOptions> options)
 {
     private const int PreviewLinesPerSheet = 40;
@@ -74,6 +75,13 @@ public sealed class UploadService(
         }
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
+
+        // Análisis automático: homologar con las mejores sugerencias y consolidar.
+        if (upload.Status == UploadStatus.Validated)
+        {
+            await processing.ProcessAsync(upload.Id, cancellationToken);
+        }
+
         return ToReport(upload, Preview(parsed.Lines));
     }
 
@@ -83,7 +91,7 @@ public sealed class UploadService(
         return list
             .OrderByDescending(u => u.CreatedAt)
             .Select(u => new UploadListItemDto(u.Id, u.CompanyId, u.FileName, u.FileType, u.Status, [.. u.Years], u.RowsCount,
-                u.Warnings.Count, u.Errors.Count, u.CreatedAt))
+                u.Warnings.Count, u.Errors.Count, u.CreatedAt, u.AnalysisStatus, u.NeedsReview))
             .ToList();
     }
 
@@ -221,7 +229,8 @@ public sealed class UploadService(
 
     private static UploadReportDto ToReport(Upload upload, UploadPreview preview) => new(
         upload.Id, upload.CompanyId, upload.FileName, upload.FileType, upload.Status, [.. upload.Years], [.. upload.Sheets],
-        [.. upload.Errors], [.. upload.Warnings], upload.Summary, upload.RowsCount, preview, upload.CreatedAt);
+        [.. upload.Errors], [.. upload.Warnings], upload.Summary, upload.RowsCount, preview, upload.CreatedAt,
+        upload.AnalysisStatus, upload.NeedsReview, upload.DoubtfulAccounts);
 
     private static string Truncate(string value, int max) => value.Length <= max ? value : value[..max];
 }

@@ -23,6 +23,8 @@ public class OpsynexApiFactory(DatabaseFixture database) : WebApplicationFactory
         // El esquema ya lo creó DatabaseFixture.
         builder.UseSetting("Database:MigrateOnStartup", "false");
         builder.UseSetting("Jwt:Secret", TestJwt.Secret);
+        // Por defecto sin servicio de IA (fallback local inmediato); ver AiApiFactory.
+        builder.UseSetting("AiService:Enabled", "false");
         ConfigureSettings(builder);
 
         builder.ConfigureTestServices(services =>
@@ -59,4 +61,29 @@ public sealed class TimeTravelApiFactory(DatabaseFixture database) : OpsynexApiF
 public static class TestJwt
 {
     public const string Secret = "secreto-de-pruebas-de-integracion-0123456789-abcdef";
+}
+
+/// <summary>API conectado al servicio de IA real (<see cref="AiServiceFixture"/>).</summary>
+public sealed class AiApiFactory(DatabaseFixture database, AiServiceFixture ai) : OpsynexApiFactory(database)
+{
+    public AiServiceFixture Ai { get; } = ai;
+
+    protected override void ConfigureSettings(IWebHostBuilder builder)
+    {
+        builder.UseSetting("AiService:Enabled", "true");
+        builder.UseSetting("AiService:BaseUrl", Ai.BaseUrl ?? "http://127.0.0.1:9");
+        builder.UseSetting("AiService:ApiKey", Ai.ApiKey);
+    }
+}
+
+/// <summary>API con el servicio de IA activado pero inalcanzable (prueba del fallback y la resiliencia).</summary>
+public sealed class UnreachableAiApiFactory(DatabaseFixture database) : OpsynexApiFactory(database)
+{
+    protected override void ConfigureSettings(IWebHostBuilder builder)
+    {
+        builder.UseSetting("AiService:Enabled", "true");
+        builder.UseSetting("AiService:BaseUrl", "http://127.0.0.1:9");
+        builder.UseSetting("AiService:TimeoutSeconds", "3");
+        builder.UseSetting("AiService:MaxRetries", "1");
+    }
 }

@@ -14,6 +14,7 @@ internal sealed class AccountMappingConfiguration : IEntityTypeConfiguration<Acc
         builder.BelongsToCompany();
 
         builder.Property(m => m.ClientAccount).HasMaxLength(300).IsRequired();
+        builder.Property(m => m.Section).HasMaxLength(300).IsRequired().HasDefaultValue(string.Empty);
         builder.Property(m => m.Confidence).HasPrecision(5, 4);
         builder.Ignore(m => m.IsConfirmed);
 
@@ -22,6 +23,7 @@ internal sealed class AccountMappingConfiguration : IEntityTypeConfiguration<Acc
             .HasForeignKey(m => m.ConfirmedBy)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasIndex(m => new { m.CompanyId, m.ClientAccount }).IsUnique();
+        // Una cuenta por empresa, alcance (estados o notas) y sección (solo subtotales de los estados).
+        builder.HasIndex(m => new { m.CompanyId, m.Scope, m.Section, m.ClientAccount }).IsUnique();
     }
 }

@@ -21,6 +21,8 @@ public static class DependencyInjection
         services.AddScoped<Companies.CompanyService>();
         services.AddScoped<Uploads.UploadService>();
         services.AddScoped<Uploads.DataService>();
+        services.AddScoped<Homologation.HomologationService>();
+        services.AddScoped<Homologation.UploadProcessingService>();
         services.AddOptions<Uploads.UploadOptions>()
             .BindConfiguration(Uploads.UploadOptions.SectionName)
             .Validate(o => o.MaxMb is > 0 and <= 200 && o.MaxRowsPerSheet > 0 && o.MaxSheets > 0, "Upload: valores fuera de rango.")

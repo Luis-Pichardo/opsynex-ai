@@ -58,6 +58,23 @@ namespace Opsynex.Infrastructure.Persistence.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Scope")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Section")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)")
+                        .HasDefaultValue("");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
 
@@ -65,7 +82,7 @@ namespace Opsynex.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("ConfirmedBy");
 
-                    b.HasIndex("CompanyId", "ClientAccount")
+                    b.HasIndex("CompanyId", "Scope", "Section", "ClientAccount")
                         .IsUnique();
 
                     b.ToTable("AccountMappings", null, t =>
@@ -640,11 +657,19 @@ namespace Opsynex.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("AnalysisStatus")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.Property<Guid>("CompanyId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<int>("DoubtfulAccounts")
+                        .HasColumnType("int");
 
                     b.Property<string>("Errors")
                         .IsRequired()
@@ -662,6 +687,12 @@ namespace Opsynex.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<bool>("NeedsReview")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("ProcessedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("RowsCount")
                         .HasColumnType("int");

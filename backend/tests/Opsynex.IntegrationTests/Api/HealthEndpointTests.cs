@@ -21,12 +21,14 @@ public sealed class HealthEndpointTests(OpsynexApiFactory factory) : IClassFixtu
         response.Content.Headers.ContentType?.MediaType.ShouldBe("application/json");
 
         using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
-        json.RootElement.GetProperty("status").GetString().ShouldBe("Healthy");
+        // Sin servicio de IA el API funciona igual (fallback): el estado general es Degraded y responde 200.
+        json.RootElement.GetProperty("status").GetString().ShouldBe("Degraded");
         json.RootElement.GetProperty("service").GetString().ShouldBe("opsynex-api");
         var checks = json.RootElement.GetProperty("checks").EnumerateArray()
             .ToDictionary(c => c.GetProperty("name").GetString()!, c => c.GetProperty("status").GetString());
         checks["self"].ShouldBe("Healthy");
         checks["database"].ShouldBe("Healthy");
+        checks["ai-service"].ShouldBe("Degraded");
     }
 
     [Fact]

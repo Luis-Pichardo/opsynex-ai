@@ -38,4 +38,7 @@ public enum OpsynexCategory
     CurrentLiabilities,
     AccountsPayable,
     FinancialDebt,
+
+    /// <summary>"Total pasivos y capital": se usa para derivar los pasivos totales.</summary>
+    TotalLiabilitiesAndEquity,
 }

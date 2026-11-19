@@ -6,7 +6,7 @@ from fastapi import FastAPI
 
 from app import __version__
 from app.config import get_settings
-from app.routers import health, system
+from app.routers import health, homologation, system
 from app.security import InternalApiKeyMiddleware
 
 
@@ -26,6 +26,7 @@ def create_app() -> FastAPI:
     app.add_middleware(InternalApiKeyMiddleware)
     app.include_router(health.router)
     app.include_router(system.router)
+    app.include_router(homologation.router)
     return app
 
 

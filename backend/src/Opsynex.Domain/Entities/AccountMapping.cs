@@ -3,12 +3,26 @@ using Opsynex.Domain.Enums;
 
 namespace Opsynex.Domain.Entities;
 
-/// <summary>Homologación de una cuenta del cliente a una categoría estándar de Opsynex.</summary>
+/// <summary>
+/// Homologación de una cuenta del cliente a una categoría estándar de Opsynex. Es único por
+/// empresa, alcance, sección y cuenta, y se reutiliza en las cargas siguientes de la empresa.
+/// </summary>
 public sealed class AccountMapping : Entity, ICompanyScoped
 {
     public Guid CompanyId { get; set; }
 
+    /// <summary>Etiqueta normalizada de la cuenta (igual a <see cref="RawAccountValue.ClientAccount"/>).</summary>
     public required string ClientAccount { get; set; }
+
+    public MappingScope Scope { get; set; }
+
+    /// <summary>
+    /// Sección normalizada; solo para subtotales de los estados ("Total corriente" de activos o de
+    /// pasivos). Vacía en los demás casos.
+    /// </summary>
+    public string Section { get; set; } = string.Empty;
+
+    public MappingRole Role { get; set; }
 
     public OpsynexCategory OpsynexCategory { get; set; }
 

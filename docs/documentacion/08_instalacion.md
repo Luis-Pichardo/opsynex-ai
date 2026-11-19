@@ -29,10 +29,13 @@ en `backend/src/Opsynex.Api`). Nunca subas secretos al repositorio.
 | `Cors__Origins` | API | Orígenes del frontend permitidos (separados por comas) | `http://localhost:5173` |
 | `AiService__BaseUrl` | API | URL del servicio de IA | `http://localhost:8001` |
 | `AiService__ApiKey` | API | Clave interna compartida con el servicio de IA | valor aleatorio |
+| `AiService__Enabled` | API | `false` = no llama al servicio de IA (usa siempre el fallback local) | `true` |
+| `AiService__TimeoutSeconds` / `AiService__MaxRetries` | API | Tiempo máximo de una llamada al servicio de IA y reintentos | `10` / `2` |
 | `Upload__MaxMb` | API | Tamaño máximo de archivo a cargar (MB) | `20` |
 | `Upload__MaxRowsPerSheet` / `Upload__MaxSheets` | API | Filas por hoja y hojas por libro que se leen | `5000` / `60` |
 | `Database__Provider` | API | `SqlServer` (normal) o `Sqlite` (solo pruebas) | `SqlServer` |
 | `Database__MigrateOnStartup` | API | Aplica migraciones al arrancar (`true` en Development) | `true` |
+| `OPSYNEX_AI_PYTHON` / `OPSYNEX_REQUIRE_AI` | Pruebas | Intérprete con el servicio de IA para las pruebas de punta a punta (por defecto `ai-service/.venv`); `true` las exige en vez de omitirlas | (vacío) |
 | `OPSYNEX_TEST_DB` | Pruebas | Vacío = Testcontainers si hay Docker, si no SQLite; `sqlserver` o `sqlite` para forzar | (vacío) |
 | `AI_SERVICE_API_KEY` | IA | Misma clave que `AiService__ApiKey` | valor aleatorio |
 | `ANTHROPIC_API_KEY` | IA | Clave de la API de Claude (opcional hasta la Etapa 04) | `sk-ant-…` |
