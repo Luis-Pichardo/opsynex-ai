@@ -10,7 +10,7 @@ Leyenda: ⬜ pendiente · 🟡 en progreso · ✅ completada
 | 03 | Carga y validación de datos | `etapas/ETAPA_03_carga_de_datos.md` | ✅ | 18/11/2026 | Rama `etapa-03-carga-de-datos` (PR apilado sobre el de la etapa 02). Parser del libro contable real, 9 validaciones de calidad, `/uploads`, `/data`, plantillas; 19 libros sintéticos; 322 pruebas .NET. |
 | 04 | Homologación contable + servicio de IA | `etapas/ETAPA_04_homologacion.md` | ✅ | 18/11/2026 | Rama `etapa-04-homologacion` (PR apilado sobre el de la etapa 03). Homologación automática con IA y fallback, consolidación sin doble conteo, revisión opcional; 355 pruebas .NET y 98 de Python. |
 | 05 | Motor de KPIs | `etapas/ETAPA_05_motor_kpis.md` | ✅ | 18/11/2026 | Rama `etapa-05-motor-kpis` (PR apilado sobre el de la etapa 04). 14 KPIs, tendencias, normalización por industria y moneda, serie mensual, `AnalysisPipeline`, `/kpis` y `/analysis/run`; 426 pruebas .NET. |
-| 06 | Motor de diagnóstico | `etapas/ETAPA_06_motor_diagnostico.md` | ⬜ | | |
+| 06 | Motor de diagnóstico | `etapas/ETAPA_06_motor_diagnostico.md` | ✅ | 19/11/2026 | Rama `etapa-06-motor-diagnostico` (PR apilado sobre el de la etapa 05). 13 reglas configurables, severidad, priorización, hallazgos positivos, reemplazo idempotente, `/problems`; 476 pruebas .NET. |
 | 07 | Impacto financiero y score | `etapas/ETAPA_07_impacto_y_score.md` | ⬜ | | |
 | 08 | Frontend base y sistema de diseño | `etapas/ETAPA_08_frontend_base.md` | ⬜ | | |
 | 09 | Frontend: carga de datos y homologación | `etapas/ETAPA_09_frontend_carga.md` | ⬜ | | |

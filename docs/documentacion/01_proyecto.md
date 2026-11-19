@@ -141,3 +141,9 @@ Etapa 05 completada (18/11/2026): el sistema calcula automáticamente 14 KPIs po
 (rentabilidad, eficiencia de costos, productividad y estabilidad financiera), sus tendencias
 frente al año anterior, una versión normalizada de 0 a 100 con referencias por industria y moneda,
 y la serie mensual de ventas. La siguiente etapa es el motor de diagnóstico (Etapa 06).
+
+Etapa 06 completada (19/11/2026): un motor de 13 reglas configurables detecta automáticamente
+ineficiencias (caída de márgenes, costos que crecen más que las ventas, baja productividad,
+liquidez y endeudamiento), asigna su severidad, las prioriza, propone una recomendación base y
+registra también los hallazgos positivos. El analista puede marcar cada problema como reconocido
+o resuelto. La siguiente etapa es el impacto financiero y el score (Etapa 07).

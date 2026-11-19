@@ -302,7 +302,85 @@ con los del motor en las pruebas:
 Niveles de prioridad: **High** (impacto financiero crítico), **Medium** (ineficiencia
 moderada), **Low** (recomendación de monitoreo).
 
-> Pendiente (Etapa 06): umbrales, reglas adicionales y priorización.
+Motor de reglas configurable en `Opsynex.Domain/Engines/Diagnosis`, sin EF ni HTTP. Cada regla
+implementa `IDiagnosticRule` con `Code`, `Title`, `Category`, `ImpactCategory` y
+`Evaluate(DiagnosisContext) → RuleResult?`. `RuleResult` trae la severidad, la descripción con
+cifras, la recomendación base, la evidencia en JSON y el KPI relacionado. El `AnalysisPipeline`
+ejecuta el diagnóstico de **cada año** después de calcular los KPIs, comparando con el año
+anterior cuando existe.
+
+#### Reglas
+
+Cada regla calcula una **magnitud**, que es positiva cuando hay problema. La severidad sale de
+comparar esa magnitud con tres umbrales: ≥ `High` → High, ≥ `Medium` → Medium y ≥ `Low` →
+Low. Por debajo de `Low` no hay problema.
+
+| Código | Condición | Magnitud | Low / Medium / High | Diagnóstico | Impacto |
+|---|---|---|---|---|---|
+| `EBITDA_DECLINE` | Disminuye el margen EBITDA | caída en pp | 0,5 / 2 / 5 | Deterioro de rentabilidad | MarginLoss |
+| `GROSS_MARGIN_DECLINE` | Se deteriora el margen bruto | caída en pp | 0,5 / 2 / 5 | Problema de absorción de costos | MarginLoss |
+| `COST_GROWTH_FLAT_REVENUE` | El costo total sube con ingresos estables (±2 %) | crecimiento del costo (%) | 2 / 5 / 10 | Ineficiencia operacional | ExcessCost |
+| `OVERHEAD_OUTPACES_REVENUE` | Los gastos generales crecen más que los ingresos | diferencia de crecimiento (pp) | > 0 / 5 / 10 | Ineficiencia administrativa | ExcessCost |
+| `LABOR_COST_OUTPACES_REVENUE` | El costo de personal crece más que los ingresos | diferencia de crecimiento (pp) | > 0 / 5 / 10 | Ineficiencia en costos de personal | ExcessCost |
+| `PRODUCTIVITY_DECLINE` | Bajan los ingresos por empleado | caída (%) | 2 / 7 / 15 | Deterioro de productividad | ProductivityLoss |
+| `REVENUE_DECLINE` | Los ingresos caen | caída (%) | 2 / 7 / 15 | Contracción de ventas | MarginLoss |
+| `ENERGY_COST_SPIKE` | Sube el costo de energía / ingresos | aumento relativo (%) | 10 / 15 / 25 | Consumo energético ineficiente | OperationalWaste |
+| `LOW_EBITDA_MARGIN` | Margen EBITDA bajo la referencia (10 % manufactura, 12 % servicios) | pp por debajo | > 0 / 2 / 5 | Rentabilidad baja | MarginLoss |
+| `HIGH_OPEX_RATIO` | Gastos operacionales / ingresos sobre la referencia (25 % manufactura, 40 % servicios) | pp por encima | > 0 / 5 / 10 | Estructura de gastos pesada | ExcessCost |
+| `HIGH_MATERIAL_LOSS` | Pérdida de materiales / COGS sobre el 3 % | pp por encima | > 0 / 2 / 5 | Desperdicio de materiales | OperationalWaste |
+| `LOW_LIQUIDITY` | Razón corriente menor que 1,0 | diferencia (veces) | > 0 / 0,1 / 0,3 | Riesgo de liquidez | FinancialAlert |
+| `HIGH_LEVERAGE` | Pasivos / patrimonio mayor que 3,0 | diferencia (veces) | > 0 / 1 / 2 | Endeudamiento alto | FinancialAlert |
+
+`FinancialAlert` (alerta financiera) es una categoría nueva para los problemas que no se
+cuantifican como pérdida (liquidez, endeudamiento).
+
+#### Umbrales configurables
+
+Están en `appsettings.json`, sección `DiagnosisRules:Rules:<CÓDIGO>`, con `Enabled`, `Low`,
+`Medium`, `High` y `Reference`. `Reference` es la referencia por industria o `Default`. Lo que no
+esté configurado usa los valores por defecto de `DiagnosisSettings.Defaults`. El API valida al
+arrancar que `0 ≤ Low ≤ Medium ≤ High`. Para desactivar una regla: `"Enabled": false`.
+
+#### Priorización
+
+Los problemas se ordenan por **severidad** (High primero) y luego por **impacto económico**
+(mayor primero; los que no tienen impacto van al final). El impacto se calcula en la etapa 07. En
+la lista, `priority` es la posición (1 = más urgente).
+
+#### Reemplazo idempotente
+
+En cada análisis, para cada año:
+
+- Los problemas que se vuelven a detectar se **actualizan** (severidad, textos y evidencia) y
+  **conservan el estado** que puso el usuario (`Acknowledged`, `Resolved`).
+- Los nuevos se agregan con estado `Open`.
+- Los que ya no se detectan se eliminan.
+
+El índice único (empresa, año, código) garantiza que nunca haya duplicados.
+
+#### Hallazgos positivos
+
+El motor también registra mejoras: el margen EBITDA o el bruto suben al menos 0,5 pp, el
+endeudamiento baja, la liquidez mejora, la eficiencia de costos mejora o los ingresos crecen 5 %
+o más. Se guardan por año en `KpiResults.Highlights` y se devuelven en `GET /problems`, para que
+el resumen ejecutivo no muestre solo problemas.
+
+#### Cómo agregar una regla
+
+1. Crea una clase en `Opsynex.Domain/Engines/Diagnosis/Rules` que implemente `IDiagnosticRule`.
+   Se registra sola por DI.
+2. Agrega sus umbrales por defecto en `DiagnosisSettings.Defaults` (y en `appsettings.json` si se
+   quieren ajustables).
+3. Escribe tests que la disparen y que no la disparen (`tests/Opsynex.UnitTests/Diagnosis`).
+
+#### Resultado con el libro sintético de 3 años
+
+| Año | Problemas |
+|---|---|
+| 2023 | `EBITDA_DECLINE` (Medium, −3,05 pp), `GROSS_MARGIN_DECLINE` (Medium, −3,11 pp), `LABOR_COST_OUTPACES_REVENUE` (Low: 8,43 % frente a 8,21 %) |
+| 2024 | `EBITDA_DECLINE` (Low, −1,14 pp), `GROSS_MARGIN_DECLINE` (Low, −0,92 pp), `OVERHEAD_OUTPACES_REVENUE` (Low: 7,58 % frente a 7,41 %), `LABOR_COST_OUTPACES_REVENUE` (Low: 9,66 % frente a 7,41 %) |
+
+Hallazgos positivos de 2024: menor endeudamiento, mejor liquidez y crecimiento de ingresos.
 
 ### Motor de impacto financiero
 

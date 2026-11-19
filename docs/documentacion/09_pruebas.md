@@ -92,4 +92,19 @@ Sin Python, las pruebas con IA real se omiten con su motivo. En la CI se exigen
   - Tendencias, normalización en RD$, serie mensual, filtro por año, JSON guardado, recálculo con
     `/analysis/run` y permisos.
 
+### Motor de diagnóstico (Etapa 06)
+
+- **Unitarias** (`Diagnosis/DiagnosisRuleTests`):
+  - Cada una de las 13 reglas con casos que la disparan (y su severidad) y que no la disparan
+    (estable, mejora, falta de datos o del año anterior).
+  - Umbrales configurables y reglas desactivadas.
+  - Descubrimiento de todas las reglas.
+  - Priorización y hallazgos positivos.
+- **Integración** (`Analysis/ProblemsEndpointsTests`):
+  - El libro de 3 años detecta `EBITDA_DECLINE`, `GROSS_MARGIN_DECLINE`,
+    `OVERHEAD_OUTPACES_REVENUE` y `LABOR_COST_OUTPACES_REVENUE` con la severidad esperada.
+  - Analizar dos veces (y subir de nuevo) no duplica problemas y conserva el estado.
+  - Filtros, paginado, detalle con evidencia e historial del KPI, permisos y aislamiento por
+    empresa.
+
 > Pendiente (Etapas 07, 10 y 12): estrategia completa, cobertura y checklist del MVP.
