@@ -354,3 +354,34 @@ Registro de cada etapa completada (la más reciente al final).
     analizar varias veces.
 - **Pendientes:** dashboard, problemas y KPIs (etapa 10).
 
+### Etapa 10 — Dashboard ejecutivo, problemas e informe PDF: cierre del MVP (19/11/2026)
+
+- **Resumen:**
+  - **Dashboard:** score (medidor, variación y componentes), impacto (total y por categoría),
+    5 KPIs con tendencia, tendencias (línea por KPI y barras de ingresos frente a costo),
+    principales problemas, recomendaciones y «Lo que mejoró».
+  - **Problemas:** lista con filtros y detalle con impacto y su cálculo, histórico del KPI,
+    evidencia, recomendación y cambio de estado.
+  - **KPIs:** tabla histórica y gráfico por KPI. Todos los gráficos tienen tooltip, leyenda,
+    `aria-label` y «Ver tabla».
+  - **Informe PDF** en el backend con QuestPDF (`GET /reports/executive`) y botón de descarga
+    para todos los roles.
+  - **Checklist MVP** documentado con evidencia.
+- **Archivos principales:**
+  - `backend/src/Opsynex.Application/Reports/`, `backend/src/Opsynex.Infrastructure/Reports/`
+    y `Controllers/ReportsController.cs`.
+  - `frontend/src/components/{charts,dashboard}/` y
+    `frontend/src/pages/{DashboardPage,ProblemsPage,ProblemDetailPage,KpisPage}.tsx`.
+- **Decisiones técnicas:**
+  - QuestPDF con licencia Community y la fuente Inter embebida (OFL). El gráfico del PDF es un
+    SVG generado en C#, con los colores de la guía y sin doble eje.
+  - El texto del PDF se verifica en las pruebas con PdfPig. PdfPig no extrae algunos signos
+    (paréntesis, «−»), así que las pruebas buscan frases sin ellos.
+  - `formatCurrency` antepone el símbolo de la moneda («RD$», «US$»), como la guía y el PDF.
+  - CORS expone `Content-Disposition` (nombre del PDF) y `Retry-After`.
+  - La variación del score se muestra en puntos («2,3 pts»), no en pp.
+  - Recharts 3.10.1, con versión fija.
+  - `setup_cloud.sh` elimina el `docker.pid` huérfano que deja un reinicio del contenedor.
+- **Pendientes:** IA (etapa 11): recomendaciones enriquecidas, anomalías y resumen ejecutivo en
+  el PDF. Módulo industrial (etapa 12). E2E automatizados en la CI (etapa 13).
+

@@ -15,7 +15,8 @@ Release` (warnings = errores), `dotnet test`, `pytest`, `ruff`, y lint, tests y 
 
 ### Cobertura actual (Etapa 07)
 
-519 pruebas .NET (336 unitarias y 183 de integración) y las de Python del servicio de IA.
+Al cierre del MVP (etapa 10): 540 pruebas .NET (350 unitarias y 190 de integración), 69 de
+frontend y las de Python del servicio de IA. La tabla siguiente es la medición de la etapa 07.
 Cobertura de líneas del backend, sin código generado ni migraciones:
 
 | Proyecto | Cobertura |
@@ -180,15 +181,78 @@ Sin Python, las pruebas con IA real se omiten con su motivo. En la CI se exigen
   - archivo sin estados → errores sin continuar;
   - 375 px en modo oscuro sin scroll horizontal.
 
-### Checklist de backend del MVP (sección 20)
+### Dashboard, problemas, KPIs e informe PDF (Etapa 10)
 
-| Criterio | Cómo se verifica |
-|---|---|
-| Carga archivos financieros correctamente | `Uploads/*` con los libros sintéticos y los inválidos |
-| Calcula KPIs automáticamente | `Kpis/*` y `Analysis/KpisEndpointsTests` (14 KPIs por año al subir) |
-| Genera diagnósticos | `Diagnosis/DiagnosisRuleTests` y `Analysis/ProblemsEndpointsTests` |
-| Estima impacto financiero | `Diagnosis/ImpactEngineTests` y `Analysis/ImpactAndScoreEndpointsTests` |
-| Genera score operacional-financiero | `Diagnosis/ScoreEngineTests` y `Analysis/ImpactAndScoreEndpointsTests` |
-| Muestra dashboards | Pendiente: frontend (etapas 08–10) |
+- **Frontend:**
+  - `DashboardPage.test.tsx`:
+    - Muestra score (medidor, variación y componentes), impacto (total con «RD$» y desglose),
+      KPIs con su tendencia, tendencias, top de problemas con enlace al detalle, recomendaciones,
+      «Lo que mejoró» y el botón del PDF.
+    - Sin datos, muestra el estado vacío con «Subir archivo».
+  - `ProblemsPage.test.tsx`:
+    - La lista muestra severidad, impacto y estado, y el filtro de severidad llega a la consulta.
+    - El detalle muestra el cálculo del impacto, el histórico, la evidencia y la recomendación.
+    - El Analyst cambia el estado (`PATCH`); el Client no puede cambiarlo, pero descarga el PDF
+      con su token.
+    - Un problema inexistente muestra un estado vacío.
+  - `KpisPage.test.tsx`: tabla histórica con variación (la dirección y si es favorable),
+    gráfico por KPI con `aria-label` y «Ver tabla».
+- **Backend:**
+  - `Analysis/ReportsEndpointsTests`:
+    - El PDF se genera para Client y Analyst con más de una página.
+    - El texto, extraído con PdfPig, contiene la portada, el score y su interpretación, el
+      impacto, los KPIs, la tendencia, los títulos de los problemas, las recomendaciones, la
+      calidad de los datos, la nota metodológica y el pie con el número de página.
+    - Funciona para un año anterior.
+    - Errores: `reports.no_data`, `reports.company_required` y 401.
+  - `ReportFormattingTests`: montos con «RD$», variaciones en pp o %, eje del gráfico, SVG de
+    tendencia y nombre de archivo seguro.
+- **Manual con Playwright contra el API real:**
+  - dashboard, lista, detalle y KPIs en escritorio (claro y oscuro) y a 375 px sin scroll
+    horizontal;
+  - descarga del PDF como Admin, Analyst y Client;
+  - cambio de estado de un problema.
 
-> Pendiente (Etapas 10 y 12): pruebas del frontend, E2E con Playwright y módulo industrial.
+  Capturas en `docs/capturas/etapa-10/`.
+
+### Checklist MVP
+
+Verificación punto por punto de la definición de MVP de las dos especificaciones, con el libro
+sintético `libro_sintetico_3a.xls`.
+
+**ESPECIFICACIONES_DEL_SISTEMA, sección 20**
+
+| Criterio | Cumple | Evidencia |
+|---|---|---|
+| Carga archivos financieros correctamente | ✅ | `Uploads/*` (libros válidos e inválidos), `UploadWizard.test.tsx`, capturas `img/carga-paso*.png` |
+| Calcula KPIs automáticamente | ✅ | `Analysis/KpisEndpointsTests` (14 KPIs por año al subir), `KpisPage.test.tsx`, captura `img/kpis.png` |
+| Genera diagnósticos financiero-operacionales | ✅ | `DiagnosisRuleTests` (13 reglas), `ProblemsEndpointsTests`, captura `img/problemas.png` |
+| Estima impacto financiero | ✅ | `ImpactEngineTests`, `ImpactAndScoreEndpointsTests`, `DashboardPage.test.tsx`, captura `img/problema-detalle.png` |
+| Muestra dashboards correctamente | ✅ | `DashboardPage.test.tsx`, capturas `capturas/etapa-10/dashboard-*.png` (escritorio y 375 px, claro y oscuro) |
+| Genera score operacional-financiero | ✅ | `ScoreEngineTests`, `ImpactAndScoreEndpointsTests`, medidor del dashboard |
+
+**PLATAFORMA_DE_ANALISIS, sección 14 y módulos obligatorios**
+
+| Criterio | Cumple | Evidencia |
+|---|---|---|
+| Calcula KPIs automáticamente | ✅ | Igual que arriba (KPIs financieros; los industriales se suman en la etapa 12) |
+| Detecta al menos 3 tipos de problemas | ✅ | El libro de 3 años detecta 4 tipos (`ProblemsEndpointsTests`) |
+| Muestra impacto financiero | ✅ | Dashboard, detalle de problema y PDF |
+| Tiene dashboard funcional | ✅ | `DashboardPage.test.tsx` y recorrido con Playwright |
+| Autenticación de usuarios | ✅ | `Auth/*`, `AuthProvider.test.tsx`, `RoleGuard.test.tsx` |
+| Carga de datos (Excel/CSV) | ✅ | `.xls`, `.xlsx` y `.csv` (`Uploads/*`, plantillas) |
+| Motor de diagnóstico, de impacto, dashboard y vista de problemas | ✅ | Ver las filas anteriores y `ProblemsPage.test.tsx` |
+
+**Decisiones de FLUJO_DE_USUARIO.md**
+
+| Decisión | Cumple | Evidencia |
+|---|---|---|
+| El Analyst sube y el Client solo ve | ✅ | `RoleGuard.test.tsx`, `Sidebar.test.tsx` |
+| Análisis automático; revisión de cuentas opcional | ✅ | `UploadWizard.test.tsx`, `MappingsPage.test.tsx` |
+| Solo el Admin crea usuarios y empresas | ✅ | `Auth/PermissionMatrixTests`, sin registro en el login |
+| Informe PDF obligatorio, para todos los roles | ✅ | `ReportsEndpointsTests` (Client y Analyst) y descarga con Playwright como Admin, Analyst y Client |
+
+Comandos de verificación: `cd backend && dotnet test` (SQL Server con Testcontainers) y
+`cd frontend && npm test && npm run lint && npm run build`.
+
+> Pendiente (Etapas 11 a 13): IA, módulo industrial y E2E automatizados con Playwright en la CI.

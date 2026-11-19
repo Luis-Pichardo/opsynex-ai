@@ -91,6 +91,20 @@ entorno define `Jwt__Secret` con un valor aleatorio (por ejemplo `openssl rand -
 y ejecuta el perfil `http` (abre Scalar en el navegador). Las pruebas aparecen en el
 Explorador de pruebas.
 
+### Informe PDF y licencias
+
+El informe ejecutivo se genera en el API con **QuestPDF** (`Opsynex.Infrastructure/Reports`):
+- **Licencia de QuestPDF:** se usa la **Community**, que es gratuita para organizaciones con
+  ingresos brutos anuales menores a 1 millón de USD. La licenciataria es la organización que
+  opera la plataforma Opsynex AI, no las empresas cliente que se analizan. Si esos ingresos
+  superan el umbral, hay que comprar la licencia Professional o Enterprise y cambiar
+  `LicenseType.Community` en `QuestPdfExecutiveReportRenderer`. La alternativa libre sería
+  PdfSharp/MigraDoc (MIT), con más trabajo de maquetación.
+- **Fuente:** Inter, embebida en el ensamblado (`Reports/Fonts`, SIL Open Font License 1.1;
+  licencia en `OFL-Inter.txt`). No depende de las fuentes del servidor.
+- **Dependencias del sistema:** ninguna. QuestPDF incluye su motor nativo (Skia) para Linux y
+  Windows x64, también en la imagen Docker del API.
+
 ### Pruebas y linters
 
 ```bash

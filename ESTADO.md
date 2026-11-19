@@ -14,7 +14,7 @@ Leyenda: ⬜ pendiente · 🟡 en progreso · ✅ completada
 | 07 | Impacto financiero y score | `etapas/ETAPA_07_impacto_y_score.md` | ✅ | 19/11/2026 | Rama `etapa-07-impacto-y-score` (PR apilado sobre el de la etapa 06). Impacto por categoría en cada problema, Score Opsynex 0–100 con redistribución de pesos, pipeline completo, `/score` e `/impact/summary`; 519 pruebas .NET, cobertura 94 %. **Backend del MVP completo.** |
 | 08 | Frontend base y sistema de diseño | `etapas/ETAPA_08_frontend_base.md` | ✅ | 19/11/2026 | Rama `etapa-08-frontend-base` (PR apilado sobre el de la etapa 07). Tokens y tema claro/oscuro, componentes shadcn/ui y propios, cliente de API, login JWT, rutas por rol, layout responsive, administración de empresas y usuarios; 49 pruebas de frontend; capturas en `docs/capturas/etapa-08/`. |
 | 09 | Frontend: carga de datos y homologación | `etapas/ETAPA_09_frontend_carga.md` | ✅ | 19/11/2026 | Rama `etapa-09-frontend-carga` (PR apilado sobre el de la etapa 08). Asistente de carga de 3 pasos, homologación opcional con re-análisis, historial y datos consolidados; `/analysis/summary` y `/mappings/categories`; 62 pruebas de frontend y 523 .NET. |
-| 10 | Dashboard ejecutivo y problemas (cierre MVP) | `etapas/ETAPA_10_dashboard.md` | ⬜ | | |
+| 10 | Dashboard ejecutivo y problemas (cierre MVP) | `etapas/ETAPA_10_dashboard.md` | ✅ | 19/11/2026 | Rama `etapa-10-dashboard` (PR apilado sobre el de la etapa 09). Dashboard, problemas con detalle, KPIs, gráficos Recharts e informe PDF (QuestPDF) para todos los roles; Checklist MVP en `09_pruebas.md`; 540 pruebas .NET y 69 de frontend. **MVP completo.** |
 | 11 | Inteligencia artificial: recomendaciones, anomalías y resumen | `etapas/ETAPA_11_inteligencia_artificial.md` | ⬜ | | |
 | 12 | Módulo industrial | `etapas/ETAPA_12_modulo_industrial.md` | ⬜ | | |
 | 13 | Seguridad, calidad y datos demo | `etapas/ETAPA_13_calidad_y_demo.md` | ⬜ | | |
@@ -32,6 +32,8 @@ Revisado el 15/11/2026 (contenedor de Claude Code en la nube, Ubuntu 24.04, usua
   de Ubuntu noble-updates, SDK 10.0.115 / runtime 10.0.15). El repositorio de
   `packages.microsoft.com` para 24.04 no publica .NET 10 (el script lo intenta como respaldo y
   luego `dotnet-install.sh`).
+- **Docker tras un reinicio del contenedor:** si `dockerd` no arranca por un `docker.pid`
+  huérfano, `setup_cloud.sh --with-sql` lo elimina y vuelve a arrancar (etapa 10).
 - **Docker:** el daemon no corre al iniciar, pero `dockerd` está instalado y **sí arranca**
   (`nohup dockerd > /tmp/dockerd.log 2>&1 &`). `mcr.microsoft.com` responde, así que SQL Server
   2022 corre en contenedor: `docker compose up -d sqlserver` (sa / `Opsynex_Dev_2026!`,

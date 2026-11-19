@@ -165,3 +165,15 @@ problemas e impacto), y desde ahí va al dashboard. Si alguna cuenta quedó con 
 lo avisa y permite corregirla y volver a analizar. También muestra el historial de cargas y los
 datos consolidados por año. La siguiente etapa es el dashboard ejecutivo y los problemas
 (Etapa 10).
+
+**Etapa 10 completada (19/11/2026) — MVP completo.**
+- **Dashboard ejecutivo:** score con sus componentes, impacto económico total y por categoría,
+  KPIs con su variación anual, tendencias, principales problemas y recomendaciones.
+- **Problemas:** lista con filtros y una vista de detalle con el cálculo del impacto, el
+  histórico y la evidencia.
+- **KPIs:** página con la tabla histórica y un gráfico por indicador.
+- **Informe PDF:** informe ejecutivo descargable para todos los roles.
+
+Se cumplen todos los puntos de la «Definición MVP» de las dos especificaciones (ver *Pruebas →
+Checklist MVP*). Las etapas siguientes agregan inteligencia artificial (11), el módulo
+industrial (12), calidad y datos demo (13) y el despliegue (14).

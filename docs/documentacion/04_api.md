@@ -319,6 +319,25 @@ Sin `year` resume el último año con datos. Una empresa sin datos devuelve `yea
 `top` trae hasta 5 problemas ordenados por pérdida (mayor primero). `unquantifiedProblems` cuenta
 las alertas financieras y los problemas sin datos para estimar la pérdida.
 
+### Informes — `/api/v1/reports`
+
+| Método | Ruta | Rol | Response | Errores |
+|---|---|---|---|---|
+| GET | `/reports/executive?year=` | Todos (incluido Client) | 200 `application/pdf` (`Content-Disposition: attachment; filename=informe_<empresa>_<año>.pdf`) | 400 `reports.company_required` / `reports.invalid_year` / `reports.no_data` |
+
+Sin `year`, el informe es del último año analizado. Contenido:
+- portada con empresa, año, industria, moneda y fecha;
+- score con interpretación y componentes;
+- impacto total y por categoría;
+- tabla de KPIs con la variación anual;
+- gráfico de ingresos y costo total;
+- problemas con severidad, impacto y recomendación;
+- advertencias de calidad de la última carga del año;
+- nota metodológica.
+
+Está en tamaño Carta, con el nombre de la empresa y el número de página en el pie. Desde la
+etapa 11 incluye el resumen ejecutivo de la IA.
+
 ### Datos — `/api/v1/data`
 
 | Método | Ruta | Rol | Response |
