@@ -28,8 +28,9 @@ public sealed class LowEbitdaMarginRule : IDiagnosticRule
         return new RuleResult(
             severity,
             $"El margen EBITDA de {context.Year} ({Fmt.Pct(margin)}) está por debajo de la referencia de la industria ({Fmt.Pct(benchmark)}).",
-            "Compara precios, costos de producción y gastos con empresas del sector y define un plan para llevar el margen " +
-            "a la referencia.",
+            $"El margen EBITDA ({Fmt.Pct(margin)}) está {Fmt.Pp((benchmark - margin) * 100m).TrimStart('+')} por debajo de la " +
+            $"referencia ({Fmt.Pct(benchmark)}): compara precios, costos de producción y gastos con empresas del sector y " +
+            "define un plan para cerrar esa brecha.",
             new JsonObject
             {
                 ["kpi"] = KpiCode.EbitdaMargin.ToString(),
@@ -66,7 +67,9 @@ public sealed class HighOpexRatioRule : IDiagnosticRule
         return new RuleResult(
             severity,
             $"Los gastos operacionales representan {Fmt.Pct(ratio)} de los ingresos en {context.Year}, por encima de la referencia ({Fmt.Pct(benchmark)}).",
-            "Revisa los gastos de administración y ventas, renegocia contratos y elimina duplicidades.",
+            $"Los gastos operacionales ({Fmt.Pct(ratio)} de los ingresos) superan la referencia ({Fmt.Pct(benchmark)}) en " +
+            $"{Fmt.Pp((ratio - benchmark) * 100m).TrimStart('+')}: revisa los gastos de administración y ventas, renegocia " +
+            "contratos y elimina duplicidades.",
             new JsonObject
             {
                 ["kpi"] = KpiCode.OperatingCostRatio.ToString(),
@@ -104,8 +107,8 @@ public sealed class HighMaterialLossRule : IDiagnosticRule
         return new RuleResult(
             severity,
             $"La pérdida de materiales equivale a {Fmt.Pct(ratio)} del costo de ventas en {context.Year} (umbral {Fmt.Pct(threshold)}).",
-            "Mide las mermas por proceso y por lote, revisa almacenamiento y manejo de materiales y ajusta los parámetros de " +
-            "producción con más desperdicio.",
+            $"Las mermas ({Fmt.Pct(ratio)} del costo de ventas) superan el umbral de {Fmt.Pct(threshold)}: mídelas por proceso " +
+            "y por lote, revisa almacenamiento y manejo de materiales y ajusta los parámetros de producción con más desperdicio.",
             new JsonObject
             {
                 ["year"] = context.Year,
@@ -142,8 +145,8 @@ public sealed class LowLiquidityRule : IDiagnosticRule
         return new RuleResult(
             severity,
             $"La razón corriente de {context.Year} es {Fmt.Times(ratio)}: los activos corrientes no cubren los pasivos de corto plazo (mínimo {Fmt.Times(minimum)}).",
-            "Prepara un flujo de caja de 13 semanas, acelera la cobranza, renegocia plazos con proveedores y evalúa " +
-            "refinanciar deuda de corto a largo plazo.",
+            $"Con una razón corriente de {Fmt.Times(ratio)} (mínimo {Fmt.Times(minimum)}), prepara un flujo de caja de 13 " +
+            "semanas, acelera la cobranza, renegocia plazos con proveedores y evalúa refinanciar deuda de corto a largo plazo.",
             new JsonObject { ["kpi"] = KpiCode.CurrentRatio.ToString(), ["year"] = context.Year, ["current"] = ratio, ["minimum"] = minimum },
             KpiCode.CurrentRatio);
     }
@@ -173,8 +176,8 @@ public sealed class HighLeverageRule : IDiagnosticRule
         return new RuleResult(
             severity,
             $"Los pasivos equivalen a {Fmt.Times(ratio)} veces el patrimonio en {context.Year} (máximo recomendado {Fmt.Times(maximum)}).",
-            "Reduce deuda con la generación de caja, evita nuevo endeudamiento para gastos corrientes y evalúa aportes de " +
-            "capital o capitalizar utilidades.",
+            $"Con pasivos de {Fmt.Times(ratio)} veces el patrimonio (máximo {Fmt.Times(maximum)}), reduce deuda con la " +
+            "generación de caja, evita nuevo endeudamiento para gastos corrientes y evalúa aportes de capital o capitalizar utilidades.",
             new JsonObject { ["kpi"] = KpiCode.DebtToEquity.ToString(), ["year"] = context.Year, ["current"] = ratio, ["maximum"] = maximum },
             KpiCode.DebtToEquity);
     }

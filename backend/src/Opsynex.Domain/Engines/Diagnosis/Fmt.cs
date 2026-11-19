@@ -15,6 +15,21 @@ internal static class Fmt
 
     public static string Times(decimal value) => value.ToString("0.##", Es);
 
+    /// <summary>Monto con el símbolo de la moneda: "RD$ 1.234.567".</summary>
+    public static string Money(decimal amount, string? currency)
+    {
+        var symbol = currency?.ToUpperInvariant() switch
+        {
+            "DOP" => "RD$",
+            "USD" => "US$",
+            "EUR" => "€",
+            null or "" => string.Empty,
+            var code => code,
+        };
+        var text = decimal.Round(amount, 0).ToString("#,##0", Es);
+        return symbol.Length == 0 ? text : $"{symbol} {text}";
+    }
+
     public static decimal R(decimal value, int decimals = 4) => decimal.Round(value, decimals);
 
     private static string Signed(decimal value, string format) =>
