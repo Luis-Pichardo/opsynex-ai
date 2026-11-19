@@ -135,7 +135,7 @@ public sealed class IndustrialDiagnosisEngineTests
     [InlineData(10.9, false)] // tolerancia del 10 %
     [InlineData(11.1, true)]
     public void CostAboveStandard_RespectsTheTolerance(double costPerUnit, bool fires) =>
-        Evaluate(null, Machine("M1", costPerUnit: (decimal)costPerUnit, standardCost: 10m)).Any().ShouldBe(fires);
+        (Evaluate(null, Machine("M1", costPerUnit: (decimal)costPerUnit, standardCost: 10m)).Count > 0).ShouldBe(fires);
 
     [Fact]
     public void ThresholdsAndSeverities_AreConfigurable()
