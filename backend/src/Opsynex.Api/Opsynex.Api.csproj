@@ -22,4 +22,9 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
+  <!-- Libros sintéticos para el comando seed-demo (sin datos de clientes). -->
+  <ItemGroup>
+    <None Include="..\..\sample-data\libro_sintetico_2a.xls;..\..\sample-data\libro_sintetico_3a.xls" LinkBase="sample-data" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <None Include="..\..\sample-data\industrial\*.xlsx" LinkBase="sample-data\industrial" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>

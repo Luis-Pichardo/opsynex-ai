@@ -4,6 +4,7 @@ using Asp.Versioning;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Opsynex.Api.Auth;
+using Opsynex.Api.Demo;
 using Opsynex.Api.Extensions;
 using Opsynex.Api.OpenApi;
 using Opsynex.Api.Health;
@@ -23,10 +24,13 @@ Log.Logger = new LoggerConfiguration()
 try
 {
     // Comando "seed-admin": crea el primer Admin desde Seed:AdminEmail/Seed:AdminPassword y termina.
+    // Comando "seed-demo": empresas, usuarios y datos sintéticos de demostración, y termina.
     const string SeedAdminCommand = "seed-admin";
     var runSeedCommand = args.Contains(SeedAdminCommand, StringComparer.OrdinalIgnoreCase);
+    var runDemoCommand = args.Contains(Opsynex.Api.Demo.DemoSeeder.Command, StringComparer.OrdinalIgnoreCase);
     var builder = WebApplication.CreateBuilder(
-        args.Where(a => !a.Equals(SeedAdminCommand, StringComparison.OrdinalIgnoreCase)).ToArray());
+        args.Where(a => !a.Equals(SeedAdminCommand, StringComparison.OrdinalIgnoreCase)
+            && !a.Equals(Opsynex.Api.Demo.DemoSeeder.Command, StringComparison.OrdinalIgnoreCase)).ToArray());
 
     // Logging estructurado con Serilog (configurable desde la sección "Serilog").
     builder.Services.AddSerilog((services, lc) => lc
@@ -102,6 +106,21 @@ try
             Log.Information("seed-admin: {Result}", result);
         }
 
+        return;
+    }
+
+    if (runDemoCommand)
+    {
+        var demo = await app.Services.SeedDemoAsync();
+        foreach (var step in demo.Steps)
+        {
+            Log.Information("seed-demo: {Step}", step);
+        }
+
+        Log.Information(
+            "seed-demo listo en {Seconds:0.0} s. Usuarios: {Users}. Contraseña: la de Demo:Password o la predeterminada documentada.",
+            demo.Elapsed.TotalSeconds,
+            string.Join(", ", demo.Users.Select(u => $"{u.Email} ({u.Role})")));
         return;
     }
 
