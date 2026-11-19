@@ -97,6 +97,24 @@ jobs:
       - run: npm test
       - run: npm run build
 
+  infra:
+    name: Infraestructura (Bicep)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      # Compila y valida la sintaxis y las reglas de Bicep (no necesita cuenta de Azure).
+      - run: az bicep install
+      - run: az bicep build --file infra/main.bicep --stdout > /dev/null
+      - run: az bicep lint --file infra/main.bicep
+      - run: |
+          AZURE_KEY_VAULT=kv-ci SEED_ADMIN_EMAIL=ci@example.com ALERT_EMAIL=ci@example.com \
+            az bicep build-params --file infra/main.bicepparam --stdout > /dev/null
+      - run: docker compose -f docker-compose.prod.yml config --quiet
+        env:
+          MSSQL_SA_PASSWORD: ci-Passw0rd!
+          AiService__ApiKey: ci
+          Jwt__Secret: secreto-de-la-ci-para-validar-compose-0123456789
+
   e2e:
     name: E2E (Playwright)
     runs-on: ubuntu-24.04

@@ -2,7 +2,7 @@
 
 from functools import lru_cache
 
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -25,6 +25,13 @@ class Settings(BaseSettings):
     llm_timeout_seconds: float = Field(default=90.0, alias="LLM_TIMEOUT_SECONDS")
     llm_max_retries: int = Field(default=2, alias="LLM_MAX_RETRIES")
     log_level: str = Field(default="INFO", alias="LOG_LEVEL")
+
+    @field_validator("anthropic_api_key")
+    @classmethod
+    def _placeholder_means_not_configured(cls, value: str) -> str:
+        # Key Vault no admite secretos vacíos: "disabled" (o "none") significa sin clave de Claude.
+        value = value.strip()
+        return "" if value.lower() in {"disabled", "none", "-"} else value
 
 
 @lru_cache

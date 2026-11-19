@@ -1,0 +1,155 @@
+name: Deploy
+
+# Despliegue a producción en Azure (etapa 14). Se ejecuta cuando la CI termina en verde sobre
+# main (es decir, después de cada merge) o a mano. Autenticación OIDC: sin contraseñas en GitHub.
+# Requiere las variables que crea scripts/azure-bootstrap.sh; sin ellas, el workflow termina
+# sin hacer nada y lo indica.
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Desplegar en Azure
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    environment:
+      name: production
+      url: ${{ steps.base.outputs.web_url }}
+    env:
+      RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+      AZURE_KEY_VAULT: ${{ vars.AZURE_KEY_VAULT }}
+      SEED_ADMIN_EMAIL: ${{ vars.SEED_ADMIN_EMAIL }}
+      ALERT_EMAIL: ${{ vars.ALERT_EMAIL }}
+      IMAGE_TAG: ${{ github.event.workflow_run.head_sha || github.sha }}
+    steps:
+      - name: Comprobar la configuración de Azure
+        id: config
+        run: |
+          if [ -z "${{ vars.AZURE_CLIENT_ID }}" ] || [ -z "$RESOURCE_GROUP" ] || [ -z "$AZURE_KEY_VAULT" ]; then
+            echo "::notice::Azure no está configurado (ejecuta scripts/azure-bootstrap.sh). No se despliega."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.config.outputs.ready == 'true'
+        with:
+          ref: ${{ env.IMAGE_TAG }}
+
+      - uses: azure/login@v2
+        if: steps.config.outputs.ready == 'true'
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      # 1) Infraestructura base: monitoreo, ACR, identidad, SQL (con backups) y entorno.
+      - name: Infraestructura base
+        id: base
+        if: steps.config.outputs.ready == 'true'
+        env:
+          DEPLOY_JOB: "false"
+          DEPLOY_APPS: "false"
+        run: |
+          az deployment group create -g "$RESOURCE_GROUP" -n "base-${IMAGE_TAG:0:12}" \
+            --template-file infra/main.bicep --parameters infra/main.bicepparam \
+            --query properties.outputs -o json > outputs.json
+          {
+            echo "registry_name=$(jq -r .registryName.value outputs.json)"
+            echo "registry_server=$(jq -r .registryServer.value outputs.json)"
+            echo "api_url=$(jq -r .apiUrl.value outputs.json)"
+            echo "web_url=$(jq -r .webUrl.value outputs.json)"
+            echo "job_name=$(jq -r .migrationsJobName.value outputs.json)"
+          } >> "$GITHUB_OUTPUT"
+
+      # 2) Imágenes etiquetadas con el commit. El frontend incrusta la URL del API.
+      - name: Construir y subir las imágenes
+        if: steps.config.outputs.ready == 'true'
+        env:
+          REGISTRY: ${{ steps.base.outputs.registry_server }}
+          API_URL: ${{ steps.base.outputs.api_url }}
+        run: |
+          az acr login -n "${{ steps.base.outputs.registry_name }}"
+          docker build -t "$REGISTRY/opsynex-api:$IMAGE_TAG" backend
+          docker build -t "$REGISTRY/opsynex-migrations:$IMAGE_TAG" --target migrations backend
+          docker build -t "$REGISTRY/opsynex-ai:$IMAGE_TAG" ai-service
+          docker build -t "$REGISTRY/opsynex-web:$IMAGE_TAG" --build-arg VITE_API_URL="$API_URL" frontend
+          for image in opsynex-api opsynex-migrations opsynex-ai opsynex-web; do
+            docker push "$REGISTRY/$image:$IMAGE_TAG"
+          done
+
+      # 3) Migraciones de EF Core (bundle) en un job de Container Apps, ANTES de la nueva versión.
+      - name: Job de migraciones
+        if: steps.config.outputs.ready == 'true'
+        env:
+          DEPLOY_JOB: "true"
+          DEPLOY_APPS: "false"
+        run: |
+          az deployment group create -g "$RESOURCE_GROUP" -n "job-${IMAGE_TAG:0:12}" \
+            --template-file infra/main.bicep --parameters infra/main.bicepparam -o none
+
+      - name: Aplicar migraciones
+        if: steps.config.outputs.ready == 'true'
+        env:
+          JOB: ${{ steps.base.outputs.job_name }}
+        run: |
+          execution=$(az containerapp job start -n "$JOB" -g "$RESOURCE_GROUP" --query name -o tsv)
+          echo "Ejecución: $execution"
+          for i in $(seq 1 90); do
+            status=$(az containerapp job execution show -n "$JOB" -g "$RESOURCE_GROUP" \
+              --job-execution-name "$execution" --query properties.status -o tsv)
+            echo "Estado: $status"
+            case "$status" in
+              Succeeded) exit 0 ;;
+              Failed|Stopped|Degraded) echo "::error::Las migraciones fallaron (ver los logs del job en Log Analytics)."; exit 1 ;;
+            esac
+            sleep 10
+          done
+          echo "::error::Las migraciones no terminaron en 15 minutos."; exit 1
+
+      # 4) Nueva versión de web, api y ai (revisión única; Container Apps cambia sin cortar el tráfico).
+      - name: Desplegar las apps
+        if: steps.config.outputs.ready == 'true'
+        env:
+          DEPLOY_JOB: "true"
+          DEPLOY_APPS: "true"
+        run: |
+          az deployment group create -g "$RESOURCE_GROUP" -n "apps-${IMAGE_TAG:0:12}" \
+            --template-file infra/main.bicep --parameters infra/main.bicepparam -o none
+
+      - name: Prueba de humo
+        if: steps.config.outputs.ready == 'true'
+        env:
+          API_URL: ${{ steps.base.outputs.api_url }}
+          WEB_URL: ${{ steps.base.outputs.web_url }}
+        run: |
+          for i in $(seq 1 30); do
+            if curl -fsS "$API_URL/health/ready" > /dev/null && curl -fsS "$WEB_URL/healthz" > /dev/null; then
+              version=$(curl -fsS "$API_URL/health/live" | jq -r .version)
+              {
+                echo "### Opsynex AI desplegado"
+                echo ""
+                echo "- Aplicación: $WEB_URL"
+                echo "- API: $API_URL (versión $version)"
+                echo "- Imágenes: \`$IMAGE_TAG\`"
+              } >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "::error::La plataforma no respondió después del despliegue."; exit 1

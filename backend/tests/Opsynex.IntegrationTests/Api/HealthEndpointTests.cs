@@ -52,4 +52,23 @@ public sealed class HealthEndpointTests(OpsynexApiFactory factory) : IClassFixtu
 
         response.Headers.GetValues("Access-Control-Allow-Origin").ShouldContain("http://localhost:5173");
     }
+
+    [Theory]
+    [InlineData("/health/live", "self")]
+    [InlineData("/health/ready", "database")]
+    public async Task ProbeEndpoints_RunOnlyTheirChecks(string path, string expectedCheck)
+    {
+        using var client = factory.CreateClient();
+
+        using var response = await client.GetAsync(new Uri(path, UriKind.Relative), TestContext.Current.CancellationToken);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+        var checks = json.RootElement.GetProperty("checks").EnumerateArray().Select(c => c.GetProperty("name").GetString()).ToList();
+        checks.ShouldContain(expectedCheck);
+        if (path.EndsWith("live", StringComparison.Ordinal))
+        {
+            checks.ShouldBe(["self"]); // la sonda de vida no depende de la BD ni de la IA
+        }
+    }
 }
