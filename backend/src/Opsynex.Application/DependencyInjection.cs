@@ -26,6 +26,8 @@ public static class DependencyInjection
         services.AddScoped<Analysis.AnalysisPipeline>();
         services.AddScoped<Analysis.KpiService>();
         services.AddScoped<Analysis.ProblemService>();
+        services.AddScoped<Analysis.ScoreService>();
+        services.AddScoped<Analysis.ImpactService>();
 
         // Reglas de diagnóstico: todas las implementaciones de IDiagnosticRule del dominio.
         foreach (var rule in typeof(Domain.Engines.Diagnosis.IDiagnosticRule).Assembly.GetTypes()
@@ -40,6 +42,10 @@ public static class DependencyInjection
             .Validate(
                 o => o.Rules.Values.All(r => r.Low >= 0 && r.Low <= r.Medium && r.Medium <= r.High),
                 "DiagnosisRules: cada regla necesita 0 <= Low <= Medium <= High.")
+            .ValidateOnStart();
+        services.AddOptions<Domain.Engines.Scoring.ScoreSettings>()
+            .BindConfiguration(Domain.Engines.Scoring.ScoreSettings.SectionName)
+            .Validate(o => !o.Validate().Any(), "Score: pesos o parámetros inválidos (los pesos deben sumar 1).")
             .ValidateOnStart();
         services.AddOptions<Analysis.BenchmarkOptions>()
             .BindConfiguration(Analysis.BenchmarkOptions.SectionName)

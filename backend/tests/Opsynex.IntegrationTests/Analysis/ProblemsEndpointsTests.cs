@@ -142,7 +142,10 @@ public sealed class ProblemsEndpointsTests(OpsynexApiFactory factory) : IClassFi
             detail.Description.ShouldContain("22,8 %");
             detail.KpiHistory.Select(h => h.Year).ShouldBe([2022, 2023, 2024]);
             detail.KpiHistory[2].Value.ShouldBe(0.1861m);
-            detail.ImpactValue.ShouldBeNull(); // se calcula en la etapa 07
+            // Impacto (etapa 07): (22,8 % − 19,75 %) × ingresos de 2023 = 3,05 pp de margen.
+            detail.ImpactValue.ShouldNotBeNull().ShouldBeGreaterThan(0m);
+            detail.Evidence["impact"]!["affectedMarginPp"]!.GetValue<decimal>().ShouldBe(3.05m);
+            detail.Recommendation.ShouldContain("Impacto estimado: US$"); // moneda de la empresa de prueba
         }
     }
 
