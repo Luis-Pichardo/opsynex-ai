@@ -5,6 +5,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using Opsynex.Application.Abstractions.Persistence;
+using Opsynex.Application.Abstractions.Security;
+using Opsynex.Infrastructure.Security;
 using Opsynex.Application.Abstractions.Tenancy;
 using Opsynex.Domain.Entities;
 using Opsynex.Infrastructure.Persistence;
@@ -56,6 +58,8 @@ public static class DependencyInjection
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         services.AddScoped(typeof(ICompanyYearRepository<>), typeof(CompanyYearRepository<>));
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<ICompanyRepository, CompanyRepository>();
+        services.AddSingleton<IPasswordService, PasswordService>();
         services.AddScoped<IAccountMappingRepository, AccountMappingRepository>();
 
         // Etapa 04: cliente HTTP del servicio de IA.

@@ -20,4 +20,18 @@ y restricciones CHECK. Las pruebas unitarias verifican la configuración del mod
 únicos, precisión, enums como texto, columnas JSON, filtros) y que no haya cambios del modelo
 sin migración.
 
+### Autenticación y permisos (Etapa 02)
+
+- `Auth/AuthEndpointsTests`: login (claims del JWT, sin contraseña en la respuesta, mismo
+  error para correo inexistente y contraseña errónea), `/me`, tokens ausentes, mal formados,
+  con otra firma, vencidos o de un usuario cuyo rol cambió, y `register` por rol.
+- `Auth/LockoutTests`: bloqueo al 5.º intento, `Retry-After`, desbloqueo por tiempo y por
+  cambio de contraseña, expiración del token. Usa `TimeTravelApiFactory` con un
+  `FakeTimeProvider` para adelantar el reloj sin esperas.
+- `Auth/CompaniesEndpointsTests` y `Auth/UsersEndpointsTests`: CRUD, validaciones,
+  conflictos y aislamiento por empresa (otra empresa → 404; selección de empresa del Admin).
+- `Auth/PermissionMatrixTests`: cada política y endpoint real contra anónimo, Admin, Analyst y
+  Client. Usa un controlador solo de pruebas (`TestPolicyController`) por política, porque los
+  endpoints de carga y análisis llegan en etapas posteriores.
+
 > Pendiente (Etapas 07, 10 y 12): estrategia completa, cobertura y checklist del MVP.

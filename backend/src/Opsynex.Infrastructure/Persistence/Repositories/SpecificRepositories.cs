@@ -17,6 +17,18 @@ internal sealed class UserRepository(OpsynexDbContext context) : Repository<User
         return Set.IgnoreQueryFilters([OpsynexDbContext.CompanyFilter])
             .FirstOrDefaultAsync(u => u.Email == normalized, cancellationToken);
     }
+
+    public Task<User?> GetByIdIgnoringFiltersAsync(Guid id, CancellationToken cancellationToken = default) =>
+        Set.IgnoreQueryFilters([OpsynexDbContext.CompanyFilter]).FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
+}
+
+internal sealed class CompanyRepository(OpsynexDbContext context) : Repository<Company>(context), ICompanyRepository
+{
+    public Task<string?> FindNameIgnoringFiltersAsync(Guid companyId, CancellationToken cancellationToken = default) =>
+        Set.IgnoreQueryFilters([OpsynexDbContext.CompanyFilter])
+            .Where(c => c.Id == companyId)
+            .Select(c => c.Name)
+            .FirstOrDefaultAsync(cancellationToken);
 }
 
 internal sealed class CompanyYearRepository<TEntity>(OpsynexDbContext context)

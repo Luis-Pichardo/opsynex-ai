@@ -21,8 +21,11 @@ en `backend/src/Opsynex.Api`). Nunca subas secretos al repositorio.
 | Variable | Componente | Descripción | Ejemplo |
 |---|---|---|---|
 | `ConnectionStrings__Default` | API | Cadena de conexión a SQL Server | `Server=localhost,1433;Database=Opsynex;User Id=sa;Password=…;TrustServerCertificate=True` |
-| `Jwt__Secret` | API | Secreto para firmar los tokens (≥ 32 caracteres) | valor aleatorio |
-| `Jwt__ExpireMinutes` | API | Duración del token | `60` |
+| `Jwt__Secret` | API | Secreto para firmar los tokens (≥ 32 bytes; obligatorio, el API no arranca sin él) | valor aleatorio |
+| `Jwt__ExpireMinutes` | API | Duración del token en minutos (1–1440) | `60` |
+| `Jwt__Issuer` / `Jwt__Audience` | API | Emisor y audiencia del token | `opsynex-api` / `opsynex-web` |
+| `Auth__MaxFailedAttempts` / `Auth__LockoutMinutes` | API | Intentos fallidos antes del bloqueo y duración | `5` / `15` |
+| `Seed__AdminEmail` / `Seed__AdminPassword` | API | Primer Admin (se crea al arrancar si no existe) | `admin@tuempresa.com` / contraseña segura |
 | `Cors__Origins` | API | Orígenes del frontend permitidos (separados por comas) | `http://localhost:5173` |
 | `AiService__BaseUrl` | API | URL del servicio de IA | `http://localhost:8001` |
 | `AiService__ApiKey` | API | Clave interna compartida con el servicio de IA | valor aleatorio |
@@ -60,6 +63,23 @@ cd frontend
 npm install
 npm run dev
 ```
+
+**Primer usuario Admin:** no hay auto-registro. Define `Seed__AdminEmail` y
+`Seed__AdminPassword` (o en User Secrets: `dotnet user-secrets set "Seed:AdminEmail" "..."`)
+y arranca el API, o ejecuta el comando:
+
+```bash
+cd backend
+Seed__AdminEmail=admin@tuempresa.com Seed__AdminPassword='CambiaEsto2026' \
+  dotnet run --project src/Opsynex.Api -- seed-admin
+```
+
+El comando crea el Admin si no existe y termina (código de salida 1 si faltan las
+variables). Luego inicia sesión con `POST /api/v1/auth/login` (en Scalar o desde el frontend)
+y crea las empresas y usuarios.
+
+`appsettings.Development.json` trae un `Jwt:Secret` solo para desarrollo; en cualquier otro
+entorno define `Jwt__Secret` con un valor aleatorio (por ejemplo `openssl rand -base64 48`).
 
 **En Visual Studio:** abre `backend/Opsynex.sln`, marca `Opsynex.Api` como proyecto de inicio
 y ejecuta el perfil `http` (abre Scalar en el navegador). Las pruebas aparecen en el

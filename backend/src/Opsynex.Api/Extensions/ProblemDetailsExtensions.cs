@@ -4,6 +4,8 @@ namespace Opsynex.Api.Extensions;
 
 public static class ProblemDetailsExtensions
 {
+    public const string CodeKey = "code";
+
     /// <summary>
     /// Errores en formato ProblemDetails (RFC 7807) con un <c>code</c> propio y el <c>traceId</c>.
     /// </summary>
@@ -12,7 +14,10 @@ public static class ProblemDetailsExtensions
         services.AddProblemDetails(options => options.CustomizeProblemDetails = ctx =>
         {
             var extensions = ctx.ProblemDetails.Extensions;
-            extensions.TryAdd("code", CodeForStatus(ctx.ProblemDetails.Status ?? ctx.HttpContext.Response.StatusCode));
+            var code = ctx.ProblemDetails is HttpValidationProblemDetails
+                ? "validation_failed"
+                : CodeForStatus(ctx.ProblemDetails.Status ?? ctx.HttpContext.Response.StatusCode);
+            extensions.TryAdd(CodeKey, code);
             extensions.TryAdd("traceId", Activity.Current?.Id ?? ctx.HttpContext.TraceIdentifier);
         });
 
@@ -29,6 +34,7 @@ public static class ProblemDetailsExtensions
         StatusCodes.Status409Conflict => "conflict",
         StatusCodes.Status413PayloadTooLarge => "payload_too_large",
         StatusCodes.Status415UnsupportedMediaType => "unsupported_media_type",
+        StatusCodes.Status423Locked => "locked",
         StatusCodes.Status422UnprocessableEntity => "validation_failed",
         StatusCodes.Status429TooManyRequests => "too_many_requests",
         StatusCodes.Status503ServiceUnavailable => "service_unavailable",

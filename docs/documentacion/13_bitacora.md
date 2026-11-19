@@ -79,3 +79,37 @@ Registro de cada etapa completada (la más reciente al final).
     respaldo automático a SQLite in-memory sin Docker.
   - `dotnet-ef` como herramienta local (`backend/dotnet-tools.json`).
 - **Pendientes:** Etapa 02 (autenticación JWT y roles; conectar `ICurrentTenant` al usuario).
+
+### Etapa 02 — Autenticación y roles (18/11/2026)
+
+- **Resumen:** login con JWT (HS256, claims `sub`, `email`, `role`, `company_id`), `GET /me`,
+  alta de usuarios solo por Admin (`POST /auth/register` y `/users`), CRUD de empresas y
+  usuarios, contraseñas con `PasswordHasher<User>`, bloqueo de 15 minutos tras 5 intentos
+  fallidos, políticas `CanManage` / `CanAnalyze` / `CanView`, `ICurrentUser` y
+  `HttpCurrentTenant` conectados al filtro global por empresa, seed del primer Admin (al
+  arrancar o con `-- seed-admin`) y errores ProblemDetails con `code` (`auth.*`, `user.*`,
+  `company.*`). Migración `AddUserLockout`.
+- **Archivos principales:** `backend/src/Opsynex.Api/Auth/`, `Controllers/AuthController.cs`,
+  `UsersController.cs`, `CompaniesController.cs`, `Extensions/AppExceptionHandler.cs`,
+  `OpenApi/BearerSecuritySchemeTransformer.cs`, `backend/src/Opsynex.Application/{Auth,Users,Companies}/`,
+  `Infrastructure/Security/PasswordService.cs`, `backend/tests/Opsynex.IntegrationTests/Auth/`.
+- **Decisiones técnicas:**
+  - **Sin auto-registro** (decisión del cliente en `FLUJO_DE_USUARIO.md`): `POST /auth/register`
+    exige token de Admin; `POST /users` es equivalente.
+  - Política por defecto "requiere sesión": todo endpoint nuevo queda protegido salvo que se
+    marque `[AllowAnonymous]`. Efecto: sin token, una ruta inexistente responde 401 (no revela
+    rutas).
+  - En cada petición se verifica que el usuario siga activo y con el mismo rol y empresa: así
+    desactivar a un usuario o cambiarle el rol corta su sesión sin esperar a que expire el token.
+  - El bloqueo responde **423 Locked** con `Retry-After`; un correo inexistente responde igual
+    que una contraseña errónea y se verifica un hash ficticio para igualar tiempos.
+  - `DELETE /users/{id}` **desactiva** (sus cargas y confirmaciones lo referencian); un Admin
+    no puede desactivarse ni quitarse el rol a sí mismo.
+  - Los Analyst y Client pueden ver su propia empresa (`GET /companies`), lo que también
+    demuestra el aislamiento (otra empresa → 404).
+  - La expiración del JWT se valida con el `TimeProvider` de la aplicación (se puede probar
+    adelantando el reloj).
+  - SQLite (respaldo de pruebas) reporta `ON DELETE RESTRICT` con el código 1811; se traduce
+    igual que el 547 de SQL Server a 409.
+- **Pendientes:** cambio de contraseña por el propio usuario y recuperación por correo (no
+  pedidos en el MVP); límites de tasa en el login (Etapa 13).

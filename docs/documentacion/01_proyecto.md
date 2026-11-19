@@ -119,3 +119,8 @@ hay lógica de negocio.
 Etapa 01 completada (15/11/2026): modelo de datos en SQL Server con EF Core (10 tablas,
 migración inicial, filtro por empresa, repositorios y pruebas contra SQL Server real). La
 siguiente etapa es la autenticación y los roles (Etapa 02).
+
+Etapa 02 completada (18/11/2026): inicio de sesión con JWT, contraseñas con hash seguro,
+bloqueo temporal tras 5 intentos fallidos, roles Admin / Analyst / Client con aislamiento por
+empresa, administración de empresas y usuarios (solo Admin, sin auto-registro) y creación del
+primer Admin. La siguiente etapa es la carga y validación de datos (Etapa 03).
